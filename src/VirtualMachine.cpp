@@ -13,11 +13,11 @@ InterpretResult VirtualMachine::interpret(const std::string& source)
 	//compile the source string into chunk
 	
 	chunk.write(OpCode::CONSTANT, 1);
-	chunk.write(chunk.addConstant(Value("Hello")), 1);
+	chunk.write(chunk.addConstant(Value(4)), 1);
 	chunk.write(OpCode::CONSTANT, 1);
-	chunk.write(chunk.addConstant(Value(69)), 1);
-	chunk.write(OpCode::CONSTANT, 1);
-	chunk.write(chunk.addConstant(Value(true)), 1);
+	chunk.write(chunk.addConstant(Value(2)), 1);
+	chunk.write(OpCode::MODULO, 1);
+	chunk.write(OpCode::PRINT, 1);
 	chunk.write(OpCode::RETURN, 1);
 
 	//run the byte-code in chunk
@@ -58,13 +58,85 @@ InterpretResult VirtualMachine::run()
 	{
 		switch (readByte())
 		{
-		case (int)op::CONSTANT:
+		case (int)op::CONSTANT: push(readConstant()); break;
+		case (int)op::NOT: push(!readConstant().asBool()); break;
+		case (int)op::INEGATE: push(-readConstant().asInt()); break;
+		case (int)op::DNEGATE: push(-readConstant().asDouble()); break;
+		case (int)op::IADD: push(pop().asInt() + pop().asInt()); break;
+		case (int)op::DADD: push(pop().asDouble() + pop().asDouble()); break;
+		case (int)op::SADD:
 		{
-			push(readConstant());
+			std::string b = *pop().asString();
+			std::string a = *pop().asString();
+			push(a + b);
+			break;
+		}
+		case (int)op::IMULTIPLY: push(pop().asInt() * pop().asInt()); break;
+		case (int)op::DMULTIPLY: push(pop().asDouble() * pop().asDouble()); break;
+		case (int)op::MODULO:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(a % b);
+			break;
+		}
+		case (int)op::ISUBTRACT:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(a - b);
+			break;
+		}
+		case (int)op::DSUBTRACT:
+		{
+			double b = pop().asDouble();
+			double a = pop().asDouble();
+			push(a - b);
+			break;
+		}
+		case (int)op::IDIVIDE:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(a / b);
+			break;
+		}
+		case (int)op::DDIVIDE:
+		{
+			double b = pop().asDouble();
+			double a = pop().asDouble();
+			push(a / b);
+			break;
+		}
+		case (int)op::IEXPONENT:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push((int)pow(a, b));
+			break;
+		}
+		case (int)op::DEXPONENT:
+		{
+			double b = pop().asDouble();
+			double a = pop().asDouble();
+			push(pow(a, b));
 			break;
 		}
 		case (int)op::RETURN: return InterpretResult::OK;
-			default: return InterpretResult::RuntimeError;
+		default: return InterpretResult::RuntimeError;
+		case (int)op::PRINT:
+		{
+			Value val = pop();
+			switch (val.getType())
+			{
+			case ValueType::INT: std::cout << val.asInt() << "\n"; break;
+			case ValueType::DOUBLE: std::cout << val.asDouble() << "\n"; break;
+			case ValueType::BOOL: std::cout << val.asBool() << "\n"; break;
+			case ValueType::CHAR: std::cout << val.asChar() << "\n"; break;
+			case ValueType::STRING: std::cout << *val.asString() << "\n"; break;
+			default: std::cout << "Invalid Type\n"; break;
+			}
+		}
 		}
 	}
 

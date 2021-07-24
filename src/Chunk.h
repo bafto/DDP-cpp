@@ -22,7 +22,8 @@ enum class OpCode
 	MODULO, //int modulo
 	IEXPONENT, //int exponent
 	DEXPONENT, //double exponent
-	RETURN
+	RETURN,
+	PRINT
 };
 
 //holds byte-code and constant Values
