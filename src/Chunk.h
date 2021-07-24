@@ -15,6 +15,7 @@ class Chunk
 {
 public:
 	void writeChunk(uint8_t byte, int line); //add a byte to the chunk
+	void writeChunk(OpCode code, int line); //add a OpCode to the chunk (just takes away the casting)
 	int addConstant(Value val); //add a value to constants and return its index
 
 public:
