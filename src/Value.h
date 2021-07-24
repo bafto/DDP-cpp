@@ -2,6 +2,8 @@
 
 #include <string>
 #include <variant>
+#include <iostream>
+#include "common.h"
 
 //enum class for all Types a Value can have
 enum class ValueType
@@ -97,6 +99,21 @@ public:
 	char& asChar() { return std::get<char>(_val); }
 	std::string* asString() { return std::get<std::string*>(_val); }
 
+#ifdef _MDEBUG_
+	void printValue()
+	{
+		std::cout << "[Value] ";
+		switch (getType())
+		{
+		case ValueType::INT: std::cout << asInt(); break;
+		case ValueType::DOUBLE: std::cout << asDouble(); break;
+		case ValueType::BOOL: std::cout << asBool(); break;
+		case ValueType::CHAR: std::cout << asChar(); break;
+		case ValueType::STRING: std::cout << *asString(); break;
+		default: std::cout << "Invalid Type";
+		}
+	}
+#endif
 public:
 	std::variant<
 		int,
