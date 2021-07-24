@@ -1,7 +1,11 @@
 #include <iostream>
 
+#include "VirtualMachine.h"
+
 int main(int argc, char* argv[])
 {
-	std::cout << "Hello World\n";
+	VirtualMachine vm;
+	vm.interpret("");
+
 	return 0;
 }
