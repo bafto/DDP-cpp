@@ -7,6 +7,21 @@
 enum class OpCode
 {
 	CONSTANT,
+	INEGATE, //int negate
+	DNEGATE, //double negate
+	NOT, //bool negate
+	IADD, //int addition
+	DADD, //double addition
+	SADD, //string concetetnation
+	ISUBTRACT, //int subtraction
+	DSUBTRACT, //double subraction
+	IMULTIPLY, //int multiplication
+	DMULTIPLY, //double multiplication
+	IDIVIDE, //int division
+	DDIVIDE, //double division
+	MODULO, //int modulo
+	IEXPONENT, //int exponent
+	DEXPONENT, //double exponent
 	RETURN
 };
 

@@ -8,7 +8,7 @@ void Chunk::write(uint8_t byte, int line)
 
 void Chunk::write(OpCode code, int line)
 {
-    writeChunk((uint8_t)code, line);
+    write((uint8_t)code, line);
 }
 
 int Chunk::addConstant(Value val)
