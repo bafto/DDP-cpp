@@ -18,8 +18,11 @@ enum class ValueType
 };
 
 //thrown if Value is assigned to another type than it's own
-class bad_assignement_exception
-{};
+class bad_assignement_exception : public base_exception
+{
+public:
+	bad_assignement_exception(const std::string& msg) : base_exception(msg) {}
+};
 
 class Value
 {
@@ -49,42 +52,42 @@ public:
 	Value& operator=(const int& rhs)
 	{ 
 		if (getType() != ValueType::INT)
-			throw bad_assignement_exception();
+			throw bad_assignement_exception(GENERATE_EXCEPTION(bad_assignement_exception, "cannot assign to int"));
 		_val = rhs;
 		return *this;
 	}
 	Value& operator=(const double& rhs)
 	{
 		if (getType() != ValueType::DOUBLE)
-			throw bad_assignement_exception();
+			throw bad_assignement_exception(GENERATE_EXCEPTION(bad_assignement_exception, "cannot assign to double"));
 		_val = rhs;
 		return *this;
 	}
 	Value& operator=(const bool& rhs)
 	{
 		if (getType() != ValueType::BOOL)
-			throw bad_assignement_exception();
+			throw bad_assignement_exception(GENERATE_EXCEPTION(bad_assignement_exception, "cannot assign to bool"));
 		_val = rhs;
 		return *this;
 	}
 	Value& operator=(const char& rhs)
 	{
 		if (getType() != ValueType::CHAR)
-			throw bad_assignement_exception();
+			throw bad_assignement_exception(GENERATE_EXCEPTION(bad_assignement_exception, "cannot assign to char"));
 		_val = rhs;
 		return *this;
 	}
 	Value& operator=(const std::string& rhs)
 	{
 		if (getType() != ValueType::STRING)
-			throw bad_assignement_exception();
+			throw bad_assignement_exception(GENERATE_EXCEPTION(bad_assignement_exception, "cannot assign to std::string"));
 		*asString() = rhs;
 		return *this;
 	}
 	Value& operator=(const char* rhs)
 	{
 		if (getType() != ValueType::STRING)
-			throw bad_assignement_exception();
+			throw bad_assignement_exception(GENERATE_EXCEPTION(bad_assignement_exception, "cannot assign to const char*"));
 		*asString() = rhs;
 		return *this;
 	}
