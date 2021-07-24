@@ -1,12 +1,12 @@
 #include "Chunk.h"
 
-void Chunk::writeChunk(uint8_t byte, int line)
+void Chunk::write(uint8_t byte, int line)
 {
     code.push_back(byte);
     lines.push_back(line);
 }
 
-void Chunk::writeChunk(OpCode code, int line)
+void Chunk::write(OpCode code, int line)
 {
     writeChunk((uint8_t)code, line);
 }
