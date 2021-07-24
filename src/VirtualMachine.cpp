@@ -12,27 +12,42 @@ InterpretResult VirtualMachine::interpret(const std::string& source)
 {
 	//compile the source string into chunk
 	
-	chunk.writeChunk(OpCode::CONSTANT, 1);
-	chunk.writeChunk(chunk.addConstant(Value("Hello")), 1);
-	chunk.writeChunk(OpCode::CONSTANT, 1);
-	chunk.writeChunk(chunk.addConstant(Value(69)), 1);
-	chunk.writeChunk(OpCode::CONSTANT, 1);
-	chunk.writeChunk(chunk.addConstant(Value(true)), 1);
-	chunk.writeChunk(OpCode::RETURN, 1);
+	chunk.write(OpCode::CONSTANT, 1);
+	chunk.write(chunk.addConstant(Value("Hello")), 1);
+	chunk.write(OpCode::CONSTANT, 1);
+	chunk.write(chunk.addConstant(Value(69)), 1);
+	chunk.write(OpCode::CONSTANT, 1);
+	chunk.write(chunk.addConstant(Value(true)), 1);
+	chunk.write(OpCode::RETURN, 1);
 
 	//run the byte-code in chunk
 	ip = chunk.code.begin();
+	stackTop = stack.begin();
 	return run();
 }
 
+//return the next byte in chunk.code and advance ip
 uint8_t VirtualMachine::readByte()
 {
 	return *ip++;
 }
 
+//return the value in chunk.constants that the next byte in chunk.code indexes
 Value VirtualMachine::readConstant()
 {
 	return chunk.constants[readByte()];
+}
+
+void VirtualMachine::push(Value val)
+{
+	*stackTop = val;
+	stackTop++;
+}
+
+Value VirtualMachine::pop()
+{
+	stackTop--;
+	return *stackTop;
 }
 
 InterpretResult VirtualMachine::run()
@@ -45,9 +60,7 @@ InterpretResult VirtualMachine::run()
 		{
 		case (int)op::CONSTANT:
 		{
-			Value constant = readConstant();
-			constant.printValue();
-			std::cout << "\n";
+			push(readConstant());
 			break;
 		}
 		case (int)op::RETURN: return InterpretResult::OK;
