@@ -6,13 +6,15 @@
 #include "common.h"
 
 //enum class for all Types a Value can have
+//members must me aligned correclty to the _val variant of Value!!!
 enum class ValueType
 {
-	INT,
-	DOUBLE,
-	BOOL,
-	CHAR,
-	STRING
+	NONE, //aligns with std::monostate (empty variant)
+	INT, //aligns with int
+	DOUBLE, //aligns with double
+	BOOL, //aligns with bool
+	CHAR, //aligns with char
+	STRING //aligns with string
 };
 
 //thrown if Value is assigned to another type than it's own
@@ -22,6 +24,7 @@ class bad_assignement_exception
 class Value
 {
 public:
+	Value() : _val(std::monostate()) {} //default constructor
 	Value(const int& i) : _val(i) {} //constructor for an int Value
 	Value(const double& d) : _val(d) {} //constructor for a double Value
 	Value(const bool& b) : _val(b) {} //constructor for a bool Value
@@ -116,6 +119,7 @@ public:
 #endif
 public:
 	std::variant<
+		std::monostate,
 		int,
 		double,
 		bool,
