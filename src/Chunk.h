@@ -14,8 +14,8 @@ enum class OpCode
 class Chunk
 {
 public:
-	void writeChunk(uint8_t byte, int line);
-	int addConstant(Value val);
+	void writeChunk(uint8_t byte, int line); //add a byte to the chunk
+	int addConstant(Value val); //add a value to constants and return its index
 
 public:
 	std::vector<uint8_t> code; //the byte code
