@@ -206,9 +206,9 @@ Token Scanner::identifier()
 	while (isAlphabetical(peek(), false) || isDigit(peek())) advance();
 	std::string identifier(start, current);
 
-	if()
+	if (keywords.find(identifier) != keywords.end()) return makeToken(keywords[identifier]);
 
-	return Token();
+	return makeToken(TokenType::IDENTIFIER);
 }
 
 Token Scanner::string()
