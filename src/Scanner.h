@@ -78,9 +78,15 @@ private:
 	Token makeToken(TokenType type) const;
 	Token errorToken(std::string msg) const;
 	void skipWhitespaces();
+
+	/**Helper functions for scanning**/
+
 	char advance();
 	char peek();
 	char peekNext();
+	bool match(char expected);
+	bool isDigit(char c);
+	bool isAlphabetical(char c, bool firstLetter);
 private:
 	const std::string file; //path to the source file
 	std::string source; //the source code

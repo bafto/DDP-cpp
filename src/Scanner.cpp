@@ -33,12 +33,17 @@ Token Scanner::makeToken(TokenType type) const
 	token.type = type;
 	token.line = line;
 	token.literal = std::string(current, start);
-	return Token();
+	return token;
 }
 
 Token Scanner::errorToken(std::string msg) const
 {
-	return Token();
+	Token token;
+	token.type = TokenType::ERROR;
+	token.depth = currentDepth;
+	token.line = line;
+	token.literal = msg;
+	return token;
 }
 
 void Scanner::skipWhitespaces()
@@ -101,4 +106,38 @@ char Scanner::peekNext()
 {
 	if (isAtEnd()) return '\0';
 	return current[1];
+}
+
+bool Scanner::match(char expected)
+{
+	if (isAtEnd()) return false;
+	if (peek() != expected) return false;
+	current++;
+	return true;
+}
+
+bool Scanner::isDigit(char c)
+{
+	return c >= '0' && c <= '9';
+}
+
+bool Scanner::isAlphabetical(char c, bool firstLetter)
+{
+	if (!utf8) return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; //no utf8 encoding
+
+	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') return true;
+	else if (c == '\xc3') {
+		switch (firstLetter ? peek() : peekNext())
+		{
+		case '\x9c': //Ü
+		case '\x96': //Ö
+		case '\x84': //Ä
+		case '\xbc': //ü
+		case '\xa4': //ä
+		case '\x9f': //ß
+		case '\xb6': advance(); return true; //ö
+		default: return false;
+		}
+	}
+	else return false;
 }
