@@ -76,6 +76,9 @@ private:
 	Token makeToken(TokenType type) const;
 	Token errorToken(std::string msg) const;
 	void skipWhitespaces();
+	char advance();
+	char peek();
+	char peekNext();
 private:
 	const std::string file; //path to the source file
 	std::string source; //the source code

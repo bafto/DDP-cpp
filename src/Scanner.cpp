@@ -43,5 +43,26 @@ Token Scanner::errorToken(std::string msg) const
 
 void Scanner::skipWhitespaces()
 {
+	int consecutiveSpaceCount = 0;
+	while (true)
+	{
 
+	}
+}
+
+char Scanner::advance()
+{
+	current++;
+	return current[-1];
+}
+
+char Scanner::peek()
+{
+	return *current;
+}
+
+char Scanner::peekNext()
+{
+	if (isAtEnd()) return '\0';
+	return current[1];
 }
