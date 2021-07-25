@@ -14,10 +14,9 @@ InterpretResult VirtualMachine::interpret(const std::string& file)
 	//compile the source file into chunk
 	{
 		Scanner scanner(file);
-		for (Token token = scanner.scanToken(); token.type != TokenType::END; token = scanner.scanToken())
-		{
+		auto tokens = scanner.scanTokens();
+		for (auto& token : tokens)
 			std::cout << "[Type] " << (int)token.type << "\n[Line] " << token.line << "\n[Depth] " << token.depth << "\n[Literal] " << token.literal << "\n\n";
-		}
 	}
 	chunk.write(OpCode::RETURN, 1);
 	//run the byte-code in chunk

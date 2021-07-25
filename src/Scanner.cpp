@@ -18,6 +18,44 @@ Scanner::Scanner(const std::string& file)
 	current = source.begin();
 }
 
+void Scanner::consume(TokenType type, const std::string& msg, std::vector<Token>::iterator& it)
+{
+	if ((it + 1)->type != type)
+		throw scan_exception(GENERATE_EXCEPTION(scan_exception, msg));
+	it++;
+}
+
+const std::vector<Token> Scanner::scanTokens()
+{
+	std::vector<Token> tokens;
+	for (Token t = scanToken(); t.type != TokenType::END; t = scanToken())
+		tokens.push_back(t);
+	tokens.emplace_back(Token{TokenType::END, "", line, currentDepth});
+	tokens.emplace_back(Token{ TokenType::END, "", line, currentDepth });
+	tokens.emplace_back(Token{ TokenType::END, "", line, currentDepth });
+
+	for (auto it = tokens.begin(); it != tokens.end(); it++)
+	{
+		if (it->type == TokenType::BINDE)
+		{
+			consume(TokenType::STRING, "Es wurde ein Zeichenketten Literal nach 'binde' erwartet!", it);
+			std::string path(it->literal.begin() + 1, it->literal.end() - 1);
+			std::vector<Token> otherFile;
+			{
+				Scanner otherFileScanner(path + ".ddp");
+				otherFile = otherFileScanner.scanTokens();
+			}
+			consume(TokenType::EIN, "Es wurde ein 'ein' beim einbinden einer weiteren Datei erwartet!", it);
+			consume(TokenType::DOT, "Es wurde ein '.' nach dem einbinden einer weiteren Datei erwartet!", it);
+			auto after = tokens.erase(it - 3, it + 1);
+			auto before = tokens.insert(after, otherFile.begin(), otherFile.end() - 3);
+			it = before + otherFile.size();
+		}
+	}
+
+	return tokens;
+}
+
 Token Scanner::scanToken()
 {
 	skipWhitespaces();

@@ -160,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="test.ddp" />
+    <None Include="test2.ddp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
