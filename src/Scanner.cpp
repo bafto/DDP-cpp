@@ -46,7 +46,43 @@ void Scanner::skipWhitespaces()
 	int consecutiveSpaceCount = 0;
 	while (true)
 	{
-
+		char c = peek();
+		consecutiveSpaceCount = c == ' ' ? consecutiveSpaceCount + 1 : 0;
+		switch (c)
+		{
+		case ' ':
+			if (consecutiveSpaceCount == 4)
+			{
+				currentDepth++;
+				consecutiveSpaceCount = 0;
+			}
+			__fallthrough;
+		case '\r':
+			advance();
+			break;
+		case '\t':
+			currentDepth++;
+			advance();
+			break;
+		case '\n':
+			line++;
+			currentDepth = 0;
+			advance();
+			break;
+		case '/':
+			if (peekNext() == '/')
+			{
+				while (peek() != '\n' && !isAtEnd()) advance();
+			}
+			else if (peekNext() == '*')
+			{
+				while (peek() != '*' && peekNext() != '/' && !isAtEnd()) advance();
+			}
+			else return;
+			break;
+		default:
+			return;
+		}
 	}
 }
 

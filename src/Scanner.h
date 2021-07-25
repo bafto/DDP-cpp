@@ -2,6 +2,8 @@
 
 #include "common.h"
 
+#pragma warning (disable : 26495)
+
 class file_exception : public base_exception
 {
 public:
