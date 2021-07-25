@@ -18,7 +18,45 @@ Scanner::Scanner(const std::string& file)
 Token Scanner::scanToken()
 {
 	skipWhitespaces();
-	return Token();
+	start = current;
+
+	if (isAtEnd()) return makeToken(TokenType::END);
+
+	char c = advance();
+	if (isAlphabetical(c, true)) return identifer();
+	if (isDigit(c)) return number();
+
+	switch (c)
+	{
+	case '#':
+		while (isAlphabetical(peek(), false) || peek() == '!' || isDigit(peek())) advance();
+		std::string directive(start, current);
+		if (directive == "!ascii")
+		{
+			utf8 = true;
+			return makeToken(TokenType::DIRECTIVE);
+		}
+		else if (directive == "ascii")
+		{
+			utf8 = false;
+			return makeToken(TokenType::DIRECTIVE);
+		}
+		else return errorToken("Unerwartete Direktive, meintest du #ascii oder #!ascii?");
+		break;
+	case ':': return makeToken(TokenType::COLON);
+	case '.': return makeToken(TokenType::DOT);
+	case ',': return makeToken(TokenType::COMMA);
+	case '"': return string();
+	case '\'': return character();
+	case '(': return makeToken(TokenType::LEFT_PAREN);
+	case ')': return makeToken(TokenType::RIGHT_PAREN);
+	case '-': return makeToken(TokenType::NEGATEMINUS);
+#ifdef _MDEBUG_
+	case '$': return makeToken(TokenType::PRINT);
+#endif
+	}
+
+	return errorToken("Unerwartetes Zeichen");
 }
 
 bool Scanner::isAtEnd() const

@@ -13,7 +13,7 @@ public:
 enum class TokenType
 {
 	//syntax
-	COLO, DOT, COMMA, LEFT_PAREN, RIGHT_PAREN,
+	COLON, DOT, COMMA, LEFT_PAREN, RIGHT_PAREN,
 	//literals
 	IDENTIFIER, STRING, CHARACTER, INUMBER, DNUMBER,
 	//maths
