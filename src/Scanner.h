@@ -79,6 +79,11 @@ private:
 	Token errorToken(std::string msg) const;
 	void skipWhitespaces();
 
+	Token identifier();
+	Token string();
+	Token character();
+	Token number();
+
 	/**Helper functions for scanning**/
 
 	char advance();

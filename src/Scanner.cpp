@@ -23,12 +23,13 @@ Token Scanner::scanToken()
 	if (isAtEnd()) return makeToken(TokenType::END);
 
 	char c = advance();
-	if (isAlphabetical(c, true)) return identifer();
+	if (isAlphabetical(c, true)) return identifier();
 	if (isDigit(c)) return number();
 
 	switch (c)
 	{
 	case '#':
+	{
 		while (isAlphabetical(peek(), false) || peek() == '!' || isDigit(peek())) advance();
 		std::string directive(start, current);
 		if (directive == "!ascii")
@@ -43,6 +44,7 @@ Token Scanner::scanToken()
 		}
 		else return errorToken("Unerwartete Direktive, meintest du #ascii oder #!ascii?");
 		break;
+	}
 	case ':': return makeToken(TokenType::COLON);
 	case '.': return makeToken(TokenType::DOT);
 	case ',': return makeToken(TokenType::COMMA);
@@ -70,7 +72,7 @@ Token Scanner::makeToken(TokenType type) const
 	token.depth = currentDepth;
 	token.type = type;
 	token.line = line;
-	token.literal = std::string(current, start);
+	token.literal = std::string(start, current);
 	return token;
 }
 
@@ -127,6 +129,36 @@ void Scanner::skipWhitespaces()
 			return;
 		}
 	}
+}
+
+Token Scanner::identifier()
+{
+	return Token();
+}
+
+Token Scanner::string()
+{
+	return Token();
+}
+
+Token Scanner::character()
+{
+	return Token();
+}
+
+Token Scanner::number()
+{
+	TokenType type = TokenType::INUMBER;
+	while (isDigit(peek())) advance();
+
+	if (peek() == ',' && isDigit(peekNext()))
+	{
+		type = TokenType::DNUMBER;
+		advance();
+		while (isDigit(peek())) advance();
+ 	}
+
+	return makeToken(type);
 }
 
 char Scanner::advance()
