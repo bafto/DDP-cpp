@@ -8,18 +8,12 @@ VirtualMachine::~VirtualMachine()
 {
 }
 
-InterpretResult VirtualMachine::interpret(const std::string& source)
+InterpretResult VirtualMachine::interpret(const std::string& file)
 {
-	//compile the source string into chunk
-	
-	chunk.write(OpCode::CONSTANT, 1);
-	chunk.write(chunk.addConstant(Value("Hello ")), 1);
-	chunk.write(OpCode::CONSTANT, 1);
-	chunk.write(chunk.addConstant(Value("World")), 1);
-	chunk.write(OpCode::SADD, 1);
-	chunk.write(OpCode::PRINT, 1);
-	chunk.write(OpCode::RETURN, 1);
+	//compile the source file into chunk
+	{
 
+	}
 	//run the byte-code in chunk
 	ip = chunk.code.begin();
 	stackTop = stack.begin();
