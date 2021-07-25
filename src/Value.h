@@ -41,6 +41,12 @@ public:
 	{
 		if (rhs.getType() == ValueType::STRING) _val = new std::string(*asString());
 	}
+	Value(Value&& rhs) noexcept
+		:
+		_val(rhs._val)
+	{
+		if (rhs.getType() == ValueType::STRING) rhs.asString() = nullptr;
+	}
 
 	Value& operator=(const Value& rhs)
 	{
@@ -48,6 +54,13 @@ public:
 		if (getType() == ValueType::STRING) _val = new std::string(*asString());
 		return *this;
 	}
+	Value& operator=(Value&& rhs) noexcept
+	{
+		_val = rhs._val;
+		if (getType() == ValueType::STRING) rhs.asString() = nullptr;
+		return *this;
+	}
+
 
 	Value& operator=(const int& rhs)
 	{ 
@@ -103,7 +116,7 @@ public:
 	double& asDouble() { return std::get<double>(_val); }
 	bool& asBool() { return std::get<bool>(_val); }
 	char& asChar() { return std::get<char>(_val); }
-	std::string* asString() { return std::get<std::string*>(_val); }
+	std::string*& asString() { return std::get<std::string*>(_val); }
 
 #ifdef _MDEBUG_
 	void printValue()

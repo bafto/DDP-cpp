@@ -13,6 +13,6 @@ void Chunk::write(OpCode code, int line)
 
 int Chunk::addConstant(Value val)
 {
-    constants.push_back(val);
+    constants.push_back(std::move(val));
     return constants.size() - 1;
 }

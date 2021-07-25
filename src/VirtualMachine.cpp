@@ -13,10 +13,10 @@ InterpretResult VirtualMachine::interpret(const std::string& source)
 	//compile the source string into chunk
 	
 	chunk.write(OpCode::CONSTANT, 1);
-	chunk.write(chunk.addConstant(Value(4)), 1);
+	chunk.write(chunk.addConstant(Value("Hello ")), 1);
 	chunk.write(OpCode::CONSTANT, 1);
-	chunk.write(chunk.addConstant(Value(2)), 1);
-	chunk.write(OpCode::MODULO, 1);
+	chunk.write(chunk.addConstant(Value("World")), 1);
+	chunk.write(OpCode::SADD, 1);
 	chunk.write(OpCode::PRINT, 1);
 	chunk.write(OpCode::RETURN, 1);
 
@@ -40,7 +40,7 @@ Value VirtualMachine::readConstant()
 
 void VirtualMachine::push(Value val)
 {
-	*stackTop = val;
+	*stackTop = std::move(val);
 	stackTop++;
 }
 
