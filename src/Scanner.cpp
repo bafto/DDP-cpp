@@ -13,6 +13,8 @@ Scanner::Scanner(const std::string& file)
 	if (!ifs.is_open())
 		throw file_exception(GENERATE_EXCEPTION(file_exception, "Could not open '" + file + "'"));
 	source = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+	start = source.begin();
+	current = source.begin();
 }
 
 Token Scanner::scanToken()
@@ -143,7 +145,11 @@ Token Scanner::string()
 
 Token Scanner::character()
 {
-	return Token();
+	if (!isAtEnd() && peekNext() != '\'') return errorToken("Unfertiger Buchstabe");
+	if (peek() == '\n') line++;
+	advance();
+	advance();
+	return makeToken(TokenType::CHARACTER);
 }
 
 Token Scanner::number()
