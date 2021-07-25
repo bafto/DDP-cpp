@@ -140,7 +140,15 @@ Token Scanner::identifier()
 
 Token Scanner::string()
 {
-	return Token();
+	while (peek() != '"' && !isAtEnd()) {
+		if (peek() == '\n') line++;
+		advance();
+	}
+
+	if (isAtEnd()) return errorToken("Unfertige Zeichenkette");
+
+	advance();
+	return makeToken(TokenType::STRING);
 }
 
 Token Scanner::character()
