@@ -35,25 +35,28 @@ public:
 	Value(const std::string& s) : _val(new std::string(s)) {} //constructor for a string Value
 	Value(const char* s) : _val(new std::string(s)) {} //constructor for a string Value from a const char*
 	
+	//copy constructor, allocates new memory if it's a string
 	Value(const Value& rhs)
 		:
 		_val(rhs._val)
 	{
 		if (rhs.getType() == ValueType::STRING) _val = new std::string(*asString());
 	}
+	//move constructor, takes ownership of the memory if it's a string
 	Value(Value&& rhs) noexcept
 		:
 		_val(rhs._val)
 	{
 		if (rhs.getType() == ValueType::STRING) rhs.asString() = nullptr;
 	}
-
+	//copy-assignement operator, allocates new memory if it's a string
 	Value& operator=(const Value& rhs)
 	{
 		_val = rhs._val;
 		if (getType() == ValueType::STRING) _val = new std::string(*asString());
 		return *this;
 	}
+	//move-assignement operator, takes ownership of the memory if it's a string
 	Value& operator=(Value&& rhs) noexcept
 	{
 		_val = rhs._val;
@@ -104,13 +107,17 @@ public:
 		*asString() = rhs;
 		return *this;
 	}
-
-	~Value() //destructor
+	
+	//destructor, frees memory if necessery
+	~Value() 
 	{
 		if (getType() == ValueType::STRING) delete asString();
 	}
 
+	//return the type of the Value
 	ValueType getType() const { return (ValueType)_val.index(); }
+
+	/*Returns the value, wraper for std::get*/
 
 	int& asInt() { return std::get<int>(_val); }
 	double& asDouble() { return std::get<double>(_val); }
@@ -119,6 +126,7 @@ public:
 	std::string*& asString() { return std::get<std::string*>(_val); }
 
 #ifdef _MDEBUG_
+	//print the value, for debug mode
 	void printValue()
 	{
 		std::cout << "[Value] ";
