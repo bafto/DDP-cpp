@@ -1,4 +1,5 @@
 #include "VirtualMachine.h"
+#include "Scanner.h" //for testing
 
 VirtualMachine::VirtualMachine()
 {
@@ -12,8 +13,13 @@ InterpretResult VirtualMachine::interpret(const std::string& file)
 {
 	//compile the source file into chunk
 	{
-
+		Scanner scanner(file);
+		for (Token token = scanner.scanToken(); token.type != TokenType::END; token = scanner.scanToken())
+		{
+			std::cout << "[Type] " << (int)token.type << "\n[Line] " << token.line << "\n[Depth] " << token.depth << "\n[Literal] " << token.literal << "\n\n";
+		}
 	}
+	chunk.write(OpCode::RETURN, 1);
 	//run the byte-code in chunk
 	ip = chunk.code.begin();
 	stackTop = stack.begin();

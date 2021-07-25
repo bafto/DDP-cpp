@@ -13,6 +13,7 @@ Scanner::Scanner(const std::string& file)
 	if (!ifs.is_open())
 		throw file_exception(GENERATE_EXCEPTION(file_exception, "Could not open '" + file + "'"));
 	source = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+	source.push_back('\0');
 	start = source.begin();
 	current = source.begin();
 
@@ -191,7 +192,11 @@ void Scanner::skipWhitespaces()
 			}
 			else if (peekNext() == '*')
 			{
-				while (peek() != '*' && peekNext() != '/' && !isAtEnd()) advance();
+				advance();
+				advance();
+				while (peek() != '*' && peekNext() != '/' && !isAtEnd()) if (advance() == '\n') line++;;
+				advance();
+				advance();
 			}
 			else return;
 			break;
@@ -282,19 +287,9 @@ bool Scanner::isAlphabetical(char c, bool firstLetter)
 {
 	if (!utf8) return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; //no utf8 encoding
 
-	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') return true;
-	else if (c == '\xc3') {
-		switch (firstLetter ? peek() : peekNext())
-		{
-		case '\x9c': //Ü
-		case '\x96': //Ö
-		case '\x84': //Ä
-		case '\xbc': //ü
-		case '\xa4': //ä
-		case '\x9f': //ß
-		case '\xb6': advance(); return true; //ö
-		default: return false;
-		}
-	}
+	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' ||
+		c == 'ß' ||
+		c == 'ü' || c == 'ä' || c == 'ö' ||
+		c == 'Ü' || c == 'Ä' || c == 'Ö') return true;
 	else return false;
 }
