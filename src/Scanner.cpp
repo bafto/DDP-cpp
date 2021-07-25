@@ -15,6 +15,74 @@ Scanner::Scanner(const std::string& file)
 	source = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 	start = source.begin();
 	current = source.begin();
+
+#pragma region keywords
+
+	keywords["plus"] = TokenType::PLUS;
+	keywords["minus"] = TokenType::MINUS;
+	keywords["mal"] = TokenType::MAL;
+	keywords["durch"] = TokenType::DURCH;
+	keywords["modulo"] = TokenType::MODULO;
+	keywords["hoch"] = TokenType::HOCH;
+	keywords["wurzel"] = TokenType::WURZEL;
+	keywords["ln"] = TokenType::LN;
+	keywords["Betrag"] = TokenType::PLUS;
+	keywords["pi"] = TokenType::PI;
+	keywords["e"] = TokenType::E;
+	keywords["tau"] = TokenType::TAU;
+	keywords["phi"] = TokenType::PHI;
+	keywords["und"] = TokenType::UND;
+	keywords["oder"] = TokenType::ODER;
+	keywords["nicht"] = TokenType::NICHT;
+	keywords["kleiner"] = TokenType::KLEINER;
+	keywords["größer"] = TokenType::GROESSER;
+	keywords["als"] = TokenType::ALS;
+	keywords["ungleich"] = TokenType::UNGLEICH;
+	keywords["gleich"] = TokenType::GLEICH;
+	keywords["um"] = TokenType::UM;
+	keywords["bit"] = TokenType::BIT;
+	keywords["nach"] = TokenType::NACH;
+	keywords["rechts"] = TokenType::RECHTS;
+	keywords["links"] = TokenType::LINKS;
+	keywords["verschoben"] = TokenType::VERSCHOBEN;
+	keywords["logisch"] = TokenType::LOGISCH;
+	keywords["kontra"] = TokenType::KONTRA;
+	keywords["wenn"] = TokenType::WENN;
+	keywords["aber"] = TokenType::ABER;
+	keywords["dann"] = TokenType::DANN;
+	keywords["sonst"] = TokenType::SONST;
+	keywords["für"] = TokenType::FUER;
+	keywords["jede"] = TokenType::JEDE;
+	keywords["von"] = TokenType::VON;
+	keywords["bis"] = TokenType::BIS;
+	keywords["schrittgröße"] = TokenType::SCHRITTGROESSE;
+	keywords["solange"] = TokenType::SOLANGE;
+	keywords["mache"] = TokenType::MACHE;
+	keywords["Funktion"] = TokenType::FUNKTION;
+	keywords["macht"] = TokenType::MACHT;
+	keywords["vom"] = TokenType::VOM;
+	keywords["Typ"] = TokenType::TYP;
+	keywords["ist"] = TokenType::IST;
+	keywords["sind"] = TokenType::SIND;
+	keywords["der"] = TokenType::DER;
+	keywords["die"] = TokenType::DIE;
+	keywords["das"] = TokenType::DAS;
+	keywords["Zahl"] = TokenType::ZAHL;
+	keywords["Kommazahl"] = TokenType::KOMMAZAHL;
+	keywords["Boolean"] = TokenType::BOOLEAN;
+	keywords["Zeichenkette"] = TokenType::ZEICHENKETTE;
+	keywords["Zeichen"] = TokenType::ZEICHEN;
+	keywords["Zahlen"] = TokenType::ZAHLEN;
+	keywords["Kommazahlen"] = TokenType::KOMMAZAHLEN;
+	keywords["Zeichenketten"] = TokenType::ZEICHENKETTEN;
+	keywords["an"] = TokenType::AN;
+	keywords["Stelle"] = TokenType::STELLE;
+	keywords["wahr"] = TokenType::WAHR;
+	keywords["falsch"] = TokenType::FALSCH;
+	keywords["gib"] = TokenType::GIB;
+	keywords["zurück"] = TokenType::ZURUECK;
+
+#pragma endregion
 }
 
 Token Scanner::scanToken()
@@ -30,7 +98,7 @@ Token Scanner::scanToken()
 
 	switch (c)
 	{
-	case '#':
+	/*case '#':
 	{
 		while (isAlphabetical(peek(), false) || peek() == '!' || isDigit(peek())) advance();
 		std::string directive(start, current);
@@ -46,7 +114,7 @@ Token Scanner::scanToken()
 		}
 		else return errorToken("Unerwartete Direktive, meintest du #ascii oder #!ascii?");
 		break;
-	}
+	}*/
 	case ':': return makeToken(TokenType::COLON);
 	case '.': return makeToken(TokenType::DOT);
 	case ',': return makeToken(TokenType::COMMA);
@@ -135,6 +203,11 @@ void Scanner::skipWhitespaces()
 
 Token Scanner::identifier()
 {
+	while (isAlphabetical(peek(), false) || isDigit(peek())) advance();
+	std::string identifier(start, current);
+
+	if()
+
 	return Token();
 }
 

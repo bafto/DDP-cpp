@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.h"
+#include <unordered_map>
 
 #pragma warning (disable : 26495)
 
@@ -19,7 +20,7 @@ enum class TokenType
 	//maths
 	NEGATEMINUS,
 	PLUS, MINUS, MAL, DURCH, MODULO, HOCH, WURZEL, LN, BETRAG,
-	PI, E, TAU,
+	PI, E, TAU, PHI,
 	//boolsche operatoren
 	UND, ODER, NICHT,
 	KLEINER, GROESSER, ALS, KLEINERODER, GROESSERODER, UNGLEICH, GLEICH,
@@ -36,7 +37,7 @@ enum class TokenType
 	//loops
 	MACHE,
 	//functions
-	FUNKTION, NIMMT, MIT, MACHT, VOM, TYP,
+	FUNKTION, MACHT, VOM, TYP,
 	//assignement
 	IST, SIND,
 	//Artikel
@@ -95,6 +96,8 @@ private:
 private:
 	const std::string file; //path to the source file
 	std::string source; //the source code
+
+	std::unordered_map<std::string, TokenType> keywords;
 
 	std::string::iterator start; //start of the current token
 	std::string::iterator current; //one after the current character
