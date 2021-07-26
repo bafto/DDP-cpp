@@ -21,6 +21,15 @@ private:
 	void errorAtCurrent(std::string msg);
 	void error(std::string msg);
 	void errorAt(const Token& token, std::string msg);
+
+	Chunk* currentChunk() { return chunk; }; //will be changed later
+
+	void emitByte(uint8_t byte) { currentChunk()->write(byte, previous->line); };
+	void emitByte(OpCode code) { currentChunk()->write(code, previous->line); };
+	void emitBytes(uint8_t byte1, uint8_t byte2) { emitByte(byte1); emitByte(byte2); };
+	void emitReturn() { emitByte(OpCode::RETURN); };
+
+	void endCompiler();
 private:
 	Chunk* chunk; //the chunk into which the source code is compiled
 	const std::string file; //path to the file with the source code

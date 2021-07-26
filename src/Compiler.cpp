@@ -19,6 +19,8 @@ void Compiler::compile()
 	current = tokens.begin();
 }
 
+#pragma region helper
+
 void Compiler::advance()
 {
 	previous = current;
@@ -60,6 +62,8 @@ bool Compiler::checkNext(TokenType type)
 	return ((current + 1) != tokens.end()) && ((current + 1)->type == type);
 }
 
+#pragma endregion
+
 #pragma region error
 
 void Compiler::errorAtCurrent(std::string msg)
@@ -87,3 +91,8 @@ void Compiler::errorAt(const Token& token, std::string msg)
 }
 
 #pragma endregion
+
+void Compiler::endCompiler()
+{
+	emitReturn();
+}
