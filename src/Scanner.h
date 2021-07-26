@@ -77,7 +77,7 @@ class Scanner
 public:
 	Scanner(const std::string& file);
 
-	const std::vector<Token> scanTokens();
+	std::vector<Token> scanTokens();
 private:
 	Token scanToken();
 	/**Functions used in scanToken**/

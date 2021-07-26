@@ -25,14 +25,12 @@ void Scanner::consume(TokenType type, const std::string& msg, std::vector<Token>
 	it++;
 }
 
-const std::vector<Token> Scanner::scanTokens()
+std::vector<Token> Scanner::scanTokens()
 {
 	std::vector<Token> tokens;
 	for (Token t = scanToken(); t.type != TokenType::END; t = scanToken())
 		tokens.push_back(t);
 	tokens.emplace_back(Token{TokenType::END, "", line, currentDepth});
-	tokens.emplace_back(Token{ TokenType::END, "", line, currentDepth });
-	tokens.emplace_back(Token{ TokenType::END, "", line, currentDepth });
 
 	for (auto it = tokens.begin(); it != tokens.end(); it++)
 	{
@@ -48,11 +46,11 @@ const std::vector<Token> Scanner::scanTokens()
 			consume(TokenType::EIN, "Es wurde ein 'ein' beim einbinden einer weiteren Datei erwartet!", it);
 			consume(TokenType::DOT, "Es wurde ein '.' nach dem einbinden einer weiteren Datei erwartet!", it);
 			auto after = tokens.erase(it - 3, it + 1);
-			auto before = tokens.insert(after, otherFile.begin(), otherFile.end() - 3);
+			auto before = tokens.insert(after, otherFile.begin(), otherFile.end() - 1);
 			it = before + otherFile.size();
 		}
 	}
-
+	tokens.shrink_to_fit();
 	return tokens;
 }
 
@@ -69,23 +67,6 @@ Token Scanner::scanToken()
 
 	switch (c)
 	{
-	/*case '#':
-	{
-		while (isAlphabetical(peek(), false) || peek() == '!' || isDigit(peek())) advance();
-		std::string directive(start, current);
-		if (directive == "!ascii")
-		{
-			utf8 = true;
-			return makeToken(TokenType::DIRECTIVE);
-		}
-		else if (directive == "ascii")
-		{
-			utf8 = false;
-			return makeToken(TokenType::DIRECTIVE);
-		}
-		else return errorToken("Unerwartete Direktive, meintest du #ascii oder #!ascii?");
-		break;
-	}*/
 	case ':': return makeToken(TokenType::COLON);
 	case '.': return makeToken(TokenType::DOT);
 	case ',': return makeToken(TokenType::COMMA);
