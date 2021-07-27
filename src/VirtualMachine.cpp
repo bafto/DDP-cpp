@@ -49,6 +49,85 @@ Value VirtualMachine::pop()
 	return *stackTop;
 }
 
+void VirtualMachine::addition()
+{
+	Value b = pop();
+	ValueType bType = b.getType();
+	Value a = pop();
+	ValueType aType = a.getType();
+
+	switch (aType)
+	{
+	case ValueType::INT:
+		switch (bType)
+		{
+		case ValueType::INT:
+			push(Value(a.asInt() + b.asInt()));
+			return;
+		case ValueType::DOUBLE:
+			push(Value((double)(a.asInt() + b.asDouble())));
+			return;
+		case ValueType::STRING:
+			push(Value(std::string(std::to_string(a.asInt()) + *b.asString())));
+			return;
+		}
+	case ValueType::DOUBLE:
+		switch (bType)
+		{
+		case ValueType::INT:
+			push(Value((double)(a.asDouble() + b.asInt())));
+			return;
+		case ValueType::DOUBLE:
+			push(Value(a.asDouble() + b.asDouble()));
+			return;
+		case ValueType::STRING:
+			std::string astr(std::to_string(a.asDouble()));
+			astr.replace(astr.begin(), astr.end(), '.', ',');
+			push(Value(astr + *b.asString()));
+			return;
+		}
+	case ValueType::CHAR:
+		switch (bType)
+		{
+		case ValueType::INT:
+			push(Value((char)(a.asChar() + b.asInt())));
+			return;
+		case ValueType::DOUBLE:
+			push(Value((char)(a.asChar() + (int)b.asDouble())));
+			return;
+		case ValueType::CHAR:
+			push(Value(std::string(1, a.asChar()) + std::string(1, b.asChar())));
+			return;
+		case ValueType::STRING:
+			push(Value(std::string(1, a.asChar()) + *b.asString()));
+			return;
+		}
+	case ValueType::STRING:
+		switch (bType)
+		{
+		case ValueType::INT:
+			push(Value(*a.asString() + std::to_string(b.asInt())));
+			return;
+		case ValueType::DOUBLE:
+		{
+			std::string str(std::to_string(b.asDouble()));
+			str.replace(str.begin(), str.end(), '.', ',');
+			push(Value(*a.asString() + str));
+			return;
+		}
+		case ValueType::CHAR:
+			push(Value(*a.asString() + std::string(1, b.asChar())));
+			return;
+		case ValueType::STRING:
+			push(Value(*a.asString() + *b.asString()));
+			return;
+		default:
+			return;
+		}
+		break;
+	}
+}
+
 InterpretResult VirtualMachine::run()
 {
 	using op = OpCode;
@@ -61,15 +140,7 @@ InterpretResult VirtualMachine::run()
 		case (int)op::NOT: push(!readConstant().asBool()); break;
 		case (int)op::INEGATE: push(-readConstant().asInt()); break;
 		case (int)op::DNEGATE: push(-readConstant().asDouble()); break;
-		case (int)op::IADD: push(pop().asInt() + pop().asInt()); break;
-		case (int)op::DADD: push(pop().asDouble() + pop().asDouble()); break;
-		case (int)op::SADD:
-		{
-			std::string b = *pop().asString();
-			std::string a = *pop().asString();
-			push(a + b);
-			break;
-		}
+		case (int)op::ADD: addition(); break;
 		case (int)op::IMULTIPLY: push(pop().asInt() * pop().asInt()); break;
 		case (int)op::DMULTIPLY: push(pop().asDouble() * pop().asDouble()); break;
 		case (int)op::MODULO:

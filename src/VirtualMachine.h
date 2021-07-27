@@ -26,6 +26,8 @@ private:
 	Value readConstant(); //return the value in chunk.constants that the next byte in chunk.code indexes
 	void push(Value val); //push a value onto the stack
 	Value pop(); //pop a value of the stack and return it
+
+	void addition();
 private:
 	Chunk chunk; //the byte code of the VM
 
