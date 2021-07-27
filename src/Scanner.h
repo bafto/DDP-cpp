@@ -61,7 +61,8 @@ enum class TokenType
 #endif
 	BINDE, EIN,
 	DIRECTIVE,
-	ERROR, END
+	ERROR, END,
+	COUNT
 };
 
 struct Token
