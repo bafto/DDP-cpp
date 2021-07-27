@@ -138,11 +138,40 @@ InterpretResult VirtualMachine::run()
 		{
 		case (int)op::CONSTANT: push(readConstant()); break;
 		case (int)op::NOT: push(!readConstant().asBool()); break;
-		case (int)op::INEGATE: push(-readConstant().asInt()); break;
-		case (int)op::DNEGATE: push(-readConstant().asDouble()); break;
+		case (int)op::NEGATE:
+		{
+			Value constant = readConstant();
+			switch (constant.getType())
+			{
+			case ValueType::INT: push(-constant.asInt()); break;
+			case ValueType::DOUBLE: push(-constant.asDouble()); break;
+			}
+			break;
+		}
 		case (int)op::ADD: addition(); break;
-		case (int)op::IMULTIPLY: push(pop().asInt() * pop().asInt()); break;
-		case (int)op::DMULTIPLY: push(pop().asDouble() * pop().asDouble()); break;
+		case (int)op::MULTIPLY:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() * b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)(a.asInt() * b.asDouble()))); break;
+				}
+				break;
+			case ValueType::DOUBLE:
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value((double)(a.asDouble() * b.asInt()))); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() * b.asDouble())); break;
+				}
+				break;
+			}
+			break;
+		}
 		case (int)op::MODULO:
 		{
 			int b = pop().asInt();
@@ -150,46 +179,73 @@ InterpretResult VirtualMachine::run()
 			push(a % b);
 			break;
 		}
-		case (int)op::ISUBTRACT:
+		case (int)op::SUBTRACT:
 		{
-			int b = pop().asInt();
-			int a = pop().asInt();
-			push(a - b);
+			Value a = pop();
+			Value b = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() - b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)(a.asInt() - b.asDouble()))); break;
+				}
+				break;
+			case ValueType::DOUBLE:
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value((double)(a.asDouble() - b.asInt()))); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() - b.asDouble())); break;
+				}
+				break;
+			}
 			break;
 		}
-		case (int)op::DSUBTRACT:
+		case (int)op::DIVIDE:
 		{
-			double b = pop().asDouble();
-			double a = pop().asDouble();
-			push(a - b);
+			Value a = pop();
+			Value b = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() / b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)(a.asInt() / b.asDouble()))); break;
+				}
+				break;
+			case ValueType::DOUBLE:
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value((double)(a.asDouble() / b.asInt()))); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() / b.asDouble())); break;
+				}
+				break;
+			}
 			break;
 		}
-		case (int)op::IDIVIDE:
+		case (int)op::EXPONENT:
 		{
-			int b = pop().asInt();
-			int a = pop().asInt();
-			push(a / b);
-			break;
-		}
-		case (int)op::DDIVIDE:
-		{
-			double b = pop().asDouble();
-			double a = pop().asDouble();
-			push(a / b);
-			break;
-		}
-		case (int)op::IEXPONENT:
-		{
-			int b = pop().asInt();
-			int a = pop().asInt();
-			push((int)pow(a, b));
-			break;
-		}
-		case (int)op::DEXPONENT:
-		{
-			double b = pop().asDouble();
-			double a = pop().asDouble();
-			push(pow(a, b));
+			Value a = pop();
+			Value b = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value((int)pow(a.asInt(), b.asInt()))); break;
+				case ValueType::DOUBLE: push(Value((double)pow(a.asInt(), b.asDouble()))); break;
+				}
+				break;
+			case ValueType::DOUBLE:
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value((double)pow(a.asDouble(), b.asInt()))); break;
+				case ValueType::DOUBLE: push(Value(pow(a.asDouble(), b.asDouble()))); break;
+				}
+				break;
+			}
 			break;
 		}
 		case (int)op::RETURN: return InterpretResult::OK;
