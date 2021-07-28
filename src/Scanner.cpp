@@ -25,6 +25,18 @@ void Scanner::consume(TokenType type, const std::string& msg, std::vector<Token>
 	it++;
 }
 
+void Scanner::consumeErase(TokenType type, const std::string& msg, std::vector<Token>::iterator& it, std::vector<Token>& vec)
+{
+	consume(type, msg, it);
+	it = vec.erase(it);
+}
+
+bool Scanner::check(TokenType type, std::vector<Token>::iterator& it, std::vector<Token>& vec)
+{
+	if (it >= vec.end() - 1) return false;
+	return (it + 1)->type == type;
+}
+
 std::vector<Token> Scanner::scanTokens()
 {
 	std::vector<Token> tokens;
@@ -34,7 +46,9 @@ std::vector<Token> Scanner::scanTokens()
 
 	for (auto it = tokens.begin(); it != tokens.end(); it++)
 	{
-		if (it->type == TokenType::BINDE)
+		switch (it->type)
+		{
+		case TokenType::BINDE:
 		{
 			consume(TokenType::STRING, "Es wurde ein Zeichenketten Literal nach 'binde' erwartet!", it);
 			std::string path(it->literal.begin() + 1, it->literal.end() - 1);
@@ -48,6 +62,24 @@ std::vector<Token> Scanner::scanTokens()
 			auto after = tokens.erase(it - 3, it + 1);
 			auto before = tokens.insert(after, otherFile.begin(), otherFile.end() - 1);
 			it = before + otherFile.size();
+			break;
+		}
+		case TokenType::BETRAG:
+		{
+			consumeErase(TokenType::VON, "Nach 'Betrag' muss 'von' stehen!", it, tokens);
+			break;
+		}
+		case TokenType::LOGISCH:
+		{
+			if (check(TokenType::NICHT, it, tokens))
+			{
+				it->type = TokenType::LOGISCHNICHT;
+				consumeErase(TokenType::NICHT, "", it, tokens);
+			}
+			break;
+		}
+		default:
+			break;
 		}
 	}
 	tokens.shrink_to_fit();

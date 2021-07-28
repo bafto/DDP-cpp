@@ -104,6 +104,8 @@ private:
 
 	//helper for scanTokens
 	void consume(TokenType type, const std::string& msg, std::vector<Token>::iterator& it);
+	void consumeErase(TokenType type, const std::string& msg, std::vector<Token>::iterator& it, std::vector<Token>& vec);
+	bool check(TokenType type, std::vector<Token>::iterator& it, std::vector<Token>& vec);
 private:
 	const std::string file; //path to the source file
 	std::string source; //the source code
