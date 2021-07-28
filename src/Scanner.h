@@ -79,6 +79,7 @@ public:
 	Scanner(const std::string& file);
 
 	std::vector<Token> scanTokens();
+	bool errored() const { return hadError; };
 private:
 	Token scanToken();
 	/**Functions used in scanToken**/
@@ -102,10 +103,13 @@ private:
 	bool isDigit(char c);
 	bool isAlphabetical(char c, bool firstLetter);
 
+	void error(const std::string& msg, int line);
+
 	//helper for scanTokens
-	void consume(TokenType type, const std::string& msg, std::vector<Token>::iterator& it);
+	void consume(TokenType type, const std::string& msg, std::vector<Token>::iterator& it, std::vector<Token>& vec);
 	void consumeErase(TokenType type, const std::string& msg, std::vector<Token>::iterator& it, std::vector<Token>& vec);
 	bool check(TokenType type, std::vector<Token>::iterator& it, std::vector<Token>& vec);
+	bool check(TokenType type, std::vector<Token>::iterator& it, std::vector<Token>& vec, int offset);
 private:
 	const std::string file; //path to the source file
 	std::string source; //the source code
@@ -182,5 +186,7 @@ private:
 	std::string::iterator current; //one after the current character
 	int line; //current line in the source code
 	int currentDepth; //depth on the current line
+
+	bool hadError;
 };
 

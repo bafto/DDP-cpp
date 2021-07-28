@@ -1,12 +1,14 @@
 #include "Scanner.h"
 #include <fstream>
 #include <streambuf>
+#include <iostream>
 
 Scanner::Scanner(const std::string& file)
 	:
 	file(file),
 	line(1),
-	currentDepth(0)
+	currentDepth(0),
+	hadError(false)
 {
 	std::ifstream ifs;
 	ifs.open(file);
@@ -18,16 +20,23 @@ Scanner::Scanner(const std::string& file)
 	current = source.begin();
 }
 
-void Scanner::consume(TokenType type, const std::string& msg, std::vector<Token>::iterator& it)
+void Scanner::error(const std::string& msg, int line)
 {
+	std::cerr << "[Line " << line << "] " << msg << "\n";
+	hadError = true;
+}
+
+void Scanner::consume(TokenType type, const std::string& msg, std::vector<Token>::iterator& it, std::vector<Token>& vec)
+{
+	if (it >= vec.end() - 1) error(msg, (it - 1)->line);
 	if ((it + 1)->type != type)
-		throw scan_exception(GENERATE_EXCEPTION(scan_exception, msg));
+		error(msg, it->line);
 	it++;
 }
 
 void Scanner::consumeErase(TokenType type, const std::string& msg, std::vector<Token>::iterator& it, std::vector<Token>& vec)
 {
-	consume(type, msg, it);
+	consume(type, msg, it, vec);
 	it = vec.erase(it);
 }
 
@@ -35,6 +44,12 @@ bool Scanner::check(TokenType type, std::vector<Token>::iterator& it, std::vecto
 {
 	if (it >= vec.end() - 1) return false;
 	return (it + 1)->type == type;
+}
+
+bool Scanner::check(TokenType type, std::vector<Token>::iterator& it, std::vector<Token>& vec, int offset)
+{
+	if (it >= vec.end() - offset) return false;
+	return (it + offset)->type == type;
 }
 
 std::vector<Token> Scanner::scanTokens()
@@ -50,15 +65,16 @@ std::vector<Token> Scanner::scanTokens()
 		{
 		case TokenType::BINDE:
 		{
-			consume(TokenType::STRING, "Es wurde ein Zeichenketten Literal nach 'binde' erwartet!", it);
+			consume(TokenType::STRING, "Es wurde ein Zeichenketten Literal nach 'binde' erwartet!", it, tokens);
 			std::string path(it->literal.begin() + 1, it->literal.end() - 1);
 			std::vector<Token> otherFile;
 			{
 				Scanner otherFileScanner(path + ".ddp");
 				otherFile = otherFileScanner.scanTokens();
+				hadError = otherFileScanner.errored();
 			}
-			consume(TokenType::EIN, "Es wurde ein 'ein' beim einbinden einer weiteren Datei erwartet!", it);
-			consume(TokenType::DOT, "Es wurde ein '.' nach dem einbinden einer weiteren Datei erwartet!", it);
+			consume(TokenType::EIN, "Es wurde ein 'ein' beim einbinden einer weiteren Datei erwartet!", it, tokens);
+			consume(TokenType::DOT, "Es wurde ein '.' nach dem einbinden einer weiteren Datei erwartet!", it, tokens);
 			auto after = tokens.erase(it - 3, it + 1);
 			auto before = tokens.insert(after, otherFile.begin(), otherFile.end() - 1);
 			it = before + otherFile.size();
@@ -76,6 +92,52 @@ std::vector<Token> Scanner::scanTokens()
 				it->type = TokenType::LOGISCHNICHT;
 				consumeErase(TokenType::NICHT, "", it, tokens);
 			}
+			break;
+		}
+		case TokenType::GROESSER:
+		{
+			if (check(TokenType::ALS, it, tokens))
+			{
+				if (check(TokenType::COMMA, it, tokens, 2))
+				{
+					if (check(TokenType::ODER, it, tokens, 3))
+					{
+						consumeErase(TokenType::ALS, "", it, tokens);
+						consumeErase(TokenType::COMMA, "", it, tokens);
+						consumeErase(TokenType::ODER, "", it, tokens);
+						(it - 1)->type = TokenType::GROESSERODER;
+					}
+					else
+						error("Nach 'größer als,' muss ein 'oder' stehen!", it->line);
+				}
+				else
+					consumeErase(TokenType::ALS, "", it, tokens);
+			}
+			else
+				error("Nach 'größer' fehlt 'als'!", it->line);
+			break;
+		}
+		case TokenType::KLEINER:
+		{
+			if (check(TokenType::ALS, it, tokens))
+			{
+				if (check(TokenType::COMMA, it, tokens, 2))
+				{
+					if (check(TokenType::ODER, it, tokens, 3))
+					{
+						consumeErase(TokenType::ALS, "", it, tokens);
+						consumeErase(TokenType::COMMA, "", it, tokens);
+						consumeErase(TokenType::ODER, "", it, tokens);
+						(it - 1)->type = TokenType::KLEINERODER;
+					}
+					else
+						error("Nach 'kleiner als,' muss ein 'oder' stehen!", it->line);
+				}
+				else
+					consumeErase(TokenType::ALS, "", it, tokens);
+			}
+			else
+				error("Nach 'kleiner' fehlt 'als'!", it->line);
 			break;
 		}
 		default:
