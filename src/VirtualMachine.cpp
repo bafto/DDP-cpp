@@ -248,6 +248,48 @@ InterpretResult VirtualMachine::run()
 			}
 			break;
 		}
+		case (int)op::LN:
+		{
+			Value val = pop();
+			switch (val.getType())
+			{
+			case ValueType::INT: push(Value((double)log(val.asInt()))); break;
+			case ValueType::DOUBLE: push(Value(log(val.asDouble()))); break;
+			}
+			break;
+		}
+		case (int)op::BETRAG:
+		{
+			Value val = pop();
+			switch (val.getType())
+			{
+			case ValueType::INT: push(Value(abs(val.asInt()))); break;
+			case ValueType::DOUBLE: push(Value(abs(val.asDouble()))); break;
+			}
+			break;
+		}
+		case (int)op::BITWISENOT: push(Value(~pop().asInt())); break;
+		case (int)op::BITWISEAND:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(Value(a & b));
+			break;
+		}
+		case (int)op::BITWISEOR:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(Value(a | b));
+			break;
+		}
+		case (int)op::BITWISEXOR:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(Value(a ^ b));
+			break;
+		}
 		case (int)op::RETURN: return InterpretResult::OK;
 		default: return InterpretResult::RuntimeError;
 		case (int)op::PRINT:
@@ -262,6 +304,7 @@ InterpretResult VirtualMachine::run()
 			case ValueType::STRING: std::cout << *val.asString() << "\n"; break;
 			default: std::cout << "Invalid Type\n"; break;
 			}
+			break;
 		}
 		}
 	}

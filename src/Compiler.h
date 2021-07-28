@@ -5,6 +5,8 @@
 
 class Compiler
 {
+private:
+	using op = OpCode;
 public:
 	Compiler(const std::string& file, Chunk* chunk);
 
@@ -16,9 +18,7 @@ private:
 		ASSIGNMENT,  // =
 		OR,          // or
 		AND,         // and
-		BITOR,		 // |
-		BITXOR,		 // ^
-		BITAND,		 // &
+		BITWISE,	 // ^ ~ & |
 		EQUALITY,    // == !=
 		COMPARISON,  // < > <= >=
 		BITSHIFT,    // << >>
@@ -64,6 +64,7 @@ private:
 	ValueType grouping(bool canAssign);
 	ValueType unary(bool canAssign);
 	ValueType binary(bool canAssign);
+	ValueType bitwise(bool canAssign);
 private:
 	using MemFuncPtr = ValueType(Compiler::*)(bool);
 	struct ParseRule
@@ -87,9 +88,10 @@ private:
 		{ TokenType::MODULO,		ParseRule{nullptr,			&Compiler::binary,	Precedence::TERM}},
 		{ TokenType::HOCH,			ParseRule{nullptr,			&Compiler::binary,	Precedence::EXPONENT}},
 		{ TokenType::UM,			ParseRule{nullptr,			&Compiler::binary,	Precedence::BITSHIFT}},
-		{ TokenType::LOGISCH,		ParseRule{&Compiler::unary,  nullptr,			Precedence::NONE}},
-		{ TokenType::LN,			ParseRule{&Compiler::unary,  nullptr,			Precedence::UNARY}},
-		{ TokenType::BETRAG,		ParseRule{&Compiler::unary,  nullptr,			Precedence::UNARY}},
+		{ TokenType::LOGISCH,		ParseRule{&Compiler::bitwise, nullptr,			Precedence::NONE}},
+		{ TokenType::LOGISCHNICHT,  ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY},
+		{ TokenType::LN,			ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY}},
+		{ TokenType::BETRAG,		ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY}},
 		{ TokenType::UNGLEICH,		ParseRule{nullptr,			&Compiler::binary,	Precedence::EQUALITY}},
 		{ TokenType::GLEICH,		ParseRule{nullptr,			&Compiler::binary,	Precedence::EQUALITY}},
 		{ TokenType::GROESSER,		ParseRule{nullptr,			&Compiler::binary,	Precedence::COMPARISON}},

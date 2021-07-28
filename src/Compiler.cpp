@@ -160,12 +160,68 @@ ValueType Compiler::unary(bool canAssign)
 {
 	TokenType operatorType = previous->type;
 
+	ValueType expr = parsePrecedence(Precedence::UNARY);
 
+	switch (operatorType)
+	{
+	case TokenType::NEGATEMINUS:
+		if (expr != ValueType::INT && expr != ValueType::DOUBLE)
+			errorAtCurrent("Man kann nur Zahlen negieren!");
+		emitByte(op::NEGATE);
+		return expr;
+	case TokenType::NICHT:
+		if (expr != ValueType::BOOL)
+			errorAtCurrent("Man kann nur Booleans mit 'nicht' negieren!");
+		emitByte(op::NOT);
+		return expr;
+	case TokenType::LN:
+		if (expr != ValueType::INT && expr != ValueType::DOUBLE)
+			errorAtCurrent("Man kann nur aus Zahlen den ln berechnen!");
+		emitByte(op::LN);
+		return expr;
+	case TokenType::BETRAG:
+		if (expr != ValueType::INT && expr != ValueType::DOUBLE)
+			errorAtCurrent("Man kann nur den Betrag von Zahlen berechnen!");
+		emitByte(op::BETRAG);
+		return expr;
+	case TokenType::LOGISCHNICHT:
+		if(expr != ValueType::INT)
+			errorAtCurrent("Man kann nur Zahlen logisch negieren!");
+		emitByte(op::BITWISENOT);
+		return expr;
+	default:
+		break;
+	}
 }
 
 ValueType Compiler::binary(bool canAssign)
 {
 	return ValueType();
+}
+
+ValueType Compiler::bitwise(bool canAssign)
+{
+	advance(); //skip the logisch
+	ValueType lhs = parsePrecedence(Precedence::BITWISE); //evaluate the lhs expression
+	if (lhs != ValueType::INT)
+		errorAtCurrent("Operanden für logische Operatoren müssen Zahlen sein!");
+
+	TokenType operatorType = previous->type;
+	ValueType rhs = parsePrecedence(Precedence::BITWISE);
+	if (rhs != ValueType::INT)
+		errorAtCurrent("Operanden für logische Operatoren müssen Zahlen sein!");
+
+	switch (operatorType)
+	{
+	case TokenType::UND: emitByte(op::BITWISEAND); break;
+	case TokenType::ODER: emitByte(op::BITWISEOR); break;
+	case TokenType::KONTRA: emitByte(op::BITWISEXOR); break;
+	default:
+		errorAtCurrent("Falscher logischer Operator!");
+		break;
+	}
+
+	return ValueType::INT;
 }
 
 #pragma endregion
