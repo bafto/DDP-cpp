@@ -61,6 +61,7 @@ private:
 	ValueType inumber(bool canAssign);
 	ValueType string(bool canAssign);
 	ValueType character(bool canAssign);
+	ValueType Literal(bool canAssign);
 	ValueType grouping(bool canAssign);
 	ValueType unary(bool canAssign);
 	ValueType binary(bool canAssign);
@@ -82,14 +83,14 @@ private:
 		{ TokenType::MINUS,			ParseRule{nullptr,			&Compiler::binary,  Precedence::TERM}},
 		{ TokenType::NEGATEMINUS,   ParseRule{&Compiler::unary,	nullptr,			Precedence::TERM}},
 		{ TokenType::PLUS,			ParseRule{nullptr,			&Compiler::binary,  Precedence::TERM}},
-		{ TokenType::DOT,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::DURCH,			ParseRule{nullptr,			&Compiler::binary,  Precedence::FACTOR}},
 		{ TokenType::MAL,			ParseRule{nullptr,			&Compiler::binary,  Precedence::FACTOR}},
 		{ TokenType::NICHT,			ParseRule{&Compiler::unary,	nullptr,			Precedence::UNARY}},
 		{ TokenType::MODULO,		ParseRule{nullptr,			&Compiler::binary,	Precedence::TERM}},
 		{ TokenType::HOCH,			ParseRule{nullptr,			&Compiler::binary,	Precedence::EXPONENT}},
+		{ TokenType::WURZEL,		ParseRule{nullptr,			&Compiler::binary,  Precedence::EXPONENT}},
 		{ TokenType::UM,			ParseRule{nullptr,			&Compiler::binary,	Precedence::BITSHIFT}},
-		{ TokenType::LOGISCH,		ParseRule{&Compiler::bitwise, nullptr,			Precedence::NONE}},
+		{ TokenType::LOGISCH,		ParseRule{&Compiler::bitwise, nullptr,			Precedence::BITWISE}},
 		{ TokenType::LOGISCHNICHT,  ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY}},
 		{ TokenType::LN,			ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY}},
 		{ TokenType::BETRAG,		ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY}},
@@ -106,10 +107,11 @@ private:
 		{ TokenType::CHARACTER,		ParseRule{&Compiler::character,	nullptr,			Precedence::NONE}},
 		{ TokenType::UND,			ParseRule{nullptr,			nullptr,			Precedence::AND}},
 		{ TokenType::SONST,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
-		{ TokenType::FALSCH,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
-		{ TokenType::PI,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
-		{ TokenType::TAU,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
-		{ TokenType::E,				ParseRule{nullptr,			nullptr,			Precedence::NONE}},
+		{ TokenType::FALSCH,		ParseRule{&Compiler::Literal,nullptr,			Precedence::NONE}},
+		{ TokenType::PI,			ParseRule{&Compiler::Literal,nullptr,			Precedence::NONE}},
+		{ TokenType::TAU,			ParseRule{&Compiler::Literal,nullptr,			Precedence::NONE}},
+		{ TokenType::E,				ParseRule{&Compiler::Literal,nullptr,			Precedence::NONE}},
+		{ TokenType::PHI,			ParseRule{&Compiler::Literal,nullptr,			Precedence::NONE}},
 		{ TokenType::FUER,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::FUNKTION,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::WENN,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
@@ -117,7 +119,7 @@ private:
 		{ TokenType::IST,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::GIB,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::ZURUECK,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
-		{ TokenType::WAHR,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
+		{ TokenType::WAHR,			ParseRule{&Compiler::Literal,nullptr,			Precedence::NONE}},
 		{ TokenType::ZAHL,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::KOMMAZAHL,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::BOOLEAN,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},

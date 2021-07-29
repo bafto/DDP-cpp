@@ -154,6 +154,22 @@ ValueType Compiler::character(bool canAssign)
 	return ValueType::CHAR;
 }
 
+ValueType Compiler::Literal(bool canAssign)
+{
+	switch (previous->type)
+	{
+	case TokenType::WAHR: emitConstant(Value(true)); return ValueType::BOOL;
+	case TokenType::FALSCH: emitConstant(Value(false)); return ValueType::BOOL;
+	case TokenType::E: emitConstant(Value(2.71828182845904523536)); return ValueType::DOUBLE;
+	case TokenType::PI: emitConstant(Value(3.14159265358979323846)); return ValueType::DOUBLE;
+	case TokenType::PHI: emitConstant(Value(1.61803)); return ValueType::DOUBLE;
+	case TokenType::TAU: emitConstant(Value(6.283185307179586)); return ValueType::DOUBLE;
+	default: break;
+	}
+
+	return ValueType::NONE;
+}
+
 ValueType Compiler::grouping(bool canAssign)
 {
 	ValueType expr = expression();
@@ -194,9 +210,8 @@ ValueType Compiler::unary(bool canAssign)
 			errorAtCurrent("Man kann nur Zahlen logisch negieren!");
 		emitByte(op::BITWISENOT);
 		return expr;
-	default:
-		break;
 	}
+	return expr;
 }
 
 ValueType Compiler::binary(bool canAssign)
