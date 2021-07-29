@@ -67,6 +67,9 @@ void VirtualMachine::addition()
 		case ValueType::DOUBLE:
 			push(Value((double)(a.asInt() + b.asDouble())));
 			return;
+		case ValueType::CHAR:
+			push(Value((a.asInt() + b.asChar())));
+			return;
 		case ValueType::STRING:
 			push(Value(std::string(std::to_string(a.asInt()) + *b.asString())));
 			return;
@@ -80,6 +83,9 @@ void VirtualMachine::addition()
 		case ValueType::DOUBLE:
 			push(Value(a.asDouble() + b.asDouble()));
 			return;
+		case ValueType::CHAR:
+			push(Value(((int)a.asDouble() + (int)b.asChar())));
+			return;
 		case ValueType::STRING:
 			std::string astr(std::to_string(a.asDouble()));
 			astr.replace(astr.begin(), astr.end(), '.', ',');
@@ -90,10 +96,10 @@ void VirtualMachine::addition()
 		switch (bType)
 		{
 		case ValueType::INT:
-			push(Value((char)(a.asChar() + b.asInt())));
+			push(Value((a.asChar() + b.asInt())));
 			return;
 		case ValueType::DOUBLE:
-			push(Value((char)(a.asChar() + (int)b.asDouble())));
+			push(Value((a.asChar() + (int)b.asDouble())));
 			return;
 		case ValueType::CHAR:
 			push(Value(std::string(1, a.asChar()) + std::string(1, b.asChar())));
@@ -124,7 +130,6 @@ void VirtualMachine::addition()
 		default:
 			return;
 		}
-		break;
 	}
 }
 
@@ -176,7 +181,7 @@ InterpretResult VirtualMachine::run()
 		{
 			int b = pop().asInt();
 			int a = pop().asInt();
-			push(a % b);
+			push(Value(a % b));
 			break;
 		}
 		case (int)op::SUBTRACT:
@@ -288,6 +293,174 @@ InterpretResult VirtualMachine::run()
 			int b = pop().asInt();
 			int a = pop().asInt();
 			push(Value(a ^ b));
+			break;
+		}
+		case (int)op::EQUAL:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() == b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)a.asInt() == b.asDouble())); break;
+				}
+				break;
+			}
+			case ValueType::DOUBLE:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asDouble() == (double)b.asInt())); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() == b.asDouble())); break;
+				}
+				break;
+			}
+			case ValueType::BOOL: push(Value(a.asBool() == b.asBool())); break;
+			case ValueType::CHAR: push(Value(a.asChar() == b.asChar())); break;
+			case ValueType::STRING: push(Value(*a.asString() == *b.asString())); break;
+			} 
+			break;
+		}
+		case (int)op::UNEQUAL:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() != b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)a.asInt() != b.asDouble())); break;
+				}
+				break;
+			}
+			case ValueType::DOUBLE:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asDouble() != (double)b.asInt())); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() != b.asDouble())); break;
+				}
+				break;
+			}
+			case ValueType::BOOL: push(Value(a.asBool() != b.asBool())); break;
+			case ValueType::CHAR: push(Value(a.asChar() != b.asChar())); break;
+			case ValueType::STRING: push(Value(*a.asString() != *b.asString())); break;
+			}
+			break;
+		}
+		case (int)op::GREATER:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() > b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)a.asInt() > b.asDouble())); break;
+				}
+				break;
+			}
+			case ValueType::DOUBLE:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asDouble() > (double)b.asInt())); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() > b.asDouble())); break;
+				}
+				break;
+			}
+			}
+			break;
+		}
+		case (int)op::GREATEREQUAL:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() >= b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)a.asInt() >= b.asDouble())); break;
+				}
+				break;
+			}
+			case ValueType::DOUBLE:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asDouble() >= (double)b.asInt())); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() >= b.asDouble())); break;
+				}
+				break;
+			}
+			}
+			break;
+		}
+		case (int)op::LESS:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() < b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)a.asInt() < b.asDouble())); break;
+				}
+				break;
+			}
+			case ValueType::DOUBLE:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asDouble() < (double)b.asInt())); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() < b.asDouble())); break;
+				}
+				break;
+			}
+			}
+			break;
+		}
+		case (int)op::LESSEQUAL:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.getType())
+			{
+			case ValueType::INT:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asInt() <= b.asInt())); break;
+				case ValueType::DOUBLE: push(Value((double)a.asInt() <= b.asDouble())); break;
+				}
+				break;
+			}
+			case ValueType::DOUBLE:
+			{
+				switch (b.getType())
+				{
+				case ValueType::INT: push(Value(a.asDouble() <= (double)b.asInt())); break;
+				case ValueType::DOUBLE: push(Value(a.asDouble() <= b.asDouble())); break;
+				}
+				break;
+			}
+			}
 			break;
 		}
 		case (int)op::RETURN: return InterpretResult::OK;
