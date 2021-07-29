@@ -15,12 +15,21 @@ enum class OpCode
 	DIVIDE, //division
 	MODULO, //int modulo
 	EXPONENT, //exponent
+	ROOT, //square root
 	LN, //ln
 	BETRAG, //abs
 	BITWISENOT, // ~
 	BITWISEAND, // &
 	BITWISEOR, // |
 	BITWISEXOR, // ^
+	LEFTBITSHIFT, // <<
+	RIGHTBITSHIFT, // >>
+	EQUAL, // ==
+	UNEQUAL, // !=
+	GREATER, // >
+	GREATEREQUAL, // >=
+	LESS, // <
+	LESSEQUAL, // <=
 	RETURN,
 	PRINT
 };

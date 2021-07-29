@@ -7,18 +7,22 @@ Compiler::Compiler(const std::string& file, Chunk* chunk)
 	file(file),
 	chunk(chunk),
 	hadError(false),
-	panicMode(false)
+	panicMode(false),
+	lastEmittedType(ValueType::NONE)
 {
 }
 
-void Compiler::compile()
+bool Compiler::compile()
 {
 	{
 		Scanner scanner(file);
 		tokens = scanner.scanTokens();
+		hadError = scanner.errored();
 	}
 	previous = tokens.begin();
 	current = tokens.begin();
+
+	return hadError;
 }
 
 #pragma region helper
@@ -64,6 +68,18 @@ bool Compiler::checkNext(TokenType type)
 	return ((current + 1) != tokens.end()) && ((current + 1)->type == type);
 }
 
+uint8_t Compiler::makeConstant(Value value)
+{
+	lastEmittedType = value.getType();
+	int constant = currentChunk()->addConstant(std::move(value));
+	if (constant > UINT8_MAX) {
+		error("Zu viele Konstanten in diesem Chunk!");
+		return 0;
+	}
+
+	return constant;
+}
+
 #pragma endregion
 
 #pragma region error
@@ -90,17 +106,6 @@ void Compiler::errorAt(const Token& token, std::string msg)
 
 	std::cerr << ": " << msg;
 	hadError = true;
-}
-
-uint8_t Compiler::makeConstant(Value value)
-{
-	int constant = currentChunk()->addConstant(std::move(value));
-	if (constant > UINT8_MAX) {
-		error("Zu viele Konstanten in diesem Chunk!");
-		return 0;
-	}
-
-	return constant;
 }
 
 #pragma endregion
@@ -196,7 +201,165 @@ ValueType Compiler::unary(bool canAssign)
 
 ValueType Compiler::binary(bool canAssign)
 {
-	return ValueType();
+	TokenType operatorType = previous->type;
+	ValueType lhs = lastEmittedType;
+	ParseRule rule = parseRules.at(operatorType);
+	ValueType expr = parsePrecedence((Precedence)((int)rule.precedence + 1));
+
+	switch (operatorType)
+	{
+	case TokenType::PLUS:
+	{
+		if (lhs == ValueType::BOOL || expr == ValueType::BOOL)
+			errorAtCurrent("Ein Boolean kann kein Operand in einer addition sein");
+		emitByte(op::ADD);
+		switch (lhs)
+		{
+		case ValueType::INT:
+			switch (expr)
+			{
+			case ValueType::INT: return ValueType::INT;
+			case ValueType::DOUBLE: return ValueType::DOUBLE;
+			case ValueType::CHAR: return ValueType::INT;
+			case ValueType::STRING: return ValueType::STRING;
+			}
+			break;
+		case ValueType::DOUBLE:
+			switch (expr)
+			{
+			case ValueType::INT: return ValueType::DOUBLE;
+			case ValueType::DOUBLE: return ValueType::DOUBLE;
+			case ValueType::CHAR: return ValueType::INT;
+			case ValueType::STRING: return ValueType::STRING;
+			}
+			break;
+		case ValueType::CHAR:
+			switch (expr)
+			{
+			case ValueType::INT: return ValueType::INT;
+			case ValueType::DOUBLE: return ValueType::INT;
+			case ValueType::CHAR: return ValueType::STRING;
+			case ValueType::STRING: return ValueType::STRING;
+			}
+			break;
+		case ValueType::STRING: return ValueType::STRING;
+		default:
+			break;
+		}
+		break;
+	}
+	case TokenType::MINUS:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
+			errorAtCurrent("Es können nur Zahlen von einander subtrahiert werden!");
+		emitByte(op::SUBTRACT);
+		if (lhs == ValueType::INT && expr == ValueType::INT) return ValueType::INT;
+		else return ValueType::DOUBLE;
+	}
+	case TokenType::MAL:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
+			errorAtCurrent("Es können nur Zahlen miteinander multipliziert werden!");
+		emitByte(op::MULTIPLY);
+		if (lhs == ValueType::INT && expr == ValueType::INT) return ValueType::INT;
+		else return ValueType::DOUBLE;
+	}
+	case TokenType::DURCH:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
+			errorAtCurrent("Es können nur Zahlen durcheinander dividiert werden!");
+		emitByte(op::DIVIDE);
+		if (lhs == ValueType::INT && expr == ValueType::INT) return ValueType::INT;
+		else return ValueType::DOUBLE;
+		break;
+	}
+	case TokenType::MODULO:
+	{
+		if (lhs != ValueType::INT || expr != ValueType::INT) errorAtCurrent("Es kann nur der Modulo aus zwei Zahlen berechnet werden!");
+		emitByte(op::MODULO);
+		return ValueType::INT;
+	}
+	case TokenType::HOCH:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
+			errorAtCurrent("Es kann nur der Exponent aus Zahlen berechnet werden!");
+		emitByte(op::EXPONENT);
+		if (lhs == ValueType::INT && expr == ValueType::INT) return ValueType::INT;
+		else return ValueType::DOUBLE;
+	}
+	case TokenType::WURZEL:
+	{
+		if (lhs != ValueType::INT || expr != ValueType::INT)
+			errorAtCurrent("Es kann nur die Wurzel aus ganzen Zahlen berechnet werden!");
+		emitByte(op::ROOT);
+		return ValueType::DOUBLE;
+	}
+	case TokenType::UM:
+	{
+		if (lhs != ValueType::INT || expr != ValueType::INT) errorAtCurrent("Es können nur die bits von Zahlen verschoben werden!");
+		consume(TokenType::BIT, "Es fehlt 'bit' nach 'um'!");
+		consume(TokenType::NACH, "Es fehlt 'nach' nach 'bit'!");
+		if (match(TokenType::RECHTS)) emitByte(op::RIGHTBITSHIFT);
+		else if (match(TokenType::LINKS)) emitByte(op::LEFTBITSHIFT);
+		else errorAtCurrent("Es muss entweder 'links' oder 'rechts' nach beim Verschieben von Bits angegeben sein!");
+		consume(TokenType::VERSCHOBEN, "Es wurde 'verschoben' erwartet!");
+		return ValueType::INT;
+	}
+	case TokenType::GROESSER:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
+			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
+		emitByte(op::GREATER);
+		return ValueType::BOOL;
+	}
+	case TokenType::GROESSERODER:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
+			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als, oder' verglichen werden!");
+		emitByte(op::GREATEREQUAL);
+		return ValueType::BOOL;
+	}
+	case TokenType::KLEINER:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
+			errorAtCurrent("Es können nur Zahlen mit dem Operator 'kleiner als' verglichen werden!");
+		emitByte(op::LESS);
+		return ValueType::BOOL;
+	}
+	case TokenType::KLEINERODER:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
+			errorAtCurrent("Es können nur Zahlen mit dem Operator 'kleiner als, oder' verglichen werden!");
+		emitByte(op::LESSEQUAL);
+		return ValueType::BOOL;
+	}
+	case TokenType::GLEICH:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) && (expr == ValueType::INT || expr == ValueType::DOUBLE) ||
+			(expr != ValueType::INT && expr != ValueType::DOUBLE) && (lhs == ValueType::INT || lhs == ValueType::DOUBLE) ||
+			(lhs == ValueType::CHAR && expr != ValueType::CHAR) ||
+			(lhs == ValueType::BOOL && expr != ValueType::BOOL) ||
+			(lhs == ValueType::STRING && expr != ValueType::STRING))
+			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
+		emitByte(op::EQUAL);
+		return ValueType::BOOL;
+	}
+	case TokenType::UNGLEICH:
+	{
+		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) && (expr == ValueType::INT || expr == ValueType::DOUBLE) ||
+			(expr != ValueType::INT && expr != ValueType::DOUBLE) && (lhs == ValueType::INT || lhs == ValueType::DOUBLE) ||
+			(lhs == ValueType::CHAR && expr != ValueType::CHAR) ||
+			(lhs == ValueType::BOOL && expr != ValueType::BOOL) ||
+			(lhs == ValueType::STRING && expr != ValueType::STRING))
+			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
+		emitByte(op::UNEQUAL);
+		return ValueType::BOOL;
+	}
+	default:
+		break;
+	}
+
+	return expr;
 }
 
 ValueType Compiler::bitwise(bool canAssign)

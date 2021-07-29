@@ -187,8 +187,8 @@ InterpretResult VirtualMachine::run()
 		}
 		case (int)op::SUBTRACT:
 		{
-			Value a = pop();
 			Value b = pop();
+			Value a = pop();
 			switch (a.getType())
 			{
 			case ValueType::INT:
@@ -210,8 +210,8 @@ InterpretResult VirtualMachine::run()
 		}
 		case (int)op::DIVIDE:
 		{
-			Value a = pop();
 			Value b = pop();
+			Value a = pop();
 			switch (a.getType())
 			{
 			case ValueType::INT:
@@ -233,8 +233,8 @@ InterpretResult VirtualMachine::run()
 		}
 		case (int)op::EXPONENT:
 		{
-			Value a = pop();
 			Value b = pop();
+			Value a = pop();
 			switch (a.getType())
 			{
 			case ValueType::INT:
@@ -254,6 +254,7 @@ InterpretResult VirtualMachine::run()
 			}
 			break;
 		}
+		case (int)op::ROOT: push(Value(pow((double)pop().asInt(), (double)(1.0 / (double)pop().asInt())))); break;
 		case (int)op::LN:
 		{
 			Value val = pop();

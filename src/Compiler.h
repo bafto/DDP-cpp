@@ -10,7 +10,7 @@ private:
 public:
 	Compiler(const std::string& file, Chunk* chunk);
 
-	void compile(); //compile the source code in the file into chunk
+	bool compile(); //compile the source code in the file into chunk
 private:
 	enum class Precedence
 	{
@@ -73,6 +73,7 @@ private:
 		MemFuncPtr infix;
 		Precedence precedence;
 	};
+
 	static inline const std::unordered_map<TokenType, ParseRule> parseRules = {
 		{ TokenType::LEFT_PAREN,	ParseRule{&Compiler::grouping, nullptr,			Precedence::CALL}},
 		{ TokenType::RIGHT_PAREN,	ParseRule{nullptr,			nullptr,			Precedence::NONE}},
@@ -89,7 +90,7 @@ private:
 		{ TokenType::HOCH,			ParseRule{nullptr,			&Compiler::binary,	Precedence::EXPONENT}},
 		{ TokenType::UM,			ParseRule{nullptr,			&Compiler::binary,	Precedence::BITSHIFT}},
 		{ TokenType::LOGISCH,		ParseRule{&Compiler::bitwise, nullptr,			Precedence::NONE}},
-		{ TokenType::LOGISCHNICHT,  ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY},
+		{ TokenType::LOGISCHNICHT,  ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY}},
 		{ TokenType::LN,			ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY}},
 		{ TokenType::BETRAG,		ParseRule{&Compiler::unary, nullptr,			Precedence::UNARY}},
 		{ TokenType::UNGLEICH,		ParseRule{nullptr,			&Compiler::binary,	Precedence::EQUALITY}},
@@ -136,5 +137,7 @@ private:
 	std::vector<Token> tokens;
 	std::vector<Token>::iterator current;
 	std::vector<Token>::iterator previous;
+
+	ValueType lastEmittedType;
 };
 
