@@ -16,13 +16,14 @@ InterpretResult VirtualMachine::interpret(const std::string& file)
 		Scanner scanner(file);
 		auto tokens = scanner.scanTokens();
 		for (auto& token : tokens)
-			std::cout << "[Type] " << (int)token.type << "\n[Line] " << token.line << "\n[Depth] " << token.depth << "\n[Literal] " << token.literal << "\n\n";
+			std::cout << "[Type] " << (int)token.type << "  [Line] " << token.line << "  [Depth] " << token.depth << "  [Literal] " << token.literal << "\n";
 	}
-	chunk.write(OpCode::RETURN, 1);
+	return InterpretResult::OK;
+	/*chunk.write(OpCode::RETURN, 1);
 	//run the byte-code in chunk
 	ip = chunk.code.begin();
 	stackTop = stack.begin();
-	return run();
+	return run();*/
 }
 
 //return the next byte in chunk.code and advance ip

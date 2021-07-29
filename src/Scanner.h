@@ -123,7 +123,7 @@ private:
 		{"hoch", TokenType::HOCH},
 		{"wurzel", TokenType::WURZEL},
 		{"ln", TokenType::LN},
-		{"Betrag", TokenType::PLUS},
+		{"Betrag", TokenType::BETRAG},
 		{"pi", TokenType::PI},
 		{"e", TokenType::E},
 		{"tau", TokenType::TAU},

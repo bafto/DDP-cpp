@@ -30,7 +30,10 @@ void Scanner::consume(TokenType type, const std::string& msg, std::vector<Token>
 {
 	if (it >= vec.end() - 1) error(msg, (it - 1)->line);
 	if ((it + 1)->type != type)
+	{
 		error(msg, it->line);
+		return;
+	}
 	it++;
 }
 
@@ -83,6 +86,7 @@ std::vector<Token> Scanner::scanTokens()
 		case TokenType::BETRAG:
 		{
 			consumeErase(TokenType::VON, "Nach 'Betrag' muss 'von' stehen!", it, tokens);
+			it--;
 			break;
 		}
 		case TokenType::LOGISCH:
@@ -111,7 +115,10 @@ std::vector<Token> Scanner::scanTokens()
 						error("Nach 'größer als,' muss ein 'oder' stehen!", it->line);
 				}
 				else
+				{
 					consumeErase(TokenType::ALS, "", it, tokens);
+					it--;
+				}
 			}
 			else
 				error("Nach 'größer' fehlt 'als'!", it->line);
@@ -131,13 +138,29 @@ std::vector<Token> Scanner::scanTokens()
 						(it - 1)->type = TokenType::KLEINERODER;
 					}
 					else
+					{
 						error("Nach 'kleiner als,' muss ein 'oder' stehen!", it->line);
+						it--;
+					}
 				}
 				else
 					consumeErase(TokenType::ALS, "", it, tokens);
 			}
 			else
 				error("Nach 'kleiner' fehlt 'als'!", it->line);
+			break;
+		}
+		case TokenType::INUMBER:
+		{
+			if (check(TokenType::DOT, it, tokens))
+			{
+				if (check(TokenType::WURZEL, it, tokens, 2))
+				{
+					consumeErase(TokenType::DOT, "", it, tokens);
+					consume(TokenType::WURZEL, "", it, tokens);
+					consumeErase(TokenType::VON, "Es wurde ein 'von' nach 'wurzel' erwartet!", it, tokens);
+				}
+			}
 			break;
 		}
 		default:
