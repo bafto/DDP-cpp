@@ -1,5 +1,5 @@
 #include "VirtualMachine.h"
-#include "Scanner.h" //for testing
+#include "Compiler.h"
 
 VirtualMachine::VirtualMachine()
 {
@@ -13,12 +13,17 @@ InterpretResult VirtualMachine::interpret(const std::string& file)
 {
 	//compile the source file into chunk
 	{
-		Scanner scanner(file);
+		/*Scanner scanner(file);
 		auto tokens = scanner.scanTokens();
 		for (auto& token : tokens)
-			std::cout << "[Type] " << (int)token.type << "  [Line] " << token.line << "  [Depth] " << token.depth << "  [Literal] " << token.literal << "\n";
+			std::cout << "[Type] " << (int)token.type << "  [Line] " << token.line << "  [Depth] " << token.depth << "  [Literal] " << token.literal << "\n";*/
+		Compiler compiler(file, &chunk);
+		if (!compiler.compile())
+			return InterpretResult::CompilationError;
 	}
-	return InterpretResult::OK;
+	ip = chunk.code.begin();
+	stackTop = stack.begin();
+	return run();
 	/*chunk.write(OpCode::RETURN, 1);
 	//run the byte-code in chunk
 	ip = chunk.code.begin();
@@ -143,10 +148,10 @@ InterpretResult VirtualMachine::run()
 		switch (readByte())
 		{
 		case (int)op::CONSTANT: push(readConstant()); break;
-		case (int)op::NOT: push(!readConstant().asBool()); break;
+		case (int)op::NOT: push(!pop().asBool()); break;
 		case (int)op::NEGATE:
 		{
-			Value constant = readConstant();
+			Value constant = pop();
 			switch (constant.getType())
 			{
 			case ValueType::INT: push(-constant.asInt()); break;
@@ -254,7 +259,13 @@ InterpretResult VirtualMachine::run()
 			}
 			break;
 		}
-		case (int)op::ROOT: push(Value(pow((double)pop().asInt(), (double)(1.0 / (double)pop().asInt())))); break;
+		case (int)op::ROOT:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(Value((int)pow((double)b, 1.0 / (double)a)));
+			break;
+		}
 		case (int)op::LN:
 		{
 			Value val = pop();
@@ -295,6 +306,20 @@ InterpretResult VirtualMachine::run()
 			int b = pop().asInt();
 			int a = pop().asInt();
 			push(Value(a ^ b));
+			break;
+		}
+		case (int)op::LEFTBITSHIFT:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(Value(a << b));
+			break;
+		}
+		case (int)op::RIGHTBITSHIFT:
+		{
+			int b = pop().asInt();
+			int a = pop().asInt();
+			push(Value(a >> b));
 			break;
 		}
 		case (int)op::EQUAL:
@@ -474,7 +499,7 @@ InterpretResult VirtualMachine::run()
 			{
 			case ValueType::INT: std::cout << val.asInt() << "\n"; break;
 			case ValueType::DOUBLE: std::cout << val.asDouble() << "\n"; break;
-			case ValueType::BOOL: std::cout << val.asBool() << "\n"; break;
+			case ValueType::BOOL: std::cout << (val.asBool() ? "wahr" : "falsch") << "\n"; break;
 			case ValueType::CHAR: std::cout << val.asChar() << "\n"; break;
 			case ValueType::STRING: std::cout << *val.asString() << "\n"; break;
 			default: std::cout << "Invalid Type\n"; break;

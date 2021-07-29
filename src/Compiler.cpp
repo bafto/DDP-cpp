@@ -1,6 +1,7 @@
 #include "Compiler.h"
 #include <string>
 #include <algorithm>
+#include <iostream>
 
 Compiler::Compiler(const std::string& file, Chunk* chunk)
 	:
@@ -22,7 +23,12 @@ bool Compiler::compile()
 	previous = tokens.begin();
 	current = tokens.begin();
 
-	return hadError;
+	expression();
+	//consume(TokenType::END, "Es wurde END erwartet!");
+	emitByte(op::PRINT); //for expression testing
+	endCompiler();
+
+	return !hadError;
 }
 
 #pragma region helper
@@ -122,7 +128,38 @@ ValueType Compiler::expression()
 
 ValueType Compiler::parsePrecedence(Precedence precedence)
 {
-	return ValueType();
+	advance();
+	MemFuncPtr prefix = parseRules.at(previous->type).prefix;
+	if (prefix == nullptr)
+	{
+		error("Das Token ist kein prefix Operator!");
+		return ValueType::NONE;
+	}
+
+	bool canAssign = precedence <= Precedence::ASSIGNMENT;
+	ValueType expr = (this->*prefix)(canAssign);
+
+	while (precedence <= parseRules.at(current->type).precedence)
+	{
+		advance();
+		MemFuncPtr infix = parseRules.at(previous->type).infix;
+		if (infix == nullptr)
+		{
+			error("Das Token ist kein prefix Operator!");
+			return ValueType::NONE;
+		}
+		/*if (infix == parseRules.at(TokenType::LEFT_PAREN).infix && expr != ValueType::FUNCTION)
+		{
+			errorAtCurrent("Du kannst nur Funktionen aufrufen!");
+			return ValueType::NONE;
+		}*/
+		expr = (this->*infix)(false);
+	}
+
+	if (canAssign && match(TokenType::IST))
+		error("Ungültiges Zuweisungs Ziel!");
+
+	return expr;
 }
 
 #pragma region expressions
@@ -130,7 +167,7 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 ValueType Compiler::dnumber(bool canAssign)
 {
 	std::string str(previous->literal);
-	str.replace(str.begin(), str.end(), ',', '.');
+	std::replace(str.begin(), str.end(), ',', '.');
 	double value = std::stod(str);
 	emitConstant(Value(value));
 	return ValueType::DOUBLE;
@@ -325,6 +362,7 @@ ValueType Compiler::binary(bool canAssign)
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
 			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::GREATER);
+		consume(TokenType::IST, "Nach 'größer als' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::GROESSERODER:
@@ -332,6 +370,7 @@ ValueType Compiler::binary(bool canAssign)
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
 			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als, oder' verglichen werden!");
 		emitByte(op::GREATEREQUAL);
+		consume(TokenType::IST, "Nach 'größer als, oder' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::KLEINER:
@@ -339,6 +378,7 @@ ValueType Compiler::binary(bool canAssign)
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
 			errorAtCurrent("Es können nur Zahlen mit dem Operator 'kleiner als' verglichen werden!");
 		emitByte(op::LESS);
+		consume(TokenType::IST, "Nach 'kleiner als' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::KLEINERODER:
@@ -346,6 +386,7 @@ ValueType Compiler::binary(bool canAssign)
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
 			errorAtCurrent("Es können nur Zahlen mit dem Operator 'kleiner als, oder' verglichen werden!");
 		emitByte(op::LESSEQUAL);
+		consume(TokenType::IST, "Nach 'kleiner als, oder' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::GLEICH:
@@ -357,6 +398,7 @@ ValueType Compiler::binary(bool canAssign)
 			(lhs == ValueType::STRING && expr != ValueType::STRING))
 			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::EQUAL);
+		consume(TokenType::IST, "Nach 'gleich' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::UNGLEICH:
@@ -368,6 +410,7 @@ ValueType Compiler::binary(bool canAssign)
 			(lhs == ValueType::STRING && expr != ValueType::STRING))
 			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::UNEQUAL);
+		consume(TokenType::IST, "Nach 'ungleich' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	default:
@@ -379,12 +422,13 @@ ValueType Compiler::binary(bool canAssign)
 
 ValueType Compiler::bitwise(bool canAssign)
 {
-	advance(); //skip the logisch
+	//advance(); //skip the logisch
 	ValueType lhs = parsePrecedence(Precedence::BITWISE); //evaluate the lhs expression
 	if (lhs != ValueType::INT)
 		errorAtCurrent("Operanden für logische Operatoren müssen Zahlen sein!");
 
-	TokenType operatorType = previous->type;
+	TokenType operatorType = current->type;
+	advance();
 	ValueType rhs = parsePrecedence(Precedence::BITWISE);
 	if (rhs != ValueType::INT)
 		errorAtCurrent("Operanden für logische Operatoren müssen Zahlen sein!");

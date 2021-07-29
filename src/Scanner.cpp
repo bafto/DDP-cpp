@@ -28,7 +28,11 @@ void Scanner::error(const std::string& msg, int line)
 
 void Scanner::consume(TokenType type, const std::string& msg, std::vector<Token>::iterator& it, std::vector<Token>& vec)
 {
-	if (it >= vec.end() - 1) error(msg, (it - 1)->line);
+	if (it >= vec.end() - 1)
+	{
+		error(msg, (it - 1)->line);
+		return;
+	}
 	if ((it + 1)->type != type)
 	{
 		error(msg, it->line);
@@ -107,7 +111,9 @@ std::vector<Token> Scanner::scanTokens()
 					if (check(TokenType::ODER, it, tokens, 3))
 					{
 						consumeErase(TokenType::ALS, "", it, tokens);
+						it--;
 						consumeErase(TokenType::COMMA, "", it, tokens);
+						it--;
 						consumeErase(TokenType::ODER, "", it, tokens);
 						(it - 1)->type = TokenType::GROESSERODER;
 					}
@@ -133,7 +139,9 @@ std::vector<Token> Scanner::scanTokens()
 					if (check(TokenType::ODER, it, tokens, 3))
 					{
 						consumeErase(TokenType::ALS, "", it, tokens);
+						it--;
 						consumeErase(TokenType::COMMA, "", it, tokens);
+						it--;
 						consumeErase(TokenType::ODER, "", it, tokens);
 						(it - 1)->type = TokenType::KLEINERODER;
 					}
@@ -157,8 +165,8 @@ std::vector<Token> Scanner::scanTokens()
 				if (check(TokenType::WURZEL, it, tokens, 2))
 				{
 					consumeErase(TokenType::DOT, "", it, tokens);
-					consume(TokenType::WURZEL, "", it, tokens);
 					consumeErase(TokenType::VON, "Es wurde ein 'von' nach 'wurzel' erwartet!", it, tokens);
+					it--;
 				}
 			}
 			break;
