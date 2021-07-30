@@ -177,6 +177,38 @@ void Compiler::statement()
 		expressionStatement();
 }
 
+ValueType Compiler::boolAssignement()
+{
+	if (match(TokenType::WAHR))
+	{
+		if (match(TokenType::WENN))
+		{
+			return expression();
+		}
+		else
+		{
+			emitConstant(Value(true));
+			return ValueType::BOOL;
+		}
+	}
+	else if (match(TokenType::FALSCH))
+	{
+		if (match(TokenType::WENN))
+		{
+			ValueType expr = expression();
+			emitByte(op::NOT);
+			return expr;
+		}
+		else
+		{
+			emitConstant(Value(false));
+			return ValueType::BOOL;
+		}
+	}
+	else
+		errorAtCurrent("Beim definieren eines Booleans muss wahr oder falsch stehen!");
+}
+
 uint8_t Compiler::identifierConstant(std::string identifier, ValueType type)
 {
 	if (globals.find(identifier) != globals.end())
@@ -242,7 +274,14 @@ void Compiler::varDeclaration()
 
 	if (match(TokenType::IST)) 
 	{
-		ValueType rhs = expression();
+		ValueType rhs = ValueType::NONE;
+		if (varType == ValueType::BOOL)
+		{
+			rhs = boolAssignement();
+		}
+		else
+			rhs = expression();
+
 		if (rhs != varType) 
 		{
 			errorAtCurrent(u8"Einer Variable kann nur ein Wert vom gleichen Typ zugewiesen werden!");
@@ -613,12 +652,19 @@ ValueType Compiler::namedVariable(std::string name, bool canAssign)
 
 	if (canAssign && match(TokenType::IST))
 	{
-		expression();
+		ValueType expr = ValueType::NONE;
+		if (globals.at(name) == ValueType::BOOL)
+			expr = boolAssignement();
+		else
+			expr = expression();
+		if (expr != globals.at(name))
+			errorAtCurrent("Falscher Zuweisungs Typ");
 		emitBytes((uint8_t)op::SET_GLOBAL, arg);
 	}
 	else
 		emitBytes((uint8_t)op::GET_GLOBAL, arg);
 
+	lastEmittedType = globals.at(name);
 	return globals.at(name);
 }
 

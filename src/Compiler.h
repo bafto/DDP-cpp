@@ -59,6 +59,7 @@ private:
 	void declaration();
 	void statement();
 
+	ValueType boolAssignement(); //to handle the special x ist wahr wenn syntax of booleans
 	uint8_t identifierConstant(std::string identifier, ValueType type);
 	uint8_t parseVariable(ValueType type, std::string msg);
 	void defineVariable(uint8_t global);

@@ -9,8 +9,8 @@ void runFile(std::string file)
 	{
 		VirtualMachine vm;
 		InterpretResult result = vm.interpret(file);
-		if (result == InterpretResult::CompilationError) std::cerr << u8"A compilation error occured\n";
-		else if (result == InterpretResult::RuntimeError) std::cerr << u8"A runtime error occured\n";
+		if (result == InterpretResult::CompilationError) std::cerr << u8"\nA compilation error occured\n";
+		else if (result == InterpretResult::RuntimeError) std::cerr << u8"\nA runtime error occured\n";
 	}
 	catch (base_exception& e)
 	{
