@@ -518,6 +518,7 @@ InterpretResult VirtualMachine::run()
 		case (int)op::POP: pop(); break;
 		case (int)op::RETURN: return InterpretResult::OK;
 		default: return InterpretResult::RuntimeError;
+#ifdef _MDEBUG_
 		case (int)op::PRINT:
 		{
 			Value val = pop();
@@ -528,10 +529,16 @@ InterpretResult VirtualMachine::run()
 			case ValueType::BOOL: std::cout << (val.asBool() ? u8"wahr" : u8"falsch") << "\n"; break;
 			case ValueType::CHAR: std::cout << val.asChar() << "\n"; break;
 			case ValueType::STRING: std::cout << *val.asString() << "\n"; break;
+			case ValueType::INTARR:
+			case ValueType::DOUBLEARR:
+			case ValueType::BOOLARR:
+			case ValueType::CHARARR:
+			case ValueType::STRINGARR: val.printValue(); std::cout << std::endl; break;
 			default: std::cout << u8"Invalid Type\n"; break;
 			}
 			break;
 		}
+#endif
 		}
 	}
 
