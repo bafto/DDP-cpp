@@ -499,10 +499,10 @@ InterpretResult VirtualMachine::run()
 			{
 			case ValueType::INT: std::cout << val.asInt() << "\n"; break;
 			case ValueType::DOUBLE: std::cout << val.asDouble() << "\n"; break;
-			case ValueType::BOOL: std::cout << (val.asBool() ? "wahr" : "falsch") << "\n"; break;
+			case ValueType::BOOL: std::cout << (val.asBool() ? u8"wahr" : u8"falsch") << "\n"; break;
 			case ValueType::CHAR: std::cout << val.asChar() << "\n"; break;
 			case ValueType::STRING: std::cout << *val.asString() << "\n"; break;
-			default: std::cout << "Invalid Type\n"; break;
+			default: std::cout << u8"Invalid Type\n"; break;
 			}
 			break;
 		}

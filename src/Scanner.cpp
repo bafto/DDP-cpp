@@ -13,7 +13,7 @@ Scanner::Scanner(const std::string& file)
 	std::ifstream ifs;
 	ifs.open(file);
 	if (!ifs.is_open())
-		throw file_exception(GENERATE_EXCEPTION(file_exception, "Could not open '" + file + "'"));
+		throw file_exception(GENERATE_EXCEPTION(file_exception, u8"Could not open '" + file + "'"));
 	source = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 	source.push_back('\0');
 	start = source.begin();
@@ -22,7 +22,7 @@ Scanner::Scanner(const std::string& file)
 
 void Scanner::error(const std::string& msg, int line)
 {
-	std::cerr << "[Line " << line << "] " << msg << "\n";
+	std::cerr << u8"[Line " << line << u8"] " << msg << "\n";
 	hadError = true;
 }
 
@@ -72,7 +72,7 @@ std::vector<Token> Scanner::scanTokens()
 		{
 		case TokenType::BINDE:
 		{
-			consume(TokenType::STRING, "Es wurde ein Zeichenketten Literal nach 'binde' erwartet!", it, tokens);
+			consume(TokenType::STRING, u8"Es wurde ein Zeichenketten Literal nach 'binde' erwartet!", it, tokens);
 			std::string path(it->literal.begin() + 1, it->literal.end() - 1);
 			std::vector<Token> otherFile;
 			{
@@ -80,8 +80,8 @@ std::vector<Token> Scanner::scanTokens()
 				otherFile = otherFileScanner.scanTokens();
 				hadError = otherFileScanner.errored();
 			}
-			consume(TokenType::EIN, "Es wurde ein 'ein' beim einbinden einer weiteren Datei erwartet!", it, tokens);
-			consume(TokenType::DOT, "Es wurde ein '.' nach dem einbinden einer weiteren Datei erwartet!", it, tokens);
+			consume(TokenType::EIN, u8"Es wurde ein 'ein' beim einbinden einer weiteren Datei erwartet!", it, tokens);
+			consume(TokenType::DOT, u8"Es wurde ein '.' nach dem einbinden einer weiteren Datei erwartet!", it, tokens);
 			auto after = tokens.erase(it - 3, it + 1);
 			auto before = tokens.insert(after, otherFile.begin(), otherFile.end() - 1);
 			it = before + otherFile.size() - 1;
@@ -89,7 +89,7 @@ std::vector<Token> Scanner::scanTokens()
 		}
 		case TokenType::BETRAG:
 		{
-			consumeErase(TokenType::VON, "Nach 'Betrag' muss 'von' stehen!", it, tokens);
+			consumeErase(TokenType::VON, u8"Nach 'Betrag' muss 'von' stehen!", it, tokens);
 			break;
 		}
 		case TokenType::LOGISCH:
@@ -115,13 +115,13 @@ std::vector<Token> Scanner::scanTokens()
 						it->type = TokenType::GROESSERODER;
 					}
 					else
-						error("Nach 'größer als,' muss ein 'oder' stehen!", it->line);
+						error(u8"Nach 'größer als,' muss ein 'oder' stehen!", it->line);
 				}
 				else
 					consumeErase(TokenType::ALS, "", it, tokens);
 			}
 			else
-				error("Nach 'größer' fehlt 'als'!", it->line);
+				error(u8"Nach 'größer' fehlt 'als'!", it->line);
 			break;
 		}
 		case TokenType::KLEINER:
@@ -138,13 +138,13 @@ std::vector<Token> Scanner::scanTokens()
 						it->type = TokenType::KLEINERODER;
 					}
 					else
-						error("Nach 'kleiner als,' muss ein 'oder' stehen!", it->line);
+						error(u8"Nach 'kleiner als,' muss ein 'oder' stehen!", it->line);
 				}
 				else
 					consumeErase(TokenType::ALS, "", it, tokens);
 			}
 			else
-				error("Nach 'kleiner' fehlt 'als'!", it->line);
+				error(u8"Nach 'kleiner' fehlt 'als'!", it->line);
 			break;
 		}
 		case TokenType::INUMBER:
@@ -155,7 +155,7 @@ std::vector<Token> Scanner::scanTokens()
 				{
 					consumeErase(TokenType::DOT, "", it, tokens);
 					it++;
-					consumeErase(TokenType::VON, "Es wurde ein 'von' nach 'wurzel' erwartet!", it, tokens);
+					consumeErase(TokenType::VON, u8"Es wurde ein 'von' nach 'wurzel' erwartet!", it, tokens);
 				}
 			}
 			break;
@@ -194,7 +194,7 @@ Token Scanner::scanToken()
 #endif
 	}
 
-	return errorToken("Unerwartetes Zeichen");
+	return errorToken(u8"Unerwartetes Zeichen");
 }
 
 bool Scanner::isAtEnd() const
@@ -288,7 +288,7 @@ Token Scanner::string()
 		advance();
 	}
 
-	if (isAtEnd()) return errorToken("Unfertige Zeichenkette");
+	if (isAtEnd()) return errorToken(u8"Unfertige Zeichenkette");
 
 	advance();
 	return makeToken(TokenType::STRING);
@@ -296,7 +296,7 @@ Token Scanner::string()
 
 Token Scanner::character()
 {
-	if (!isAtEnd() && peekNext() != '\'') return errorToken("Unfertiger Buchstabe");
+	if (!isAtEnd() && peekNext() != '\'') return errorToken(u8"Unfertiger Buchstabe");
 	if (peek() == '\n') line++;
 	advance();
 	advance();

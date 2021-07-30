@@ -79,7 +79,7 @@ uint8_t Compiler::makeConstant(Value value)
 	lastEmittedType = value.getType();
 	int constant = currentChunk()->addConstant(std::move(value));
 	if (constant > UINT8_MAX) {
-		error("Zu viele Konstanten in diesem Chunk!");
+		error(u8"Zu viele Konstanten in diesem Chunk!");
 		return 0;
 	}
 
@@ -104,13 +104,13 @@ void Compiler::errorAt(const Token& token, std::string msg)
 {
 	if (panicMode) return;
 	panicMode = true;
-	std::cerr << "[Zeile " << token.line << "] Fehler";
+	std::cerr << u8"[Zeile " << token.line << u8"] Fehler";
 
-	if (token.type == TokenType::END) std::cerr << " am Ende";
+	if (token.type == TokenType::END) std::cerr << u8" am Ende";
 	else if (token.type == TokenType::ERROR);
-	else std::cerr << " bei '" << token.literal << "'";
+	else std::cerr << u8" bei '" << token.literal << u8"'";
 
-	std::cerr << ": " << msg;
+	std::cerr << u8": " << msg;
 	hadError = true;
 }
 
@@ -132,7 +132,7 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 	MemFuncPtr prefix = parseRules.at(previous->type).prefix;
 	if (prefix == nullptr)
 	{
-		error("Das Token ist kein prefix Operator!");
+		error(u8"Das Token ist kein prefix Operator!");
 		return ValueType::NONE;
 	}
 
@@ -145,7 +145,7 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 		MemFuncPtr infix = parseRules.at(previous->type).infix;
 		if (infix == nullptr)
 		{
-			error("Das Token ist kein prefix Operator!");
+			error(u8"Das Token ist kein prefix Operator!");
 			return ValueType::NONE;
 		}
 		/*if (infix == parseRules.at(TokenType::LEFT_PAREN).infix && expr != ValueType::FUNCTION)
@@ -157,7 +157,7 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 	}
 
 	if (canAssign && match(TokenType::IST))
-		error("Ungültiges Zuweisungs Ziel!");
+		error(u8"Ungültiges Zuweisungs Ziel!");
 
 	return expr;
 }
@@ -210,7 +210,7 @@ ValueType Compiler::Literal(bool canAssign)
 ValueType Compiler::grouping(bool canAssign)
 {
 	ValueType expr = expression();
-	consume(TokenType::RIGHT_PAREN, "Es wurde eine ')' nach einem Ausdruck erwartet!");
+	consume(TokenType::RIGHT_PAREN, u8"Es wurde eine ')' nach einem Ausdruck erwartet!");
 	return expr;
 }
 
@@ -224,27 +224,27 @@ ValueType Compiler::unary(bool canAssign)
 	{
 	case TokenType::NEGATEMINUS:
 		if (expr != ValueType::INT && expr != ValueType::DOUBLE)
-			errorAtCurrent("Man kann nur Zahlen negieren!");
+			errorAtCurrent(u8"Man kann nur Zahlen negieren!");
 		emitByte(op::NEGATE);
 		return expr;
 	case TokenType::NICHT:
 		if (expr != ValueType::BOOL)
-			errorAtCurrent("Man kann nur Booleans mit 'nicht' negieren!");
+			errorAtCurrent(u8"Man kann nur Booleans mit 'nicht' negieren!");
 		emitByte(op::NOT);
 		return expr;
 	case TokenType::LN:
 		if (expr != ValueType::INT && expr != ValueType::DOUBLE)
-			errorAtCurrent("Man kann nur aus Zahlen den ln berechnen!");
+			errorAtCurrent(u8"Man kann nur aus Zahlen den ln berechnen!");
 		emitByte(op::LN);
 		return expr;
 	case TokenType::BETRAG:
 		if (expr != ValueType::INT && expr != ValueType::DOUBLE)
-			errorAtCurrent("Man kann nur den Betrag von Zahlen berechnen!");
+			errorAtCurrent(u8"Man kann nur den Betrag von Zahlen berechnen!");
 		emitByte(op::BETRAG);
 		return expr;
 	case TokenType::LOGISCHNICHT:
 		if(expr != ValueType::INT)
-			errorAtCurrent("Man kann nur Zahlen logisch negieren!");
+			errorAtCurrent(u8"Man kann nur Zahlen logisch negieren!");
 		emitByte(op::BITWISENOT);
 		return expr;
 	}
@@ -263,7 +263,7 @@ ValueType Compiler::binary(bool canAssign)
 	case TokenType::PLUS:
 	{
 		if (lhs == ValueType::BOOL || expr == ValueType::BOOL)
-			errorAtCurrent("Ein Boolean kann kein Operand in einer addition sein");
+			errorAtCurrent(u8"Ein Boolean kann kein Operand in einer addition sein");
 		emitByte(op::ADD);
 		switch (lhs)
 		{
@@ -303,7 +303,7 @@ ValueType Compiler::binary(bool canAssign)
 	case TokenType::MINUS:
 	{
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
-			errorAtCurrent("Es können nur Zahlen von einander subtrahiert werden!");
+			errorAtCurrent(u8"Es können nur Zahlen von einander subtrahiert werden!");
 		emitByte(op::SUBTRACT);
 		if (lhs == ValueType::INT && expr == ValueType::INT) return ValueType::INT;
 		else return ValueType::DOUBLE;
@@ -311,7 +311,7 @@ ValueType Compiler::binary(bool canAssign)
 	case TokenType::MAL:
 	{
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
-			errorAtCurrent("Es können nur Zahlen miteinander multipliziert werden!");
+			errorAtCurrent(u8"Es können nur Zahlen miteinander multipliziert werden!");
 		emitByte(op::MULTIPLY);
 		if (lhs == ValueType::INT && expr == ValueType::INT) return ValueType::INT;
 		else return ValueType::DOUBLE;
@@ -319,7 +319,7 @@ ValueType Compiler::binary(bool canAssign)
 	case TokenType::DURCH:
 	{
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
-			errorAtCurrent("Es können nur Zahlen durcheinander dividiert werden!");
+			errorAtCurrent(u8"Es können nur Zahlen durcheinander dividiert werden!");
 		emitByte(op::DIVIDE);
 		if (lhs == ValueType::INT && expr == ValueType::INT) return ValueType::INT;
 		else return ValueType::DOUBLE;
@@ -327,14 +327,14 @@ ValueType Compiler::binary(bool canAssign)
 	}
 	case TokenType::MODULO:
 	{
-		if (lhs != ValueType::INT || expr != ValueType::INT) errorAtCurrent("Es kann nur der Modulo aus zwei Zahlen berechnet werden!");
+		if (lhs != ValueType::INT || expr != ValueType::INT) errorAtCurrent(u8"Es kann nur der Modulo aus zwei Zahlen berechnet werden!");
 		emitByte(op::MODULO);
 		return ValueType::INT;
 	}
 	case TokenType::HOCH:
 	{
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
-			errorAtCurrent("Es kann nur der Exponent aus Zahlen berechnet werden!");
+			errorAtCurrent(u8"Es kann nur der Exponent aus Zahlen berechnet werden!");
 		emitByte(op::EXPONENT);
 		if (lhs == ValueType::INT && expr == ValueType::INT) return ValueType::INT;
 		else return ValueType::DOUBLE;
@@ -342,51 +342,51 @@ ValueType Compiler::binary(bool canAssign)
 	case TokenType::WURZEL:
 	{
 		if (lhs != ValueType::INT || expr != ValueType::INT)
-			errorAtCurrent("Es kann nur die Wurzel aus ganzen Zahlen berechnet werden!");
+			errorAtCurrent(u8"Es kann nur die Wurzel aus ganzen Zahlen berechnet werden!");
 		emitByte(op::ROOT);
 		return ValueType::DOUBLE;
 	}
 	case TokenType::UM:
 	{
-		if (lhs != ValueType::INT || expr != ValueType::INT) errorAtCurrent("Es können nur die bits von Zahlen verschoben werden!");
-		consume(TokenType::BIT, "Es fehlt 'bit' nach 'um'!");
-		consume(TokenType::NACH, "Es fehlt 'nach' nach 'bit'!");
+		if (lhs != ValueType::INT || expr != ValueType::INT) errorAtCurrent(u8"Es können nur die bits von Zahlen verschoben werden!");
+		consume(TokenType::BIT, u8"Es fehlt 'bit' nach 'um'!");
+		consume(TokenType::NACH, u8"Es fehlt 'nach' nach 'bit'!");
 		if (match(TokenType::RECHTS)) emitByte(op::RIGHTBITSHIFT);
 		else if (match(TokenType::LINKS)) emitByte(op::LEFTBITSHIFT);
-		else errorAtCurrent("Es muss entweder 'links' oder 'rechts' nach beim Verschieben von Bits angegeben sein!");
-		consume(TokenType::VERSCHOBEN, "Es wurde 'verschoben' erwartet!");
+		else errorAtCurrent(u8"Es muss entweder 'links' oder 'rechts' nach beim Verschieben von Bits angegeben sein!");
+		consume(TokenType::VERSCHOBEN, u8"Es wurde 'verschoben' erwartet!");
 		return ValueType::INT;
 	}
 	case TokenType::GROESSER:
 	{
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
-			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
+			errorAtCurrent(u8"Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::GREATER);
-		consume(TokenType::IST, "Nach 'größer als' fehlt 'ist'!");
+		consume(TokenType::IST, u8"Nach 'größer als' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::GROESSERODER:
 	{
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
-			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als, oder' verglichen werden!");
+			errorAtCurrent(u8"Es können nur Zahlen mit dem Operator 'größer als, oder' verglichen werden!");
 		emitByte(op::GREATEREQUAL);
-		consume(TokenType::IST, "Nach 'größer als, oder' fehlt 'ist'!");
+		consume(TokenType::IST, u8"Nach 'größer als, oder' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::KLEINER:
 	{
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
-			errorAtCurrent("Es können nur Zahlen mit dem Operator 'kleiner als' verglichen werden!");
+			errorAtCurrent(u8"Es können nur Zahlen mit dem Operator 'kleiner als' verglichen werden!");
 		emitByte(op::LESS);
-		consume(TokenType::IST, "Nach 'kleiner als' fehlt 'ist'!");
+		consume(TokenType::IST, u8"Nach 'kleiner als' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::KLEINERODER:
 	{
 		if ((lhs != ValueType::INT && lhs != ValueType::DOUBLE) || (expr != ValueType::INT && expr != ValueType::DOUBLE))
-			errorAtCurrent("Es können nur Zahlen mit dem Operator 'kleiner als, oder' verglichen werden!");
+			errorAtCurrent(u8"Es können nur Zahlen mit dem Operator 'kleiner als, oder' verglichen werden!");
 		emitByte(op::LESSEQUAL);
-		consume(TokenType::IST, "Nach 'kleiner als, oder' fehlt 'ist'!");
+		consume(TokenType::IST, u8"Nach 'kleiner als, oder' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::GLEICH:
@@ -396,9 +396,9 @@ ValueType Compiler::binary(bool canAssign)
 			(lhs == ValueType::CHAR && expr != ValueType::CHAR) ||
 			(lhs == ValueType::BOOL && expr != ValueType::BOOL) ||
 			(lhs == ValueType::STRING && expr != ValueType::STRING))
-			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
+			errorAtCurrent(u8"Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::EQUAL);
-		consume(TokenType::IST, "Nach 'gleich' fehlt 'ist'!");
+		consume(TokenType::IST, u8"Nach 'gleich' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	case TokenType::UNGLEICH:
@@ -408,9 +408,9 @@ ValueType Compiler::binary(bool canAssign)
 			(lhs == ValueType::CHAR && expr != ValueType::CHAR) ||
 			(lhs == ValueType::BOOL && expr != ValueType::BOOL) ||
 			(lhs == ValueType::STRING && expr != ValueType::STRING))
-			errorAtCurrent("Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
+			errorAtCurrent(u8"Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::UNEQUAL);
-		consume(TokenType::IST, "Nach 'ungleich' fehlt 'ist'!");
+		consume(TokenType::IST, u8"Nach 'ungleich' fehlt 'ist'!");
 		return ValueType::BOOL;
 	}
 	default:
@@ -425,13 +425,13 @@ ValueType Compiler::bitwise(bool canAssign)
 	//advance(); //skip the logisch
 	ValueType lhs = parsePrecedence(Precedence::BITWISE); //evaluate the lhs expression
 	if (lhs != ValueType::INT)
-		errorAtCurrent("Operanden für logische Operatoren müssen Zahlen sein!");
+		errorAtCurrent(u8"Operanden für logische Operatoren müssen Zahlen sein!");
 
 	TokenType operatorType = current->type;
 	advance();
 	ValueType rhs = parsePrecedence(Precedence::BITWISE);
 	if (rhs != ValueType::INT)
-		errorAtCurrent("Operanden für logische Operatoren müssen Zahlen sein!");
+		errorAtCurrent(u8"Operanden für logische Operatoren müssen Zahlen sein!");
 
 	switch (operatorType)
 	{
@@ -439,7 +439,7 @@ ValueType Compiler::bitwise(bool canAssign)
 	case TokenType::ODER: emitByte(op::BITWISEOR); break;
 	case TokenType::KONTRA: emitByte(op::BITWISEXOR); break;
 	default:
-		errorAtCurrent("Falscher logischer Operator!");
+		errorAtCurrent(u8"Falscher logischer Operator!");
 		break;
 	}
 
