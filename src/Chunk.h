@@ -30,6 +30,10 @@ enum class OpCode
 	GREATEREQUAL, // >=
 	LESS, // <
 	LESSEQUAL, // <=
+	DEFINE_GLOBAL,
+	GET_GLOBAL,
+	SET_GLOBAL,
+	POP, // pop the top of the value stack
 	RETURN,
 	PRINT
 };

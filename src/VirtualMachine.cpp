@@ -55,6 +55,11 @@ Value VirtualMachine::pop()
 	return *stackTop;
 }
 
+Value VirtualMachine::peek(int distance)
+{
+	return stackTop[-1 - distance];
+}
+
 void VirtualMachine::addition()
 {
 	Value b = pop();
@@ -490,6 +495,27 @@ InterpretResult VirtualMachine::run()
 			}
 			break;
 		}
+		case (int)op::DEFINE_GLOBAL:
+		{
+			std::string name = *readConstant().asString();
+			globals[name] = peek(0);
+			pop();
+			break;
+		}
+		case (int)op::GET_GLOBAL:
+		{
+			std::string name = *readConstant().asString();
+			Value val = globals.at(name);
+			push(val);
+			break;
+		}
+		case (int)op::SET_GLOBAL:
+		{
+			std::string name = *readConstant().asString();
+			globals[name] = peek(0);
+			break;
+		}
+		case (int)op::POP: pop(); break;
 		case (int)op::RETURN: return InterpretResult::OK;
 		default: return InterpretResult::RuntimeError;
 		case (int)op::PRINT:

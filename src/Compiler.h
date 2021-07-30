@@ -54,6 +54,22 @@ private:
 
 	void endCompiler();
 
+	void synchronize();
+
+	void declaration();
+	void statement();
+
+	uint8_t identifierConstant(std::string identifier, ValueType type);
+	uint8_t parseVariable(ValueType type, std::string msg);
+	void defineVariable(uint8_t global);
+
+	void varDeclaration();
+	void expressionStatement();
+#ifdef _MDEBUG_
+	void printStatement();
+#endif
+
+
 	ValueType expression();
 	ValueType parsePrecedence(Precedence precedence);
 
@@ -66,6 +82,8 @@ private:
 	ValueType unary(bool canAssign);
 	ValueType binary(bool canAssign);
 	ValueType bitwise(bool canAssign);
+	ValueType namedVariable(std::string name, bool canAssign);
+	ValueType variable(bool canAssign);
 private:
 	using MemFuncPtr = ValueType(Compiler::*)(bool);
 	struct ParseRule
@@ -101,7 +119,7 @@ private:
 		{ TokenType::KLEINER,		ParseRule{nullptr,			&Compiler::binary,	Precedence::COMPARISON}},
 		{ TokenType::GROESSERODER,	ParseRule{nullptr,			&Compiler::binary,	Precedence::COMPARISON}},
 		{ TokenType::KLEINERODER,	ParseRule{nullptr,			&Compiler::binary,	Precedence::COMPARISON}},
-		{ TokenType::IDENTIFIER,	ParseRule{nullptr,			nullptr,			Precedence::NONE}},
+		{ TokenType::IDENTIFIER,	ParseRule{&Compiler::variable,nullptr,			Precedence::NONE}},
 		{ TokenType::STRING,		ParseRule{&Compiler::string,nullptr,			Precedence::NONE}},
 		{ TokenType::INUMBER,		ParseRule{&Compiler::inumber,nullptr,			Precedence::NONE}},
 		{ TokenType::DNUMBER,		ParseRule{&Compiler::dnumber,nullptr,			Precedence::NONE}},
@@ -167,5 +185,7 @@ private:
 	std::vector<Token>::iterator previous;
 
 	ValueType lastEmittedType;
+
+	std::unordered_map<std::string, ValueType> globals;
 };
 

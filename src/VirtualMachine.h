@@ -2,6 +2,7 @@
 
 #include "Chunk.h"
 #include <array>
+#include <unordered_map>
 
 enum class InterpretResult
 {
@@ -26,6 +27,7 @@ private:
 	Value readConstant(); //return the value in chunk.constants that the next byte in chunk.code indexes
 	void push(Value val); //push a value onto the stack
 	Value pop(); //pop a value of the stack and return it
+	Value peek(int distance);
 
 	void addition();
 private:
@@ -38,5 +40,7 @@ private:
 	static constexpr int StackMax = 256; //the static size of the stack
 	std::array<Value, StackMax> stack; //the Value stack
 	std::array<Value, StackMax>::iterator stackTop; //pointer to the current stack top
+
+	std::unordered_map<std::string, Value> globals;
 };
 

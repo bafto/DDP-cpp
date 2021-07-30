@@ -129,7 +129,7 @@ public:
 	//print the value, for debug mode
 	void printValue()
 	{
-		std::cout << "[Value] ";
+		std::cout << u8"[Value] ";
 		switch (getType())
 		{
 		case ValueType::INT: std::cout << asInt(); break;
@@ -137,7 +137,7 @@ public:
 		case ValueType::BOOL: std::cout << asBool(); break;
 		case ValueType::CHAR: std::cout << asChar(); break;
 		case ValueType::STRING: std::cout << *asString(); break;
-		default: std::cout << "Invalid Type";
+		default: std::cout << u8"Invalid Type";
 		}
 	}
 #endif

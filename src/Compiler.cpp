@@ -9,7 +9,8 @@ Compiler::Compiler(const std::string& file, Chunk* chunk)
 	chunk(chunk),
 	hadError(false),
 	panicMode(false),
-	lastEmittedType(ValueType::NONE)
+	lastEmittedType(ValueType::NONE),
+	globals()
 {
 }
 
@@ -23,9 +24,11 @@ bool Compiler::compile()
 	previous = tokens.begin();
 	current = tokens.begin();
 
-	expression();
-	//consume(TokenType::END, "Es wurde END erwartet!");
-	emitByte(op::PRINT); //for expression testing
+	while (!match(TokenType::END))
+	{
+		declaration();
+	}
+
 	endCompiler();
 
 	return !hadError;
@@ -41,7 +44,7 @@ void Compiler::advance()
 	{
 		current++;
 		if (current == tokens.end()) current--;
-		else if (current->type != TokenType::ERROR) break;
+		if (current->type != TokenType::ERROR) break;
 
 		errorAtCurrent(current->literal);
 	}
@@ -120,6 +123,159 @@ void Compiler::endCompiler()
 {
 	emitReturn();
 }
+
+void Compiler::synchronize()
+{
+	panicMode = false;
+
+	while (current->type != TokenType::END)
+	{
+		if (previous->type == TokenType::DOT) return;
+		switch (current->type)
+		{
+		case TokenType::FUNKTION:
+		case TokenType::DER:
+		case TokenType::DIE:
+		case TokenType::DAS:
+		case TokenType::FUER:
+		case TokenType::WENN:
+		case TokenType::SOLANGE:
+#ifdef _MDEBUG_
+		case TokenType::PRINT:
+#endif
+		case TokenType::GIB:
+			return;
+		default:;
+		}
+
+		advance();
+	}
+}
+
+void Compiler::declaration()
+{
+	if (match(TokenType::DER) || match(TokenType::DIE) || match(TokenType::DAS))
+	{
+		/*if (previous->type == TokenType::DIE && match(TokenType::FUNKTION))
+			funDeclaration();
+		else*/
+		varDeclaration();
+	}
+	else
+		statement();
+
+	if (panicMode) synchronize();
+}
+
+void Compiler::statement()
+{
+#ifdef _MDEBUG_
+	if (match(TokenType::PRINT))
+		printStatement();
+	else
+#endif
+		expressionStatement();
+}
+
+uint8_t Compiler::identifierConstant(std::string identifier, ValueType type)
+{
+	if (globals.find(identifier) != globals.end())
+	{
+		errorAtCurrent(u8"Eine Variable mit dem Namen " + identifier + " existiert bereits!");
+		return -1;
+	}
+	globals.insert({ identifier, type });
+	return makeConstant(Value(identifier));
+}
+
+uint8_t Compiler::parseVariable(ValueType type, std::string msg)
+{
+	consume(TokenType::IDENTIFIER, msg);
+
+	/*declareVariable(type);
+	if (currentCompiler->scopeDepth > 0) return 0;*/
+
+	return identifierConstant(previous->literal, type);
+}
+
+void Compiler::defineVariable(uint8_t global)
+{
+	emitBytes((uint8_t)op::DEFINE_GLOBAL, global);
+}
+
+#pragma region statements
+
+void Compiler::varDeclaration()
+{
+	ValueType varType = ValueType::NONE;
+	switch (previous->type)
+	{
+	case TokenType::DER:
+		if (!match(TokenType::BOOLEAN))
+		{
+			errorAtCurrent(u8"Der Artikel 'Der' passt nur zum Typ Boolean!");
+			return;
+		}
+		varType = ValueType::BOOL;
+		break;
+	case TokenType::DAS:
+		if (!match(TokenType::ZEICHEN))
+		{
+			errorAtCurrent(u8"Der Artikel 'Das' passt nur zum Typ Zeichen!");
+			return;
+		}
+		varType = ValueType::CHAR;
+		break;
+	case TokenType::DIE:
+		if (!match(TokenType::ZAHL) && !match(TokenType::ZEICHENKETTE) && !match(TokenType::KOMMAZAHL))
+		{
+			errorAtCurrent(u8"Der Artikel 'Die' passt nur zu den Typen Zahl, Kommazahl und Zeichenkette!");
+			return;
+		}
+		varType = previous->type == TokenType::ZAHL ? ValueType::INT : ValueType::NONE;
+		varType = previous->type == TokenType::KOMMAZAHL ? ValueType::DOUBLE : varType;
+		varType = previous->type == TokenType::ZEICHENKETTE ? ValueType::STRING : varType;
+		break;
+	}
+
+	uint8_t global = parseVariable(varType, u8"Es wurde Ein Variablen-Name erwartet!");
+
+	if (match(TokenType::IST)) 
+	{
+		ValueType rhs = expression();
+		if (rhs != varType) 
+		{
+			errorAtCurrent(u8"Einer Variable kann nur ein Wert vom gleichen Typ zugewiesen werden!");
+			return;
+		}
+	}
+	else 
+	{
+		errorAtCurrent(u8"Eine Variable muss immer initialisiert werden!");
+		return;
+	}
+	consume(TokenType::DOT, u8"Satzzeichen beachten! Nach einer Variablen-Definition muss ein '.' folgen");
+
+	defineVariable(global);
+}
+
+void Compiler::expressionStatement()
+{
+	expression();
+	consume(TokenType::DOT, u8"Es wurde ein '.' nach einem Ausdruck erwartet erwartet!");
+	emitByte(op::POP);
+}
+
+#ifdef _MDEBUG_
+void Compiler::printStatement()
+{
+	expression();
+	consume(TokenType::DOT, u8"Es wurde ein '.' nach '$' erwartet!");
+	emitByte(op::PRINT);
+}
+#endif
+
+#pragma endregion
 
 ValueType Compiler::expression()
 {
@@ -444,6 +600,31 @@ ValueType Compiler::bitwise(bool canAssign)
 	}
 
 	return ValueType::INT;
+}
+
+ValueType Compiler::namedVariable(std::string name, bool canAssign)
+{
+	uint8_t arg = makeConstant(Value(name));
+	if (globals.find(name) == globals.end())
+	{
+		errorAtCurrent("Die Variable " + name + " wurde noch nicht definiert!");
+		return ValueType::NONE;
+	}
+
+	if (canAssign && match(TokenType::IST))
+	{
+		expression();
+		emitBytes((uint8_t)op::SET_GLOBAL, arg);
+	}
+	else
+		emitBytes((uint8_t)op::GET_GLOBAL, arg);
+
+	return globals.at(name);
+}
+
+ValueType Compiler::variable(bool canAssign)
+{
+	return namedVariable(previous->literal, canAssign);
 }
 
 #pragma endregion
