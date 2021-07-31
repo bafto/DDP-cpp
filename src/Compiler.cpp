@@ -721,31 +721,81 @@ ValueType Compiler::namedVariable(std::string name, bool canAssign)
 	uint8_t arg = makeConstant(Value(name));
 	if (globals.find(name) == globals.end())
 	{
-		errorAtCurrent("Die Variable " + name + " wurde noch nicht definiert!");
+		errorAtCurrent(u8"Die Variable " + name + u8" wurde noch nicht definiert!");
 		return ValueType::NONE;
 	}
 
 	if (canAssign && match(TokenType::IST))
 	{
 		ValueType expr = ValueType::NONE;
+		if (globals.at(name) >= ValueType::INTARR && globals.at(name) <= ValueType::STRINGARR)
+			errorAt(*previous, "Bei einer Array Zuweisung muss 'sind' anstatt 'ist' stehen!");
 		if (globals.at(name) == ValueType::BOOL)
 			expr = boolAssignement();
 		else
 			expr = expression();
 		if (expr != globals.at(name))
-			errorAtCurrent("Falscher Zuweisungs Typ");
+			errorAtCurrent(u8"Falscher Zuweisungs Typ");
 		emitBytes(op::SET_GLOBAL, arg);
+	}
+	else if (canAssign && match(TokenType::SIND))
+	{
+		if (!(globals.at(name) >= ValueType::INTARR && globals.at(name) <= ValueType::STRINGARR))
+			errorAt(*previous, "'sind' darf nur zum Zuweisen von Arrays verwendet werden!");
+		ValueType expr = expression();
+		if(expr != globals.at(name))
+			errorAtCurrent(u8"Falscher Zuweisungs Typ");
+		emitBytes(op::SET_GLOBAL, arg);
+	}
+	else if (check(TokenType::AN))
+	{
+		emitBytes(op::CONSTANT, arg);
+		lastEmittedType = globals.at(name);
+		return lastEmittedType;
 	}
 	else
 		emitBytes(op::GET_GLOBAL, arg);
 
 	lastEmittedType = globals.at(name);
-	return globals.at(name);
+	return lastEmittedType;
 }
 
 ValueType Compiler::variable(bool canAssign)
 {
 	return namedVariable(previous->literal, canAssign);
+}
+
+ValueType Compiler::index(bool canAssign)
+{
+	if (!(lastEmittedType >= ValueType::INTARR && lastEmittedType <= ValueType::STRINGARR))
+	{
+		errorAt(*previous, u8"Du kannst nur Arrays indexieren!");
+		return ValueType::NONE;
+	}
+	ValueType arrType = (ValueType)((int)lastEmittedType - 5);
+	ValueType rhs = parsePrecedence(Precedence::CALL);
+
+	if (rhs != ValueType::INT)
+	{
+		errorAtCurrent(u8"Du kannst nur ganze Zahlen zum indexieren benutzen!");
+		return arrType;
+	}
+
+	if (match(TokenType::IST))
+	{
+		ValueType expr = ValueType::NONE;
+		if (arrType == ValueType::BOOL)
+			expr = boolAssignement();
+		else
+			expr = expression();
+		if (expr != arrType)
+			errorAtCurrent(u8"Falscher Zuweisungs Typ!");
+		emitByte(op::SET_ARRAY_ELEMENT);
+	}
+	else
+		emitByte(op::GET_ARRAY_ELEMENT);
+
+	return arrType;
 }
 
 #pragma endregion

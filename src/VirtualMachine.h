@@ -23,6 +23,8 @@ private:
 
 	/**Functions only used inside run**/
 
+	void runtimeError(std::string msg);
+
 	uint8_t readByte(); //return the next byte in chunk.code and advance ip
 	Value readConstant(); //return the value in chunk.constants that the next byte in chunk.code indexes
 	void push(Value val); //push a value onto the stack

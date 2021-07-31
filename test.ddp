@@ -1,3 +1,6 @@
-die Zeichenketten x sind ["hi"; "sf"; "Hallo";].
+die Zahlen z sind [1; 2; 3].
 
-$ x.
+z an der Stelle 0 ist 7.
+
+$ z.
+$ z an der Stelle 2.

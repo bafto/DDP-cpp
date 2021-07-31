@@ -31,6 +31,11 @@ InterpretResult VirtualMachine::interpret(const std::string& file)
 	return run();*/
 }
 
+void VirtualMachine::runtimeError(std::string msg)
+{
+	std::cerr << msg;
+}
+
 //return the next byte in chunk.code and advance ip
 uint8_t VirtualMachine::readByte()
 {
@@ -592,6 +597,44 @@ InterpretResult VirtualMachine::run()
 		{
 			std::string name = *readConstant().asString();
 			globals[name] = Value(std::vector<std::string>(pop().asInt(), ""));
+			break;
+		}
+		case (int)op::GET_ARRAY_ELEMENT:
+		{
+			int index = pop().asInt();
+			Value arr = globals.at(*pop().asString());
+			try
+			{
+				switch (arr.getType())
+				{
+				case ValueType::INTARR: push(Value(arr.asIntArr()->at(index))); break;
+				case ValueType::DOUBLEARR: push(Value(arr.asDoubleArr()->at(index))); break;
+				case ValueType::BOOLARR: push(Value(arr.asBoolArr()->at(index))); break;
+				case ValueType::CHARARR: push(Value(arr.asCharArr()->at(index))); break;
+				case ValueType::STRINGARR: push(Value(arr.asStringArr()->at(index))); break;
+				}
+			}
+			catch (std::out_of_range& e)
+			{
+				runtimeError(u8"Der index ist außerhalb der Array Größe!");
+				return InterpretResult::RuntimeError;
+			}
+			break;
+		}
+		case (int)op::SET_ARRAY_ELEMENT:
+		{
+			Value val = pop();
+			int index = pop().asInt();
+			Value& arr = globals.at(*pop().asString());
+			switch (arr.getType())
+			{
+			case ValueType::INTARR: arr.asIntArr()->at(index) = val.asInt(); break;
+			case ValueType::DOUBLEARR: arr.asDoubleArr()->at(index) = val.asDouble(); break;
+			case ValueType::BOOLARR: arr.asBoolArr()->at(index) = val.asBool(); break;
+			case ValueType::CHARARR: arr.asCharArr()->at(index) = val.asChar(); break;
+			case ValueType::STRINGARR: arr.asStringArr()->at(index) = *val.asString(); break;
+			}
+			push(arr);
 			break;
 		}
 		case (int)op::DEFINE_GLOBAL:

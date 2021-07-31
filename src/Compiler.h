@@ -88,6 +88,7 @@ private:
 	ValueType bitwise(bool canAssign);
 	ValueType namedVariable(std::string name, bool canAssign);
 	ValueType variable(bool canAssign);
+	ValueType index(bool canAssign);
 private:
 	using MemFuncPtr = ValueType(Compiler::*)(bool);
 	struct ParseRule
@@ -152,7 +153,7 @@ private:
 		{ TokenType::BOOLEANS,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::KOMMAZAHLEN,	ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::ZEICHENKETTEN,	ParseRule{nullptr,			nullptr,			Precedence::NONE}},
-		{ TokenType::AN,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
+		{ TokenType::AN,			ParseRule{nullptr,			&Compiler::index,	Precedence::CALL}},
 		{ TokenType::STELLE,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::STUECK,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::LEFT_SQAREBRACKET,ParseRule{&Compiler::arrLiteral,	nullptr,	Precedence::NONE}},
@@ -181,6 +182,9 @@ private:
 		{ TokenType::DAS,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::ERROR,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::END,			ParseRule{nullptr,			nullptr,			Precedence::NONE}}
+#ifdef _MDEBUG_
+		,{TokenType::PRINT,			ParseRule{nullptr,			nullptr,			Precedence::NONE}}
+#endif
 	};
 private:
 	Chunk* chunk; //the chunk into which the source code is compiled
