@@ -207,6 +207,7 @@ ValueType Compiler::boolAssignement()
 	}
 	else
 		errorAtCurrent("Beim definieren eines Booleans muss wahr oder falsch stehen!");
+	return ValueType::BOOL;
 }
 
 uint8_t Compiler::identifierConstant(std::string identifier, ValueType type)
@@ -232,7 +233,19 @@ uint8_t Compiler::parseVariable(ValueType type, std::string msg)
 
 void Compiler::defineVariable(uint8_t global)
 {
-	emitBytes((uint8_t)op::DEFINE_GLOBAL, global);
+	emitBytes(op::DEFINE_GLOBAL, global);
+}
+
+void Compiler::defineVariable(uint8_t global, ValueType arrType)
+{
+	switch (arrType)
+	{
+	case ValueType::INTARR: emitBytes(op::DEFINE_EMPTY_INTARR, global); break;
+	case ValueType::DOUBLEARR: emitBytes(op::DEFINE_EMPTY_DOUBLEARR, global); break;
+	case ValueType::BOOLARR: emitBytes(op::DEFINE_EMPTY_BOOLARR, global); break;
+	case ValueType::CHARARR: emitBytes(op::DEFINE_EMPTY_CHARARR, global); break;
+	case ValueType::STRINGARR: emitBytes(op::DEFINE_EMPTY_STRINGARR, global); break;
+	}
 }
 
 #pragma region statements
@@ -259,7 +272,8 @@ void Compiler::varDeclaration()
 		varType = ValueType::CHAR;
 		break;
 	case TokenType::DIE:
-		if (!match(TokenType::ZAHL) && !match(TokenType::ZEICHENKETTE) && !match(TokenType::KOMMAZAHL))
+		if (!match(TokenType::ZAHL) && !match(TokenType::ZEICHENKETTE) && !match(TokenType::KOMMAZAHL) &&
+			!match(TokenType::ZAHLEN) && !match(TokenType::KOMMAZAHLEN) && !match(TokenType::ZEICHEN) && !match(TokenType::ZEICHENKETTEN) && !match(TokenType::BOOLEANS))
 		{
 			errorAtCurrent(u8"Der Artikel 'Die' passt nur zu den Typen Zahl, Kommazahl und Zeichenkette!");
 			return;
@@ -267,6 +281,11 @@ void Compiler::varDeclaration()
 		varType = previous->type == TokenType::ZAHL ? ValueType::INT : ValueType::NONE;
 		varType = previous->type == TokenType::KOMMAZAHL ? ValueType::DOUBLE : varType;
 		varType = previous->type == TokenType::ZEICHENKETTE ? ValueType::STRING : varType;
+		varType = previous->type == TokenType::ZAHLEN ? ValueType::INTARR : varType;
+		varType = previous->type == TokenType::KOMMAZAHLEN ? ValueType::DOUBLEARR : varType;
+		varType = previous->type == TokenType::BOOLEANS ? ValueType::BOOLARR : varType;
+		varType = previous->type == TokenType::ZEICHEN ? ValueType::CHARARR : varType;
+		varType = previous->type == TokenType::ZEICHENKETTEN ? ValueType::STRINGARR : varType;
 		break;
 	}
 
@@ -274,6 +293,16 @@ void Compiler::varDeclaration()
 
 	if (match(TokenType::IST)) 
 	{
+		switch (varType)
+		{
+		case ValueType::INTARR:
+		case ValueType::DOUBLEARR:
+		case ValueType::BOOLARR:
+		case ValueType::CHARARR:
+		case ValueType::STRINGARR: errorAt(*previous, u8"Beim definieren einer Variablen Gruppe wird 'sind' statt 'ist' erwartet!"); break;
+		default: break;
+		}
+
 		ValueType rhs = ValueType::NONE;
 		if (varType == ValueType::BOOL)
 		{
@@ -283,6 +312,32 @@ void Compiler::varDeclaration()
 			rhs = expression();
 
 		if (rhs != varType) 
+		{
+			errorAtCurrent(u8"Einer Variable kann nur ein Wert vom gleichen Typ zugewiesen werden!");
+			return;
+		}
+	}
+	else if (match(TokenType::SIND))
+	{
+		switch (varType)
+		{
+		case ValueType::INT:
+		case ValueType::DOUBLE:
+		case ValueType::BOOL:
+		case ValueType::CHAR:
+		case ValueType::STRING: errorAt(*previous, u8"Beim definieren einer einzelnen Variable wurde 'ist' statt 'sind' erwartet!"); break;
+		default: break;
+		}
+
+		ValueType rhs = expression();
+		if (rhs == ValueType::INT)
+		{
+			consume(TokenType::STUECK, u8"Beim definieren einer leeren Variablen Gruppe wurde 'Stück' erwartet!");
+			consume(TokenType::DOT, u8"Satzzeichen beachten! Nach einer Variablen-Definition muss ein '.' folgen");
+			defineVariable(global, varType);
+			return;
+		}
+		if (rhs != varType)
 		{
 			errorAtCurrent(u8"Einer Variable kann nur ein Wert vom gleichen Typ zugewiesen werden!");
 			return;
@@ -384,6 +439,26 @@ ValueType Compiler::character(bool canAssign)
 {
 	emitConstant(Value(previous->literal[1])); //remove the leading and trailing '
 	return ValueType::CHAR;
+}
+
+ValueType Compiler::arrLiteral(bool canAssign)
+{
+	if (match(TokenType::RIGHT_SQAREBRACKET))
+		errorAtCurrent(u8"Eine Variablen Gruppe kann nicht größe 0 haben!");
+	ValueType arrType = expression();
+	int i = 1;
+	while (!match(TokenType::RIGHT_SQAREBRACKET))
+	{
+		consume(TokenType::SEMICOLON, u8"Unfertiges Array Literal!");
+		ValueType rhs = expression();
+		if (rhs != arrType)
+			errorAt(*previous, u8"Die Typen innerhalb des Array Literals stimmen nicht überein!");
+		i++;
+	}
+	emitBytes(op::ARRAY, makeConstant(Value(i)));
+	emitByte((uint8_t)arrType);
+	lastEmittedType = ValueType((int)arrType + 5);
+	return lastEmittedType;
 }
 
 ValueType Compiler::Literal(bool canAssign)
@@ -659,10 +734,10 @@ ValueType Compiler::namedVariable(std::string name, bool canAssign)
 			expr = expression();
 		if (expr != globals.at(name))
 			errorAtCurrent("Falscher Zuweisungs Typ");
-		emitBytes((uint8_t)op::SET_GLOBAL, arg);
+		emitBytes(op::SET_GLOBAL, arg);
 	}
 	else
-		emitBytes((uint8_t)op::GET_GLOBAL, arg);
+		emitBytes(op::GET_GLOBAL, arg);
 
 	lastEmittedType = globals.at(name);
 	return globals.at(name);

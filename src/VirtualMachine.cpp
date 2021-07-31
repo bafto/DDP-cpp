@@ -153,6 +153,75 @@ InterpretResult VirtualMachine::run()
 		switch (readByte())
 		{
 		case (int)op::CONSTANT: push(readConstant()); break;
+		case (int)op::ARRAY:
+		{
+			int size = readConstant().asInt();
+			ValueType type = (ValueType)readByte();
+			switch (type)
+			{
+			case ValueType::INT:
+			{
+				std::vector<int> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(pop().asInt());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			case ValueType::DOUBLE:
+			{
+				std::vector<double> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(pop().asDouble());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			case ValueType::BOOL:
+			{
+				std::vector<bool> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(pop().asBool());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			case ValueType::CHAR:
+			{
+				std::vector<char> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(pop().asChar());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			case ValueType::STRING:
+			{
+				std::vector<std::string> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(*pop().asString());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			}
+			break;
+		}
 		case (int)op::NOT: push(!pop().asBool()); break;
 		case (int)op::NEGATE:
 		{
@@ -493,6 +562,36 @@ InterpretResult VirtualMachine::run()
 				break;
 			}
 			}
+			break;
+		}
+		case (int)op::DEFINE_EMPTY_INTARR:
+		{
+			std::string name = *readConstant().asString();
+			globals[name] = Value(std::vector<int>(pop().asInt(), 0));
+			break;
+		}
+		case (int)op::DEFINE_EMPTY_DOUBLEARR:
+		{
+			std::string name = *readConstant().asString();
+			globals[name] = Value(std::vector<double>(pop().asInt(), 0.0));
+			break;
+		}
+		case (int)op::DEFINE_EMPTY_BOOLARR:
+		{
+			std::string name = *readConstant().asString();
+			globals[name] = Value(std::vector<bool>(pop().asInt(), false));
+			break;
+		}
+		case (int)op::DEFINE_EMPTY_CHARARR:
+		{
+			std::string name = *readConstant().asString();
+			globals[name] = Value(std::vector<char>(pop().asInt(), 0));
+			break;
+		}
+		case (int)op::DEFINE_EMPTY_STRINGARR:
+		{
+			std::string name = *readConstant().asString();
+			globals[name] = Value(std::vector<std::string>(pop().asInt(), ""));
 			break;
 		}
 		case (int)op::DEFINE_GLOBAL:

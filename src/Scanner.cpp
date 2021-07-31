@@ -160,6 +160,12 @@ std::vector<Token> Scanner::scanTokens()
 			}
 			break;
 		}
+		case TokenType::AN:
+		{
+			consumeErase(TokenType::DER, u8"Nach 'an' wurde 'der' erwartet!", it, tokens);
+			consumeErase(TokenType::STELLE, u8"Nach, 'der' wurde 'Stelle' erwartet!", it, tokens);
+			break;
+		}
 		default:
 			break;
 		}
@@ -189,6 +195,9 @@ Token Scanner::scanToken()
 	case '(': return makeToken(TokenType::LEFT_PAREN);
 	case ')': return makeToken(TokenType::RIGHT_PAREN);
 	case '-': return makeToken(TokenType::NEGATEMINUS);
+	case '[': return makeToken(TokenType::LEFT_SQAREBRACKET);
+	case ']': return makeToken(TokenType::RIGHT_SQAREBRACKET);
+	case ';': return makeToken(TokenType::SEMICOLON);
 #ifdef _MDEBUG_
 	case '$': return makeToken(TokenType::PRINT);
 #endif

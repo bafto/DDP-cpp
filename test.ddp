@@ -1,1 +1,3 @@
-die Zeichen c ist 7.
+die Zeichenketten x sind ["hi"; "sf"; "Hallo";].
+
+$ x.

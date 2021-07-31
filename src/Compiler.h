@@ -49,6 +49,7 @@ private:
 	void emitByte(uint8_t byte) { currentChunk()->write(byte, previous->line); };
 	void emitByte(OpCode code) { currentChunk()->write(code, previous->line); };
 	void emitBytes(uint8_t byte1, uint8_t byte2) { emitByte(byte1); emitByte(byte2); };
+	void emitBytes(OpCode code, uint8_t byte2) { emitByte(code); emitByte(byte2); };
 	void emitReturn() { emitByte(OpCode::RETURN); };
 	void emitConstant(Value value) { emitBytes((uint8_t)OpCode::CONSTANT, makeConstant(std::move(value))); };
 
@@ -63,6 +64,7 @@ private:
 	uint8_t identifierConstant(std::string identifier, ValueType type);
 	uint8_t parseVariable(ValueType type, std::string msg);
 	void defineVariable(uint8_t global);
+	void defineVariable(uint8_t global, ValueType arrType); //to define empty arrays
 
 	void varDeclaration();
 	void expressionStatement();
@@ -78,6 +80,7 @@ private:
 	ValueType inumber(bool canAssign);
 	ValueType string(bool canAssign);
 	ValueType character(bool canAssign);
+	ValueType arrLiteral(bool canAssign);
 	ValueType Literal(bool canAssign);
 	ValueType grouping(bool canAssign);
 	ValueType unary(bool canAssign);
@@ -146,10 +149,15 @@ private:
 		{ TokenType::ZEICHEN,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::ZEICHENKETTE,	ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::ZAHLEN,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
+		{ TokenType::BOOLEANS,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::KOMMAZAHLEN,	ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::ZEICHENKETTEN,	ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::AN,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::STELLE,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
+		{ TokenType::STUECK,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
+		{ TokenType::LEFT_SQAREBRACKET,ParseRule{&Compiler::arrLiteral,	nullptr,	Precedence::NONE}},
+		{ TokenType::RIGHT_SQAREBRACKET,ParseRule{nullptr,		nullptr,			Precedence::NONE}},
+		{ TokenType::SEMICOLON,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::SOLANGE,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::ALS,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::BIT,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},

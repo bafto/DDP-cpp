@@ -7,6 +7,7 @@
 enum class OpCode
 {
 	CONSTANT,
+	ARRAY, //define a array Literal at runtime
 	NEGATE, //negate
 	NOT, //bool negate
 	ADD, //addition
@@ -31,6 +32,11 @@ enum class OpCode
 	LESS, // <
 	LESSEQUAL, // <=
 	DEFINE_GLOBAL,
+	DEFINE_EMPTY_INTARR,
+	DEFINE_EMPTY_DOUBLEARR,
+	DEFINE_EMPTY_BOOLARR,
+	DEFINE_EMPTY_CHARARR,
+	DEFINE_EMPTY_STRINGARR,
 	GET_GLOBAL,
 	SET_GLOBAL,
 	POP, // pop the top of the value stack

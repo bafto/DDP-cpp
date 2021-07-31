@@ -43,10 +43,15 @@ public:
 	Value(const std::string& s) : _val(new std::string(s)) {} //constructor for a string Value
 	Value(const char* s) : _val(new std::string(s)) {} //constructor for a string Value from a const char*
 	Value(const std::vector<int>& ints) : _val(new std::vector<int>(ints)) {}
-	Value(const std::vector<double>& ints) : _val(new std::vector<double>(ints)) {}
-	Value(const std::vector<bool>& ints) : _val(new std::vector<bool>(ints)) {}
-	Value(const std::vector<char>& ints) : _val(new std::vector<char>(ints)) {}
-	Value(const std::vector<std::string>& ints) : _val(new std::vector<std::string>(ints)) {}
+	Value(const std::vector<double>& doubles) : _val(new std::vector<double>(doubles)) {}
+	Value(const std::vector<bool>& bools) : _val(new std::vector<bool>(bools)) {}
+	Value(const std::vector<char>& chars) : _val(new std::vector<char>(chars)) {}
+	Value(const std::vector<std::string>& strs) : _val(new std::vector<std::string>(strs)) {}
+	Value(std::vector<int>&& ints) : _val(new std::vector<int>(std::move(ints))) {}
+	Value(std::vector<double>&& doubles) : _val(new std::vector<double>(std::move(doubles))) {}
+	Value(std::vector<bool>&& bools) : _val(new std::vector<bool>(std::move(bools))) {}
+	Value(std::vector<char>&& chars) : _val(new std::vector<char>(std::move(chars))) {}
+	Value(std::vector<std::string>&& strs) : _val(new std::vector<std::string>(std::move(strs))) {}
 	
 	//copy constructor, allocates new memory if it's a string, array or function
 	Value(const Value& rhs)

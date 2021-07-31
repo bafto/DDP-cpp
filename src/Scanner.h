@@ -51,7 +51,7 @@ enum class TokenType
 	//Typen
 	ZAHL, KOMMAZAHL, BOOLEAN, ZEICHENKETTE, ZEICHEN,
 	//Arrays
-	ZAHLEN, KOMMAZAHLEN, ZEICHENKETTEN, AN, STELLE,
+	ZAHLEN, KOMMAZAHLEN, BOOLEANS, ZEICHENKETTEN, AN, STELLE, STUECK, LEFT_SQAREBRACKET, RIGHT_SQAREBRACKET, SEMICOLON,
 	//bool literals
 	WAHR, FALSCH,
 	//return
@@ -171,9 +171,11 @@ private:
 		{"Zeichen", TokenType::ZEICHEN},
 		{"Zahlen", TokenType::ZAHLEN},
 		{"Kommazahlen", TokenType::KOMMAZAHLEN},
+		{"Booleans", TokenType::BOOLEANS},
 		{"Zeichenketten", TokenType::ZEICHENKETTEN},
 		{"an", TokenType::AN},
 		{"Stelle", TokenType::STELLE},
+		{"Stück", TokenType::STUECK},
 		{"wahr", TokenType::WAHR},
 		{"falsch", TokenType::FALSCH},
 		{"gib", TokenType::GIB},
