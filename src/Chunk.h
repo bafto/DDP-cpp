@@ -50,6 +50,8 @@ enum class OpCode
 	SET_GLOBAL,
 	GET_LOCAL,
 	SET_LOCAL,
+	JUMP,
+	JUMP_IF_FALSE,
 	POP, // pop the top of the value stack
 	RETURN,
 	PRINT

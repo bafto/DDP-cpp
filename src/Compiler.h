@@ -69,6 +69,7 @@ private:
 	void emitBytes(uint8_t byte1, uint8_t byte2) { emitByte(byte1); emitByte(byte2); };
 	void emitBytes(OpCode code, uint8_t byte2) { emitByte(code); emitByte(byte2); };
 	void emitReturn() { emitByte(OpCode::RETURN); };
+	int emitJump(OpCode code) { emitByte(code); emitBytes(0xff, 0xff); return currentChunk()->code.size() - 2; };
 	void emitConstant(Value value) { emitBytes((uint8_t)OpCode::CONSTANT, makeConstant(std::move(value))); };
 
 	void initScopeUnit(ScopeUnit& unit) { unit.localCount = 0; unit.scopeDepth = 0; currentScopeUnit = &unit; };
@@ -101,6 +102,8 @@ private:
 	void block();
 	void varDeclaration();
 	void expressionStatement();
+	void patchJump(int offset);
+	void ifStatement();
 #ifdef _MDEBUG_
 	void printStatement();
 #endif

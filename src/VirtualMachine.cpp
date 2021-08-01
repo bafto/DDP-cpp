@@ -42,6 +42,11 @@ uint8_t VirtualMachine::readByte()
 	return *ip++;
 }
 
+uint16_t VirtualMachine::readShort()
+{
+	return (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]));
+}
+
 //return the value in chunk.constants that the next byte in chunk.code indexes
 Value VirtualMachine::readConstant()
 {
@@ -735,6 +740,18 @@ InterpretResult VirtualMachine::run()
 		{
 			uint8_t slot = readByte();
 			stack[slot] = peek(0);
+			break;
+		}
+		case (int)op::JUMP:
+		{
+			uint16_t offset = readShort();
+			ip += offset;
+			break;
+		}
+		case (int)op::JUMP_IF_FALSE:
+		{
+			uint16_t offset = readShort();
+			if (!(peek(0).asBool())) ip += offset;
 			break;
 		}
 		case (int)op::POP: pop(); break;

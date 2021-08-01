@@ -177,7 +177,9 @@ void Compiler::statement()
 		printStatement();
 	else
 #endif
-	if (match(TokenType::COLON))
+	if (match(TokenType::WENN))
+		ifStatement();
+	else if (match(TokenType::COLON))
 	{
 		beginScope();
 		block();
@@ -424,6 +426,45 @@ void Compiler::expressionStatement()
 	expression();
 	consume(TokenType::DOT, u8"Es wurde ein '.' nach einem Ausdruck erwartet erwartet!");
 	emitByte(op::POP);
+}
+
+void Compiler::patchJump(int offset)
+{
+	int jump = currentChunk()->code.size() - offset - 2;
+
+	if (jump > UINT16_MAX)
+		error(u8"Zu viel Byte-code zu überspringen!");
+
+	currentChunk()->code[offset] = (jump >> 8) & 0xff;
+	currentChunk()->code[offset + 1] = jump & 0xff;
+}
+
+void Compiler::ifStatement()
+{
+	ValueType expr = expression();
+	if (expr != ValueType::BOOL) errorAtCurrent(u8"Die Bedingung einer 'wenn' Anweisung muss einen Boolschen Wert ergeben!");
+	consume(TokenType::COMMA, u8"Nach der Bedingung einer 'wenn' Anweisung wurde ein ',' erwartet!");
+	consume(TokenType::DANN, u8"Nach dem ',' einer 'wenn' Anweisung wurde ein 'dann' erwartet!");
+
+	int thenJump = emitJump(op::JUMP_IF_FALSE);
+	emitByte(op::POP);
+	statement();
+
+	int elseJump = emitJump(op::JUMP);
+	emitByte(op::POP);
+	
+	patchJump(thenJump);
+
+	if (match(TokenType::SONST))
+		statement();
+	else if (check(TokenType::WENN) && checkNext(TokenType::ABER))
+	{
+		advance();
+		advance();
+		ifStatement();
+	}
+
+	patchJump(elseJump);
 }
 
 #ifdef _MDEBUG_
@@ -906,7 +947,8 @@ ValueType Compiler::index(bool canAssign)
 			emitBytes(op::GET_ARRAY_ELEMENT_LOCAL, localArrSlot);
 	}
 
-	return arrType;
+	lastEmittedType = (ValueType)((int)arrType + 5);
+	return lastEmittedType;
 }
 
 #pragma endregion

@@ -26,6 +26,7 @@ private:
 	void runtimeError(std::string msg);
 
 	uint8_t readByte(); //return the next byte in chunk.code and advance ip
+	uint16_t readShort(); //return the next 2 bytes as short
 	Value readConstant(); //return the value in chunk.constants that the next byte in chunk.code indexes
 	void push(Value val); //push a value onto the stack
 	Value pop(); //pop a value of the stack and return it
