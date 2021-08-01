@@ -179,6 +179,8 @@ void Compiler::statement()
 #endif
 	if (match(TokenType::WENN))
 		ifStatement();
+	else if (match(TokenType::SOLANGE))
+		whileStatement();
 	else if (match(TokenType::COLON))
 	{
 		beginScope();
@@ -465,6 +467,24 @@ void Compiler::ifStatement()
 	}
 
 	patchJump(elseJump);
+}
+
+void Compiler::whileStatement()
+{
+	int loopStart = currentChunk()->code.size();
+	ValueType expr = expression();
+	if (expr != ValueType::BOOL) errorAtCurrent(u8"Die Bedingung einer 'solange' Anweisung muss ein Boolean sein!");
+
+	consume(TokenType::COMMA, u8"Nach der Bedingung einer 'solange' Anweisung wurde ein ',' erwartet!");
+	consume(TokenType::MACHE, u8"Nach dem ',' einer 'solange' Anweisung wurde ein 'mache' erwartet!");
+
+	int exitJump = emitJump(op::JUMP_IF_FALSE);
+	emitByte(op::POP);
+	statement();
+	emitLoop(loopStart);
+
+	patchJump(exitJump);
+	emitByte(op::POP);
 }
 
 #ifdef _MDEBUG_

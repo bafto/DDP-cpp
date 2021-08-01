@@ -1,6 +1,5 @@
-die Zeichenketten z sind ["test"; "test2"; "test3"].
-
-wenn z an der Stelle 0 gleich "test2" ist oder z an der Stelle 2 gleich "test2" ist, dann:
-	$ "ja".
-sonst 
-	$ "nein".
+die Zeichenketten z sind ["Hallo"; "wie"; "geht"; "es"; "dir"; "?"].
+die Zahl i ist 0.
+solange i kleiner als 6 ist, mache:
+	$ z an der Stelle i plus " ".
+	i ist i plus 1.

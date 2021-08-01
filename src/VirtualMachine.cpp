@@ -754,6 +754,12 @@ InterpretResult VirtualMachine::run()
 			if (!(peek(0).asBool())) ip += offset;
 			break;
 		}
+		case (int)op::LOOP:
+		{
+			uint16_t offset = readShort();
+			ip -= offset;
+			break;
+		}
 		case (int)op::POP: pop(); break;
 		case (int)op::RETURN: return InterpretResult::OK;
 		default: return InterpretResult::RuntimeError;

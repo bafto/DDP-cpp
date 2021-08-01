@@ -52,6 +52,7 @@ enum class OpCode
 	SET_LOCAL,
 	JUMP,
 	JUMP_IF_FALSE,
+	LOOP,
 	POP, // pop the top of the value stack
 	RETURN,
 	PRINT
