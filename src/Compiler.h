@@ -25,6 +25,7 @@ private:
 		TERM,        // + -
 		FACTOR,      // * / %
 		EXPONENT,
+		INDEXING,
 		UNARY,       // ! -
 		CALL,        // ()
 		PRIMARY
@@ -122,6 +123,8 @@ private:
 	ValueType unary(bool canAssign);
 	ValueType binary(bool canAssign);
 	ValueType bitwise(bool canAssign);
+	ValueType and_(bool canAssign);
+	ValueType or_(bool canAssign);
 	int resolveLocal(ScopeUnit* unit, std::string name, ValueType* type);
 	void markInitialized();
 	ValueType namedVariable(std::string name, bool canAssign);
@@ -166,8 +169,8 @@ private:
 		{ TokenType::STRING,		ParseRule{&Compiler::string,nullptr,			Precedence::NONE}},
 		{ TokenType::INUMBER,		ParseRule{&Compiler::inumber,nullptr,			Precedence::NONE}},
 		{ TokenType::DNUMBER,		ParseRule{&Compiler::dnumber,nullptr,			Precedence::NONE}},
-		{ TokenType::CHARACTER,		ParseRule{&Compiler::character,nullptr,		Precedence::NONE}},
-		{ TokenType::UND,			ParseRule{nullptr,			nullptr,			Precedence::AND}},
+		{ TokenType::CHARACTER,		ParseRule{&Compiler::character,nullptr,			Precedence::NONE}},
+		{ TokenType::UND,			ParseRule{nullptr,			&Compiler::and_,	Precedence::AND}},
 		{ TokenType::SONST,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::FALSCH,		ParseRule{&Compiler::Literal,nullptr,			Precedence::NONE}},
 		{ TokenType::PI,			ParseRule{&Compiler::Literal,nullptr,			Precedence::NONE}},
@@ -177,7 +180,7 @@ private:
 		{ TokenType::FUER,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::FUNKTION,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::WENN,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
-		{ TokenType::ODER,			ParseRule{nullptr,			nullptr,			Precedence::OR}},
+		{ TokenType::ODER,			ParseRule{nullptr,			&Compiler::or_,		Precedence::OR}},
 		{ TokenType::IST,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::GIB,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::ZURUECK,		ParseRule{nullptr,			nullptr,			Precedence::NONE}},

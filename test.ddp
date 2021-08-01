@@ -1,6 +1,6 @@
 die Zeichenketten z sind ["test"; "test2"; "test3"].
 
-wenn z an der Stelle 1 gleich "test" ist, dann:
+wenn z an der Stelle 0 gleich "test2" ist oder z an der Stelle 2 gleich "test2" ist, dann:
 	$ "ja".
 sonst 
 	$ "nein".

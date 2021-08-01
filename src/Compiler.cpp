@@ -823,6 +823,34 @@ ValueType Compiler::bitwise(bool canAssign)
 	return ValueType::INT;
 }
 
+ValueType Compiler::and_(bool canAssign)
+{
+	int endJump = emitJump(op::JUMP_IF_FALSE);
+	emitByte(op::POP);
+
+	ValueType expr = parsePrecedence(Precedence::AND);
+	if (expr != ValueType::BOOL) errorAtCurrent(u8"Die Operanden eines 'und' Ausdrucks müssen Booleans sein!");
+
+	patchJump(endJump);
+
+	return expr;
+}
+
+ValueType Compiler::or_(bool canAssign)
+{
+	int elseJump = emitJump(op::JUMP_IF_FALSE);
+	int endJump = emitJump(op::JUMP);
+
+	patchJump(elseJump);
+	emitByte(op::POP);
+
+	ValueType expr = parsePrecedence(Precedence::OR);
+	if (expr != ValueType::BOOL) errorAtCurrent("Die Operanden eines 'oder' Ausdrucks müssen Booleans sein!");
+	patchJump(endJump);
+
+	return expr;
+}
+
 int Compiler::resolveLocal(ScopeUnit* unit, std::string name, ValueType* type)
 {
 	for (int i = unit->localCount - 1; i >= 0; i--)
@@ -917,7 +945,7 @@ ValueType Compiler::index(bool canAssign)
 		return ValueType::NONE;
 	}
 	ValueType arrType = (ValueType)((int)lastEmittedType - 5);
-	ValueType rhs = parsePrecedence(Precedence::CALL);
+	ValueType rhs = parsePrecedence(Precedence::INDEXING);
 
 	if (rhs != ValueType::INT)
 	{
