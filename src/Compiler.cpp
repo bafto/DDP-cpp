@@ -10,7 +10,8 @@ Compiler::Compiler(const std::string& file, Chunk* chunk)
 	hadError(false),
 	panicMode(false),
 	lastEmittedType(ValueType::NONE),
-	globals()
+	globals(),
+	currentScopeUnit(nullptr)
 {
 }
 
@@ -23,6 +24,8 @@ bool Compiler::compile()
 	}
 	previous = tokens.begin();
 	current = tokens.begin();
+
+	ScopeUnit globalUnit(currentScopeUnit);
 
 	while (!match(TokenType::END))
 	{
@@ -174,6 +177,13 @@ void Compiler::statement()
 		printStatement();
 	else
 #endif
+	if (match(TokenType::COLON))
+	{
+		beginScope();
+		block();
+		endScope();
+	}
+	else
 		expressionStatement();
 }
 
@@ -225,19 +235,69 @@ uint8_t Compiler::parseVariable(ValueType type, std::string msg)
 {
 	consume(TokenType::IDENTIFIER, msg);
 
-	/*declareVariable(type);
-	if (currentCompiler->scopeDepth > 0) return 0;*/
+	declareVariable(type);
+	if (currentScopeUnit->scopeDepth > 0) return 0;
 
 	return identifierConstant(previous->literal, type);
 }
 
+void Compiler::declareVariable(ValueType type)
+{
+	if (currentScopeUnit->scopeDepth == 0) return;
+
+	std::string varName = previous->literal;
+	for (int i = currentScopeUnit->localCount - 1; i >= 0; i--)
+	{
+		Local* local = &currentScopeUnit->locals[i];
+		if (local->token.depth != -1 && local->token.depth < currentScopeUnit->scopeDepth)
+			break;
+
+		if (varName == local->token.literal)
+			errorAtCurrent(u8"Die Variable '" + varName + "' existiert bereits!");
+	}
+
+	addLocal(*previous, type);
+}
+
+void Compiler::addLocal(Token token, ValueType type)
+{
+	if (currentScopeUnit->localCount == UINT8_MAX + 1) {
+		error("Zu viele lokale Variablen in diesem Bereich!");
+		return;
+	}
+
+	Local* local = &currentScopeUnit->locals[currentScopeUnit->localCount++];
+	local->token = token;
+	local->token.depth = -1;
+	local->type = type;
+}
+
 void Compiler::defineVariable(uint8_t global)
 {
+	if (currentScopeUnit->scopeDepth > 0)
+	{
+		markInitialized();
+		return;
+	}
 	emitBytes(op::DEFINE_GLOBAL, global);
 }
 
 void Compiler::defineVariable(uint8_t global, ValueType arrType)
 {
+	if (currentScopeUnit->scopeDepth > 0)
+	{
+		markInitialized();
+		switch (arrType)
+		{
+		case ValueType::INTARR: emitBytes(op::DEFINE_EMPTY_INTARR_LOCAL, currentScopeUnit->localCount - 1); break;
+		case ValueType::DOUBLEARR: emitBytes(op::DEFINE_EMPTY_DOUBLEARR_LOCAL, currentScopeUnit->localCount - 1); break;
+		case ValueType::BOOLARR: emitBytes(op::DEFINE_EMPTY_BOOLARR_LOCAL, currentScopeUnit->localCount - 1); break;
+		case ValueType::CHARARR: emitBytes(op::DEFINE_EMPTY_CHARARR_LOCAL, currentScopeUnit->localCount - 1); break;
+		case ValueType::STRINGARR: emitBytes(op::DEFINE_EMPTY_STRINGARR_LOCAL, currentScopeUnit->localCount - 1); break;
+		}
+		return;
+	}
+
 	switch (arrType)
 	{
 	case ValueType::INTARR: emitBytes(op::DEFINE_EMPTY_INTARR, global); break;
@@ -249,6 +309,12 @@ void Compiler::defineVariable(uint8_t global, ValueType arrType)
 }
 
 #pragma region statements
+
+void Compiler::block()
+{
+	while (current->type != TokenType::END && current->depth >= currentScopeUnit->scopeDepth)
+		declaration();
+}
 
 void Compiler::varDeclaration()
 {
@@ -716,48 +782,85 @@ ValueType Compiler::bitwise(bool canAssign)
 	return ValueType::INT;
 }
 
+int Compiler::resolveLocal(ScopeUnit* unit, std::string name, ValueType* type)
+{
+	for (int i = unit->localCount - 1; i >= 0; i--)
+	{
+		Local* local = &unit->locals[i];
+		if (local->token.literal == name)
+		{
+			if (local->token.depth == -1) {
+				error("Du kannst eine Variable nicht mit sich selbst initialisieren!");
+			}
+			*type = local->type;
+			return i;
+		}
+	}
+	return -1;
+}
+
+void Compiler::markInitialized()
+{
+	currentScopeUnit->locals[currentScopeUnit->localCount - 1].token.depth = currentScopeUnit->scopeDepth;
+}
+
 ValueType Compiler::namedVariable(std::string name, bool canAssign)
 {
-	uint8_t arg = makeConstant(Value(name));
-	if (globals.find(name) == globals.end())
+	OpCode getOp, setOp;
+	ValueType type;
+	int arg = resolveLocal(currentScopeUnit, name, &type);
+	int arrArg = arg;
+	if (arg != -1) //it is a local variable
 	{
-		errorAtCurrent(u8"Die Variable " + name + u8" wurde noch nicht definiert!");
-		return ValueType::NONE;
+		getOp = op::GET_LOCAL;
+		setOp = op::SET_LOCAL;
+	}
+	else
+	{
+		if (globals.find(name) == globals.end())
+		{
+			errorAtCurrent(u8"Die Variable " + name + u8" wurde noch nicht definiert!");
+			return ValueType::NONE;
+		}
+		getOp = op::GET_GLOBAL;
+		setOp = op::SET_GLOBAL;
+		arg = (int)makeConstant(Value(name));
+		type = globals.at(name);
+		//if(type == ValueType::FUNCTION) calledFunc = functions.at(name);
 	}
 
 	if (canAssign && match(TokenType::IST))
 	{
 		ValueType expr = ValueType::NONE;
-		if (globals.at(name) >= ValueType::INTARR && globals.at(name) <= ValueType::STRINGARR)
+		if (type >= ValueType::INTARR && type <= ValueType::STRINGARR)
 			errorAt(*previous, "Bei einer Array Zuweisung muss 'sind' anstatt 'ist' stehen!");
-		if (globals.at(name) == ValueType::BOOL)
+		if (type == ValueType::BOOL)
 			expr = boolAssignement();
 		else
 			expr = expression();
-		if (expr != globals.at(name))
+		if (expr != type)
 			errorAtCurrent(u8"Falscher Zuweisungs Typ");
-		emitBytes(op::SET_GLOBAL, arg);
+		emitBytes(setOp, arg);
 	}
 	else if (canAssign && match(TokenType::SIND))
 	{
-		if (!(globals.at(name) >= ValueType::INTARR && globals.at(name) <= ValueType::STRINGARR))
+		if (!(type >= ValueType::INTARR && type <= ValueType::STRINGARR))
 			errorAt(*previous, "'sind' darf nur zum Zuweisen von Arrays verwendet werden!");
 		ValueType expr = expression();
-		if(expr != globals.at(name))
+		if (expr != type)
 			errorAtCurrent(u8"Falscher Zuweisungs Typ");
-		emitBytes(op::SET_GLOBAL, arg);
+		emitBytes(setOp, arg);
 	}
 	else if (check(TokenType::AN))
 	{
-		emitBytes(op::CONSTANT, arg);
-		lastEmittedType = globals.at(name);
-		return lastEmittedType;
+		if (arrArg == -1) emitBytes(op::CONSTANT, arg);
+		localArrSlot = arrArg;
 	}
 	else
-		emitBytes(op::GET_GLOBAL, arg);
+		emitBytes(getOp, arg);
 
-	lastEmittedType = globals.at(name);
-	return lastEmittedType;
+	lastEmittedType = type;
+	return type;
 }
 
 ValueType Compiler::variable(bool canAssign)
@@ -790,10 +893,18 @@ ValueType Compiler::index(bool canAssign)
 			expr = expression();
 		if (expr != arrType)
 			errorAtCurrent(u8"Falscher Zuweisungs Typ!");
-		emitByte(op::SET_ARRAY_ELEMENT);
+		if (localArrSlot == -1)
+			emitByte(op::SET_ARRAY_ELEMENT);
+		else
+			emitBytes(op::SET_ARRAY_ELEMENT_LOCAL, localArrSlot);
 	}
 	else
-		emitByte(op::GET_ARRAY_ELEMENT);
+	{
+		if (localArrSlot == -1)
+			emitByte(op::GET_ARRAY_ELEMENT);
+		else
+			emitBytes(op::GET_ARRAY_ELEMENT_LOCAL, localArrSlot);
+	}
 
 	return arrType;
 }

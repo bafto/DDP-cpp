@@ -1,6 +1,13 @@
-die Zahlen z sind [1; 2; 3].
-
-z an der Stelle 0 ist 7.
-
-$ z.
-$ z an der Stelle 2.
+die Zeichen amon sind ['g'; 'u'; 's'].
+:
+    die Zahlen x sind [1; 2; 3].
+    $ x.
+    $ amon.
+    :
+        die Zahlen y sind x.
+        y an der Stelle 0 ist 15.
+        $ y.
+        $ amon.
+    $ x.
+    $ amon an der Stelle 1.
+$ amon.

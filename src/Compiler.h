@@ -29,6 +29,24 @@ private:
 		CALL,        // ()
 		PRIMARY
 	};
+	struct Local
+	{
+		Token token;
+		ValueType type;
+	};
+	struct ScopeUnit
+	{
+		Local locals[UINT8_MAX + 1];
+		int localCount;
+		int scopeDepth;
+
+		ScopeUnit(ScopeUnit*& currentUnit)
+		{
+			localCount = 0;
+			scopeDepth = 0;
+			currentUnit = this;
+		}
+	};
 private:
 	/**Functions only used in compile**/
 
@@ -53,6 +71,8 @@ private:
 	void emitReturn() { emitByte(OpCode::RETURN); };
 	void emitConstant(Value value) { emitBytes((uint8_t)OpCode::CONSTANT, makeConstant(std::move(value))); };
 
+	void initScopeUnit(ScopeUnit& unit) { unit.localCount = 0; unit.scopeDepth = 0; currentScopeUnit = &unit; };
+
 	void endCompiler();
 
 	void synchronize();
@@ -63,9 +83,22 @@ private:
 	ValueType boolAssignement(); //to handle the special x ist wahr wenn syntax of booleans
 	uint8_t identifierConstant(std::string identifier, ValueType type);
 	uint8_t parseVariable(ValueType type, std::string msg);
+	void declareVariable(ValueType type);
+	void addLocal(Token token, ValueType type);
 	void defineVariable(uint8_t global);
 	void defineVariable(uint8_t global, ValueType arrType); //to define empty arrays
 
+	void beginScope() { currentScopeUnit->scopeDepth++; };
+	void endScope() 
+	{ 
+		currentScopeUnit->scopeDepth--; 
+		while (currentScopeUnit->localCount > 0 && currentScopeUnit->locals[currentScopeUnit->localCount - 1].token.depth > currentScopeUnit->scopeDepth)
+		{
+			emitByte(op::POP);
+			currentScopeUnit->localCount--;
+		}
+	};
+	void block();
 	void varDeclaration();
 	void expressionStatement();
 #ifdef _MDEBUG_
@@ -86,6 +119,8 @@ private:
 	ValueType unary(bool canAssign);
 	ValueType binary(bool canAssign);
 	ValueType bitwise(bool canAssign);
+	int resolveLocal(ScopeUnit* unit, std::string name, ValueType* type);
+	void markInitialized();
 	ValueType namedVariable(std::string name, bool canAssign);
 	ValueType variable(bool canAssign);
 	ValueType index(bool canAssign);
@@ -200,5 +235,9 @@ private:
 	ValueType lastEmittedType;
 
 	std::unordered_map<std::string, ValueType> globals;
+
+	ScopeUnit* currentScopeUnit;
+
+	int localArrSlot; //for arrays
 };
 
