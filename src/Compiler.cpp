@@ -179,6 +179,8 @@ void Compiler::statement()
 #endif
 	if (match(TokenType::WENN))
 		ifStatement();
+	else if (match(TokenType::FUER))
+		forStatement();
 	else if (match(TokenType::SOLANGE))
 		whileStatement();
 	else if (match(TokenType::COLON))
@@ -485,6 +487,87 @@ void Compiler::whileStatement()
 
 	patchJump(exitJump);
 	emitByte(op::POP);
+}
+
+void Compiler::forStatement()
+{
+	beginScope();
+
+	consume(TokenType::JEDE, u8"Nach einem 'fuer' sollte ein 'jede' stehen!");
+	consume(TokenType::ZAHL, u8"Eine fuer Anweisung kann nur durch Zahlen iterieren!");
+
+	uint8_t local = parseVariable(ValueType::INT, u8"Es wurde ein Variablen-Name erwartet!");
+
+	consume(TokenType::VON, u8"Es wurde ein 'von' erwartet!");
+
+	ValueType expr = expression();
+	if (expr != ValueType::INT) errorAtCurrent(u8"Eine fuer Anweisung kann nur durch Zahlen iterieren!");
+
+	markInitialized();
+	ValueType type;
+	local = resolveLocal(currentScopeUnit, currentScopeUnit->locals[currentScopeUnit->localCount - 1].token.literal, &type);
+
+	emitBytes(op::SET_LOCAL, local);
+
+	consume(TokenType::BIS, u8"Es wurde ein 'bis' erwartet!");
+
+	emitByte(op::FORPREP);
+
+	int conditionLoop = currentChunk()->code.size();
+
+	emitBytes(op::GET_LOCAL, local);
+
+	expr = expression();
+	if (expr != ValueType::INT) errorAtCurrent(u8"Eine fuer Anweisung kann nur durch Zahlen iterieren!");
+
+	emitBytes(op::GREATER, (uint8_t)op::NOT);
+
+	emitByte(op::FORDONE);
+
+	int exitJump = emitJump(op::JUMP_IF_FALSE);
+	emitByte(op::POP);
+
+	int loopJump = emitJump(op::JUMP);
+
+	int loopStart = currentChunk()->code.size();
+
+	if (match(TokenType::MIT)) {
+		consume(TokenType::SCHRITTGROESSE, u8"Nach 'mit' in einer fuer Anweisung wird 'schrittgroesse' erwartet!");
+		expr = expression();
+		if (expr != ValueType::INT) errorAtCurrent(u8"Eine fuer Anweisung kann nur durch Zahlen iterieren!");
+		emitBytes(op::GET_LOCAL, local);
+		emitByte(op::ADD);
+
+		emitBytes(op::SET_LOCAL, local);
+
+		emitLoop(conditionLoop);
+	}
+	else {
+		emitConstant(Value(1));
+		emitBytes(op::GET_LOCAL, local);
+		emitByte(op::ADD);
+		emitBytes(op::SET_LOCAL, local);
+		emitByte(op::POP);
+
+		emitLoop(conditionLoop);
+	}
+
+	consume(TokenType::COMMA, u8"Es wurde ein ',' erwartet!");
+	consume(TokenType::MACHE, u8"Es wurde ein 'mache' erwartet!");
+	consume(TokenType::COLON, u8"Nach einer fuer Anweisung sollte ein neuer Bereich beginnen!");
+
+	patchJump(loopJump);
+
+	while (current->type != TokenType::END && current->depth >= currentScopeUnit->scopeDepth) {
+		declaration();
+	}
+
+	emitLoop(loopStart);
+
+	patchJump(exitJump);
+	emitByte(op::POP);
+
+	endScope();
 }
 
 #ifdef _MDEBUG_

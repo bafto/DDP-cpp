@@ -157,6 +157,7 @@ void VirtualMachine::addition()
 InterpretResult VirtualMachine::run()
 {
 	using op = OpCode;
+	bool forPrep = false;
 
 	while (true)
 	{
@@ -476,7 +477,19 @@ InterpretResult VirtualMachine::run()
 			{
 				switch (b.getType())
 				{
-				case ValueType::INT: push(Value(a.asInt() > b.asInt())); break;
+				case ValueType::INT: 
+				{
+					if (forPrep)
+					{
+						OpCode code = a.asInt() <= b.asInt() ? op::GREATER : op::LESS;
+						ip[-1] = (uint8_t)code;
+						if (code == op::GREATER) push(Value(a.asInt() > b.asInt()));
+						else push(Value(a.asInt() < b.asInt()));
+						break;
+					}
+					push(Value(a.asInt() > b.asInt()));
+					break;
+				}
 				case ValueType::DOUBLE: push(Value((double)a.asInt() > b.asDouble())); break;
 				}
 				break;
@@ -761,6 +774,8 @@ InterpretResult VirtualMachine::run()
 			break;
 		}
 		case (int)op::POP: pop(); break;
+		case (int)op::FORPREP: forPrep = true; break;
+		case (int)op::FORDONE: forPrep = false; break;
 		case (int)op::RETURN: return InterpretResult::OK;
 		default: return InterpretResult::RuntimeError;
 #ifdef _MDEBUG_

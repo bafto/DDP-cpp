@@ -54,6 +54,8 @@ enum class OpCode
 	JUMP_IF_FALSE,
 	LOOP,
 	POP, // pop the top of the value stack
+	FORPREP,
+	FORDONE,
 	RETURN,
 	PRINT
 };

@@ -115,6 +115,7 @@ private:
 	void patchJump(int offset);
 	void ifStatement();
 	void whileStatement();
+	void forStatement();
 #ifdef _MDEBUG_
 	void printStatement();
 #endif
@@ -223,6 +224,7 @@ private:
 		{ TokenType::JEDE,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::VON,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::BIS,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
+		{ TokenType::MIT,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::SCHRITTGROESSE,ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::MACHE,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},
 		{ TokenType::VOM,			ParseRule{nullptr,			nullptr,			Precedence::NONE}},

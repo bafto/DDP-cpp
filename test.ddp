@@ -1,5 +1,2 @@
-die Zeichenketten z sind ["Hallo"; "wie"; "geht"; "es"; "dir"; "?"].
-die Zahl i ist 0.
-solange i kleiner als 6 ist, mache:
-	$ z an der Stelle i plus " ".
-	i ist i plus 1.
+für jede Zahl i von 1 bis 10 mit schrittgröße 2, mache:
+	$ i.

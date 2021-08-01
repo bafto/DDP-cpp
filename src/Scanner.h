@@ -37,7 +37,7 @@ enum class TokenType
 	//if
 	WENN, ABER, DANN, SONST,
 	//for
-	FUER, JEDE, VON, BIS, SCHRITTGROESSE,
+	FUER, JEDE, VON, BIS, MIT, SCHRITTGROESSE,
 	//while
 	SOLANGE,
 	//loops
@@ -152,6 +152,7 @@ private:
 		{"jede", TokenType::JEDE},
 		{"von", TokenType::VON},
 		{"bis", TokenType::BIS},
+		{"mit", TokenType::MIT},
 		{"schrittgröße", TokenType::SCHRITTGROESSE},
 		{"solange", TokenType::SOLANGE},
 		{"mache", TokenType::MACHE},
