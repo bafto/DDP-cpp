@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Value.h"
 #include "Chunk.h"
 #include <array>
 #include <unordered_map>

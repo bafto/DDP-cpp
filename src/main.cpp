@@ -2,6 +2,7 @@
 #include <Windows.h>
 
 #include "VirtualMachine.h"
+#include "common.h"
 
 void runFile(std::string file)
 {

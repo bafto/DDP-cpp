@@ -33,6 +33,9 @@
     <ClCompile Include="src\Scanner.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\Function.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Chunk.h">
@@ -51,6 +54,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\Scanner.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Function.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

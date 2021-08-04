@@ -1,4 +1,5 @@
 #include "Chunk.h"
+#include "Value.h"
 
 void Chunk::write(uint8_t byte, int line)
 {

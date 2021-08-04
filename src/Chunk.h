@@ -1,7 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "Value.h"
+
+class Value;
 
 //enum class for all operation codes that the VirtualMachine will process
 enum class OpCode
@@ -57,7 +58,7 @@ enum class OpCode
 	FORPREP,
 	FORDONE,
 	RETURN,
-	PRINT
+	PRINT,
 };
 
 //holds byte-code and constant Values
