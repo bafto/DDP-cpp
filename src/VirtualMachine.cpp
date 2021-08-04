@@ -12,23 +12,21 @@ VirtualMachine::~VirtualMachine()
 InterpretResult VirtualMachine::interpret(const std::string& file)
 {
 	//compile the source file into chunk
+	Function script;
 	{
-		/*Scanner scanner(file);
-		auto tokens = scanner.scanTokens();
-		for (auto& token : tokens)
-			std::cout << "[Type] " << (int)token.type << "  [Line] " << token.line << "  [Depth] " << token.depth << "  [Literal] " << token.literal << "\n";*/
-		Compiler compiler(file, &chunk);
-		if (!compiler.compile())
+		Compiler compiler(file);
+		script = compiler.compile();
+		if (compiler.errored())
 			return InterpretResult::CompilationError;
 	}
-	ip = chunk.code.begin();
 	stackTop = stack.begin();
+	push(Value(script));
+	frame = frames.begin();
+	frame->function = stack.begin();
+	frame->ip = frame->function->asFunction()->chunk.code.begin();
+	frame->slots = stack.begin();
+
 	return run();
-	/*chunk.write(OpCode::RETURN, 1);
-	//run the byte-code in chunk
-	ip = chunk.code.begin();
-	stackTop = stack.begin();
-	return run();*/
 }
 
 void VirtualMachine::runtimeError(std::string msg)
@@ -39,18 +37,18 @@ void VirtualMachine::runtimeError(std::string msg)
 //return the next byte in chunk.code and advance ip
 uint8_t VirtualMachine::readByte()
 {
-	return *ip++;
+	return *frame->ip++;
 }
 
 uint16_t VirtualMachine::readShort()
 {
-	return (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]));
+	return (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]));
 }
 
 //return the value in chunk.constants that the next byte in chunk.code indexes
 Value VirtualMachine::readConstant()
 {
-	return chunk.constants[readByte()];
+	return frame->function->asFunction()->chunk.constants[readByte()];
 }
 
 void VirtualMachine::push(Value val)
@@ -482,7 +480,7 @@ InterpretResult VirtualMachine::run()
 					if (forPrep)
 					{
 						OpCode code = a.asInt() <= b.asInt() ? op::GREATER : op::LESS;
-						ip[-1] = (uint8_t)code;
+						frame->ip[-1] = (uint8_t)code;
 						if (code == op::GREATER) push(Value(a.asInt() > b.asInt()));
 						else push(Value(a.asInt() < b.asInt()));
 						break;
@@ -758,19 +756,19 @@ InterpretResult VirtualMachine::run()
 		case (int)op::JUMP:
 		{
 			uint16_t offset = readShort();
-			ip += offset;
+			frame->ip += offset;
 			break;
 		}
 		case (int)op::JUMP_IF_FALSE:
 		{
 			uint16_t offset = readShort();
-			if (!(peek(0).asBool())) ip += offset;
+			if (!(peek(0).asBool())) frame->ip += offset;
 			break;
 		}
 		case (int)op::LOOP:
 		{
 			uint16_t offset = readShort();
-			ip -= offset;
+			frame->ip -= offset;
 			break;
 		}
 		case (int)op::POP: pop(); break;

@@ -3,10 +3,9 @@
 #include <algorithm>
 #include <iostream>
 
-Compiler::Compiler(const std::string& file, Chunk* chunk)
+Compiler::Compiler(const std::string& file)
 	:
 	file(file),
-	chunk(chunk),
 	hadError(false),
 	panicMode(false),
 	lastEmittedType(ValueType::NONE),
@@ -15,7 +14,7 @@ Compiler::Compiler(const std::string& file, Chunk* chunk)
 {
 }
 
-bool Compiler::compile()
+Function Compiler::compile()
 {
 	{
 		Scanner scanner(file);
@@ -25,16 +24,14 @@ bool Compiler::compile()
 	previous = tokens.begin();
 	current = tokens.begin();
 
-	ScopeUnit globalUnit(currentScopeUnit);
+	ScopeUnit globalUnit(currentScopeUnit, FunctionType::SCRIPT);
 
 	while (!match(TokenType::END))
 	{
 		declaration();
 	}
 
-	endCompiler();
-
-	return !hadError;
+	return endCompiler();
 }
 
 #pragma region helper
@@ -122,9 +119,10 @@ void Compiler::errorAt(const Token& token, std::string msg)
 
 #pragma endregion
 
-void Compiler::endCompiler()
+Function Compiler::endCompiler()
 {
 	emitReturn();
+	return currentScopeUnit->function;
 }
 
 void Compiler::synchronize()

@@ -35,13 +35,21 @@ private:
 
 	void addition();
 private:
+	static constexpr int FramesMax = 64;
+	static constexpr int StackMax = FramesMax * (UINT8_MAX + 1); //the static size of the stack
+	struct CallFrame
+	{
+		std::array<Value, StackMax>::iterator function;
+		std::vector<uint8_t>::iterator ip;
+		std::array<Value, StackMax>::iterator slots;
+	};
+private:
 	Chunk chunk; //the byte code of the VM
 
 	/**Members only used inside run**/
+	std::array<CallFrame, FramesMax> frames;
+	std::array<CallFrame, FramesMax>::iterator frame;
 
-	std::vector<uint8_t>::iterator ip; //instruction-pointer, iterator to the current instruction
-
-	static constexpr int StackMax = 256; //the static size of the stack
 	std::array<Value, StackMax> stack; //the Value stack
 	std::array<Value, StackMax>::iterator stackTop; //pointer to the current stack top
 

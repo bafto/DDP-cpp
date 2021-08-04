@@ -9,9 +9,10 @@ class Compiler
 private:
 	using op = OpCode;
 public:
-	Compiler(const std::string& file, Chunk* chunk);
+	Compiler(const std::string& file);
 
-	bool compile(); //compile the source code in the file into chunk
+	Function compile(); //compile the source code in the file into chunk
+	bool errored() { return hadError; };
 private:
 	enum class Precedence
 	{
@@ -31,6 +32,11 @@ private:
 		CALL,        // ()
 		PRIMARY
 	};
+	enum class FunctionType
+	{
+		FUNCTION,
+		SCRIPT,
+	};
 	struct Local
 	{
 		Token token;
@@ -38,15 +44,23 @@ private:
 	};
 	struct ScopeUnit
 	{
+		Function function;
+		FunctionType type;
+
 		Local locals[UINT8_MAX + 1];
 		int localCount;
 		int scopeDepth;
 
-		ScopeUnit(ScopeUnit*& currentUnit)
+		ScopeUnit(ScopeUnit*& currentUnit, FunctionType type)
 		{
 			localCount = 0;
 			scopeDepth = 0;
+			type = type;
 			currentUnit = this;
+
+			Local* local = &currentUnit->locals[currentUnit->localCount++];
+			local->token.depth = 0;
+			local->token.literal = "";
 		}
 	};
 private:
@@ -62,7 +76,7 @@ private:
 	void error(std::string msg);
 	void errorAt(const Token& token, std::string msg);
 
-	Chunk* currentChunk() { return chunk; }; //will be changed later
+	Chunk* currentChunk() { return &currentScopeUnit->function.chunk; }; //will be changed later
 
 	uint8_t makeConstant(Value value);
 
@@ -85,7 +99,7 @@ private:
 
 	void initScopeUnit(ScopeUnit& unit) { unit.localCount = 0; unit.scopeDepth = 0; currentScopeUnit = &unit; };
 
-	void endCompiler();
+	Function endCompiler();
 
 	void synchronize();
 
@@ -241,7 +255,6 @@ private:
 #endif
 	};
 private:
-	Chunk* chunk; //the chunk into which the source code is compiled
 	const std::string file; //path to the file with the source code
 
 	bool hadError;
