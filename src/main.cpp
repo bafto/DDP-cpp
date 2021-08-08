@@ -2,5 +2,5 @@
 
 int main(int argc, char* argv[])
 {
-	std::cout << "Hello " << argv[0] << "!\n";
+	std::cout << sizeof(std::string*);
 }
