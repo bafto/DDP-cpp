@@ -205,7 +205,7 @@ Token Scanner::scanToken()
 	case '[': return makeToken(TokenType::LEFT_SQAREBRACKET);
 	case ']': return makeToken(TokenType::RIGHT_SQAREBRACKET);
 	case ';': return makeToken(TokenType::SEMICOLON);
-#ifdef _MDEBUG_
+#ifndef NDEBUG
 	case '$': return makeToken(TokenType::PRINT);
 #endif
 	}

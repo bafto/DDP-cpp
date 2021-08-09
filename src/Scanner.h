@@ -43,7 +43,7 @@ enum class TokenType
 	WAHR, FALSCH,
 	//return
 	GIB, ZURUECK,
-#ifdef _MDEBUG_
+#ifndef NDEBUG
 	PRINT,
 #endif
 	BINDE, EIN,
