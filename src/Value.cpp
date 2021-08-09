@@ -21,7 +21,7 @@ Value::Value(const Value& other)
 	}
 }
 
-Value::Value(Value&& other)
+Value::Value(Value&& other) noexcept
 	:
 	_val(other._val)
 {

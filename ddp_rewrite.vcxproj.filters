@@ -21,9 +21,15 @@
     <ClCompile Include="src\Value.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\Scanner.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Value.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scanner.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
