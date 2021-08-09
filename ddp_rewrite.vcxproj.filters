@@ -30,6 +30,9 @@
     <ClCompile Include="src\Function.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\VirtualMachine.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Value.h">
@@ -42,6 +45,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\Function.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VirtualMachine.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -148,12 +148,14 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
     <ClCompile Include="src\Value.cpp" />
+    <ClCompile Include="src\VirtualMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Chunk.h" />
     <ClInclude Include="src\Function.h" />
     <ClInclude Include="src\Scanner.h" />
     <ClInclude Include="src\Value.h" />
+    <ClInclude Include="src\VirtualMachine.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

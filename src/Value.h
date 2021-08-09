@@ -38,6 +38,7 @@ public:
 	Value(bool v);
 	Value(char v);
 	Value(std::string v);
+	Value(const char* v);
 	Value(const std::vector<int>& v);
 	Value(const std::vector<double>& v);
 	Value(const std::vector<bool>& v);

@@ -112,6 +112,12 @@ Value::Value(std::string v)
 	_val(new std::string(std::move(v)))
 {}
 
+Value::Value(const char* v)
+	:
+	_val(new std::string(v))
+{
+}
+
 Value::Value(const std::vector<int>& v)
 	:
 	_val(new std::vector<int>(v))
