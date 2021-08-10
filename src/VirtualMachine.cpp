@@ -1,4 +1,6 @@
 #include "VirtualMachine.h"
+#include "Compiler.h"
+#include <iostream>
 
 VirtualMachine::VirtualMachine(const std::string& filePath, const std::vector<std::string>& sysArgs)
 	:
@@ -7,14 +9,25 @@ VirtualMachine::VirtualMachine(const std::string& filePath, const std::vector<st
 	globals.insert(make_pair("System_Argumente", sysArgs));
 }
 
-void VirtualMachine::run()
+InterpretResult VirtualMachine::run()
 {
-	/*{
-		Compiler compiler(filePath);
-		if(!compiler.compile(&globals, &functions))
+	try
+	{
 		{
-			error
+			Compiler compiler(filePath, &globals, &functions);
+			if (!compiler.compile()) return InterpretResult::CompileTimeError;
 		}
-	}*/
-	functions.at("").run(&globals, &functions);
+		functions.at("").run(&globals, &functions);
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << "Standard Exception: " << e.what() << "\n";
+		return InterpretResult::Exception;
+	}
+	catch (...)
+	{
+		std::cerr << "Something went badly wrong!\n";
+		return InterpretResult::Exception;
+	}
+	return InterpretResult::OK;
 }

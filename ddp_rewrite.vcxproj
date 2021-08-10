@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Chunk.cpp" />
+    <ClCompile Include="src\Compiler.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
@@ -152,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Chunk.h" />
+    <ClInclude Include="src\Compiler.h" />
     <ClInclude Include="src\Function.h" />
     <ClInclude Include="src\Scanner.h" />
     <ClInclude Include="src\Value.h" />

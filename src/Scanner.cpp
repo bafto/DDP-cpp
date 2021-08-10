@@ -16,7 +16,7 @@ Scanner::Scanner(const std::string& file)
 	ifs.open(file);
 	if (!ifs.is_open())
 	{
-		std::cerr << u8"Could not open the source file '" << file << "'!";
+		std::cerr << u8"Could not open the source file '" << file << "'!\n";
 		hadError = true;
 	}
 	source = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());

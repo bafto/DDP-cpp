@@ -2,12 +2,20 @@
 
 #include "Function.h"
 
+enum class InterpretResult
+{
+	OK,
+	CompileTimeError,
+	RuntimeError,
+	Exception
+};
+
 class VirtualMachine
 {
 public:
 	VirtualMachine(const std::string& filePath, const std::vector<std::string>& sysArgs);
 
-	void run();
+	InterpretResult run();
 private:
 	const std::string filePath;
 
