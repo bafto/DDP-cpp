@@ -54,25 +54,25 @@ private:
 		Primary
 	};
 private:
-	ValueType expression(); //parse the next expression and return the type it evaluates to
-	ValueType parsePrecedence(Precedence precedence); //parse the next operator/expression with the given precedence
+	[[nodiscard]] ValueType expression(); //parse the next expression and return the type it evaluates to
+	[[nodiscard]] ValueType parsePrecedence(Precedence precedence); //parse the next operator/expression with the given precedence
 
 	//parse functions for all operators
 
-	ValueType dnumber(bool canAssign);
-	ValueType inumber(bool canAssign);
-	ValueType string(bool canAssign);
-	ValueType character(bool canAssign);
-	ValueType arrLiteral(bool canAssign);
-	ValueType Literal(bool canAssign);
-	ValueType grouping(bool canAssign);
-	ValueType unary(bool canAssign);
-	ValueType binary(bool canAssign);
-	ValueType bitwise(bool canAssign);
-	ValueType and_(bool canAssign);
-	ValueType or_(bool canAssign);
-	ValueType variable(bool canAssign);
-	ValueType index(bool canAssign);
+	[[nodiscard]] ValueType dnumber(bool canAssign);
+	[[nodiscard]] ValueType inumber(bool canAssign);
+	[[nodiscard]] ValueType string(bool canAssign);
+	[[nodiscard]] ValueType character(bool canAssign);
+	[[nodiscard]] ValueType arrLiteral(bool canAssign);
+	[[nodiscard]] ValueType Literal(bool canAssign);
+	[[nodiscard]] ValueType grouping(bool canAssign);
+	[[nodiscard]] ValueType unary(bool canAssign);
+	[[nodiscard]] ValueType binary(bool canAssign);
+	[[nodiscard]] ValueType bitwise(bool canAssign);
+	[[nodiscard]] ValueType and_(bool canAssign);
+	[[nodiscard]] ValueType or_(bool canAssign);
+	[[nodiscard]] ValueType variable(bool canAssign);
+	[[nodiscard]] ValueType index(bool canAssign);
 private:
 	using MemFunctPtr = ValueType(Compiler::*)(bool); //pointer to a member function of Compiler that takes a bool and returns a ValueType
 	struct ParseRule
@@ -184,5 +184,7 @@ private:
 	std::vector<Token>::iterator currIt; //current token
 
 	Function* currentFunction; //the function that is currently being compiled (most often the nameless main function)
+
+	ValueType lastEmittedType;
 };
 

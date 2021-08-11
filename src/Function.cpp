@@ -1,4 +1,5 @@
 #include "Function.h"
+#include <iostream>
 
 Function::Function(ValueType returnType, const std::vector<ValueType>& args)
 	:
@@ -7,6 +8,12 @@ Function::Function(ValueType returnType, const std::vector<ValueType>& args)
 	functions(nullptr),
 	globals(nullptr)
 {}
+
+Value Function::run(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions)
+{
+	std::cerr << u8"called non-implemented run function!\n";
+	return Value();
+}
 
 void Function::push(Value value)
 {
