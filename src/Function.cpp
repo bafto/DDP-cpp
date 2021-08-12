@@ -24,6 +24,75 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		switch ((OpCode)readByte())
 		{
 		case op::CONSTANT: push(readConstant()); break;
+		case op::ARRAY:
+		{
+			int size = readConstant().Int();
+			ValueType type = (ValueType)readByte();
+			switch (type)
+			{
+			case ValueType::IntArr:
+			{
+				std::vector<int> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(pop().Int());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			case ValueType::DoubleArr:
+			{
+				std::vector<double> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(pop().Double());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			case ValueType::BoolArr:
+			{
+				std::vector<bool> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(pop().Bool());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			case ValueType::CharArr:
+			{
+				std::vector<char> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(pop().Char());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			case ValueType::StringArr:
+			{
+				std::vector<std::string> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(*pop().String());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
+			}
+			break;
+		}
 		case op::NOT: push(!pop().Bool()); break;
 		case op::NEGATE:
 		{
@@ -436,7 +505,7 @@ void Function::printValue(Value& val)
 		std::vector<int>*& vec = val.IntArr();
 		for (size_t i = 0; i < vec->size() - 1; i++)
 		{
-			std::cout << vec->at(i) << u8", ";
+			std::cout << vec->at(i) << u8"; ";
 		}
 		std::cout << vec->at(vec->size() - 1) << u8"]";
 		break;
@@ -447,7 +516,7 @@ void Function::printValue(Value& val)
 		std::vector<double>*& vec = val.DoubleArr();
 		for (size_t i = 0; i < vec->size() - 1; i++)
 		{
-			std::cout << vec->at(i) << u8", ";
+			std::cout << vec->at(i) << u8"; ";
 		}
 		std::cout << vec->at(vec->size() - 1) << u8"]";
 		break;
@@ -458,7 +527,7 @@ void Function::printValue(Value& val)
 		std::vector<bool>*& vec = val.BoolArr();
 		for (size_t i = 0; i < vec->size() - 1; i++)
 		{
-			std::cout << (vec->at(i) ? u8"wahr" : u8"falsch") << u8", ";
+			std::cout << (vec->at(i) ? u8"wahr" : u8"falsch") << u8"; ";
 		}
 		std::cout << (vec->at(vec->size() - 1) ? u8"wahr" : u8"falsch") << u8"]";
 		break;
@@ -469,20 +538,20 @@ void Function::printValue(Value& val)
 		std::vector<char>*& vec = val.CharArr();
 		for (size_t i = 0; i < vec->size() - 1; i++)
 		{
-			std::cout << vec->at(i) << u8", ";
+			std::cout << vec->at(i) << u8"; ";
 		}
 		std::cout << vec->at(vec->size() - 1) << u8"]";
 		break;
 	}
 	case ValueType::StringArr:
 	{
-		std::cout << u8"[";
+		std::cout << u8"[\"";
 		std::vector<std::string>*& vec = val.StringArr();
 		for (size_t i = 0; i < vec->size() - 1; i++)
 		{
-			std::cout << vec->at(i) << u8", ";
+			std::cout << vec->at(i) << u8"\"; \"";
 		}
-		std::cout << vec->at(vec->size() - 1) << u8"]";
+		std::cout << vec->at(vec->size() - 1) << u8"\"]";
 		break;
 	}
 	default: std::cout << "Invalid type!\n"; break;

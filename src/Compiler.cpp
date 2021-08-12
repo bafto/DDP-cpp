@@ -187,8 +187,22 @@ ValueType Compiler::character(bool canAssign)
 
 ValueType Compiler::arrLiteral(bool canAssign)
 {
-	error("Not implemented yet!");
-	return ValueType::None;
+	if (match(TokenType::RIGHT_SQAREBRACKET))
+		error(u8"Eine Variablen Gruppe muss mindestens ein Element enthalten!");
+	ValueType arrType = expression();
+	int i = 1;
+	while (!match(TokenType::RIGHT_SQAREBRACKET))
+	{
+		consume(TokenType::SEMICOLON, u8"Unfertiges Array Literal!");
+		ValueType rhs = expression();
+		if (rhs != arrType)
+			error(u8"Die Typen innerhalb des Array Literals stimmen nicht überein!");
+		i++;
+	}
+	emitBytes(op::ARRAY, makeConstant(Value(i)));
+	lastEmittedType = ValueType((int)arrType + 5);
+	emitByte((uint8_t)lastEmittedType);
+	return lastEmittedType;
 }
 
 ValueType Compiler::Literal(bool canAssign)

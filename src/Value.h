@@ -39,11 +39,11 @@ public:
 	Value(char v);
 	Value(std::string v);
 	Value(const char* v);
-	Value(const std::vector<int>& v);
-	Value(const std::vector<double>& v);
-	Value(const std::vector<bool>& v);
-	Value(const std::vector<char>& v);
-	Value(const std::vector<std::string>& v);
+	Value(std::vector<int> v);
+	Value( std::vector<double> v);
+	Value( std::vector<bool> v);
+	Value( std::vector<char> v);
+	Value( std::vector<std::string> v);
 
 	ValueType Type() const; //return the current type of the variant
 

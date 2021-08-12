@@ -118,29 +118,29 @@ Value::Value(const char* v)
 {
 }
 
-Value::Value(const std::vector<int>& v)
+Value::Value(std::vector<int> v)
 	:
-	_val(new std::vector<int>(v))
+	_val(new std::vector<int>(std::move(v)))
 {}
 
-Value::Value(const std::vector<double>& v)
+Value::Value(std::vector<double> v)
 	:
-	_val(new std::vector<double>(v))
+	_val(new std::vector<double>(std::move(v)))
 {}
 
-Value::Value(const std::vector<bool>& v)
+Value::Value(std::vector<bool> v)
 	:
-	_val(new std::vector<bool>(v))
+	_val(new std::vector<bool>(std::move(v)))
 {}
 
-Value::Value(const std::vector<char>& v)
+Value::Value(std::vector<char> v)
 	:
-	_val(new std::vector<char>(v))
+	_val(new std::vector<char>(std::move(v)))
 {}
 
-Value::Value(const std::vector<std::string>& v)
+Value::Value(std::vector<std::string> v)
 	:
-	_val(new std::vector<std::string>(v))
+	_val(new std::vector<std::string>(std::move(v)))
 {}
 
 ValueType Value::Type() const
