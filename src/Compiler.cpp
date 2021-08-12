@@ -22,12 +22,17 @@ bool Compiler::compile()
 		auto result = scanner.scanTokens();
 		if (!result.second) hadError = true;
 		tokens = std::move(result.first);
+		currIt = tokens.begin();
 	}
 
 	Function mainFunction;
 	currentFunction = &mainFunction;
 
 	//compile code into mainFunction
+	//test code
+	ValueType val = expression();
+	emitByte(op::PRINT);
+	emitReturn();
 
 	functions->insert(std::make_pair("", std::move(mainFunction)));
 
@@ -37,13 +42,13 @@ bool Compiler::compile()
 uint8_t Compiler::makeConstant(Value value)
 {
 	lastEmittedType = value.Type();
-	int constant = currentChunk()->addConstant(std::move(value));
+	size_t constant = currentChunk()->addConstant(std::move(value));
 	if (constant > UINT8_MAX) {
 		error(u8"Zu viele Konstanten in diesem Chunk!");
 		return -1;
 	}
 
-	return constant;
+	return (uint8_t)constant;
 }
 
 void Compiler::error(std::string msg, std::vector<Token>::iterator where)

@@ -153,7 +153,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Chunk.h" />
-    <ClInclude Include="src\common.h" />
     <ClInclude Include="src\Compiler.h" />
     <ClInclude Include="src\Function.h" />
     <ClInclude Include="src\Scanner.h" />

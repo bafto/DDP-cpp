@@ -107,7 +107,7 @@ private:
 		{"durch", TokenType::DURCH},
 		{"modulo", TokenType::MODULO},
 		{"hoch", TokenType::HOCH},
-		{"wurzel", TokenType::WURZEL},
+		{"Wurzel", TokenType::WURZEL},
 		{"ln", TokenType::LN},
 		{"Betrag", TokenType::BETRAG},
 		{"pi", TokenType::PI},

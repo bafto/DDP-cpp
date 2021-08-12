@@ -11,13 +11,13 @@ Function::Function(ValueType returnType, const std::vector<ValueType>& args)
 
 Value Function::run(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions)
 {
-	std::cerr << u8"called non-implemented run function!\n";
-
-
 	using op = OpCode;
 
 	this->globals = globals;
 	this->functions = functions;
+
+	stackTop = stack.begin();
+	ip = chunk.bytes.begin();
 
 	while (true)
 	{
@@ -36,6 +36,342 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			break;
 		}
 		case op::ADD: addition(); break;
+		case op::MULTIPLY:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() * b.Int())); break;
+				case ValueType::Double: push(Value((double)(a.Int() * b.Double()))); break;
+				}
+				break;
+			case ValueType::Double:
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value((double)(a.Double() * b.Int()))); break;
+				case ValueType::Double: push(Value(a.Double() * b.Double())); break;
+				}
+				break;
+			}
+			break;
+		}
+		case op::DIVIDE:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() / b.Int())); break;
+				case ValueType::Double: push(Value((double)(a.Int() / b.Double()))); break;
+				}
+				break;
+			case ValueType::Double:
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value((double)(a.Double() / b.Int()))); break;
+				case ValueType::Double: push(Value(a.Double() / b.Double())); break;
+				}
+				break;
+			}
+			break;
+		}
+		case op::MODULO:
+		{
+			int b = pop().Int();
+			int a = pop().Int();
+			push(Value(a % b));
+			break;
+		}
+		case op::SUBTRACT:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() - b.Int())); break;
+				case ValueType::Double: push(Value((double)(a.Int() - b.Double()))); break;
+				}
+				break;
+			case ValueType::Double:
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value((double)(a.Double() - b.Int()))); break;
+				case ValueType::Double: push(Value(a.Double() - b.Double())); break;
+				}
+				break;
+			}
+			break;
+		}
+		case op::EXPONENT:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value((int)pow(a.Int(), b.Int()))); break;
+				case ValueType::Double: push(Value((double)pow(a.Int(), b.Double()))); break;
+				}
+				break;
+			case ValueType::Double:
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value((double)pow(a.Double(), b.Int()))); break;
+				case ValueType::Double: push(Value(pow(a.Double(), b.Double()))); break;
+				}
+				break;
+			}
+			break;
+		}
+		case op::ROOT:
+		{
+			int b = pop().Int();
+			int a = pop().Int();
+			push(Value(pow((double)b, 1.0 / (double)a)));
+			break;
+		}
+		case op::LN:
+		{
+			Value val = pop();
+			switch (val.Type())
+			{
+			case ValueType::Int: push(Value((double)log(val.Int()))); break;
+			case ValueType::Double: push(Value(log(val.Double()))); break;
+			}
+			break;
+		}
+		case op::BETRAG:
+		{
+			Value val = pop();
+			switch (val.Type())
+			{
+			case ValueType::Int: push(Value(abs(val.Int()))); break;
+			case ValueType::Double: push(Value(abs(val.Double()))); break;
+			}
+			break;
+		}
+		case op::BITWISENOT: push(Value(~pop().Int())); break;
+		case op::BITWISEAND:
+		{
+			int b = pop().Int();
+			int a = pop().Int();
+			push(Value(a & b));
+			break;
+		}
+		case op::BITWISEOR:
+		{
+			int b = pop().Int();
+			int a = pop().Int();
+			push(Value(a | b));
+			break;
+		}
+		case op::BITWISEXOR:
+		{
+			int b = pop().Int();
+			int a = pop().Int();
+			push(Value(a ^ b));
+			break;
+		}
+		case op::LEFTBITSHIFT:
+		{
+			int b = pop().Int();
+			int a = pop().Int();
+			push(Value(a << b));
+			break;
+		}
+		case op::RIGHTBITSHIFT:
+		{
+			int b = pop().Int();
+			int a = pop().Int();
+			push(Value(a >> b));
+			break;
+		}
+		case op::EQUAL:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() == b.Int())); break;
+				case ValueType::Double: push(Value((double)a.Int() == b.Double())); break;
+				}
+				break;
+			}
+			case ValueType::Double:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Double() == (double)b.Int())); break;
+				case ValueType::Double: push(Value(a.Double() == b.Double())); break;
+				}
+				break;
+			}
+			case ValueType::Bool: push(Value(a.Bool() == b.Bool())); break;
+			case ValueType::Char: push(Value(a.Char() == b.Char())); break;
+			case ValueType::String: push(Value(*a.String() == *b.String())); break;
+			}
+			break;
+		}
+		case op::UNEQUAL:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() != b.Int())); break;
+				case ValueType::Double: push(Value((double)a.Int() != b.Double())); break;
+				}
+				break;
+			}
+			case ValueType::Double:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Double() != (double)b.Int())); break;
+				case ValueType::Double: push(Value(a.Double() != b.Double())); break;
+				}
+				break;
+			}
+			case ValueType::Bool: push(Value(a.Bool() != b.Bool())); break;
+			case ValueType::Char: push(Value(a.Char() != b.Char())); break;
+			case ValueType::String: push(Value(*a.String() != *b.String())); break;
+			}
+			break;
+		}
+		case op::GREATER:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() > b.Int())); break;
+				case ValueType::Double: push(Value((double)a.Int() > b.Double())); break;
+				}
+				break;
+			}
+			case ValueType::Double:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Double() > (double)b.Int())); break;
+				case ValueType::Double: push(Value(a.Double() > b.Double())); break;
+				}
+				break;
+			}
+			}
+			break;
+		}
+		case op::GREATEREQUAL:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() >= b.Int())); break;
+				case ValueType::Double: push(Value((double)a.Int() >= b.Double())); break;
+				}
+				break;
+			}
+			case ValueType::Double:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Double() >= (double)b.Int())); break;
+				case ValueType::Double: push(Value(a.Double() >= b.Double())); break;
+				}
+				break;
+			}
+			}
+			break;
+		}
+		case op::LESS:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() < b.Int())); break;
+				case ValueType::Double: push(Value((double)a.Int() < b.Double())); break;
+				}
+				break;
+			}
+			case ValueType::Double:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Double() < (double)b.Int())); break;
+				case ValueType::Double: push(Value(a.Double() < b.Double())); break;
+				}
+				break;
+			}
+			}
+			break;
+		}
+		case op::LESSEQUAL:
+		{
+			Value b = pop();
+			Value a = pop();
+			switch (a.Type())
+			{
+			case ValueType::Int:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Int() <= b.Int())); break;
+				case ValueType::Double: push(Value((double)a.Int() <= b.Double())); break;
+				}
+				break;
+			}
+			case ValueType::Double:
+			{
+				switch (b.Type())
+				{
+				case ValueType::Int: push(Value(a.Double() <= (double)b.Int())); break;
+				case ValueType::Double: push(Value(a.Double() <= b.Double())); break;
+				}
+				break;
+			}
+			}
+			break;
+		}
+		case op::RETURN:
+		{
+			//Temp
+			if (returnType != ValueType::None) return pop();
+			return Value();
+		}
 #ifndef NDEBUG
 		case op::PRINT:
 		{

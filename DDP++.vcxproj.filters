@@ -44,9 +44,6 @@
     <ClInclude Include="src\Value.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="src\common.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="src\VirtualMachine.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
