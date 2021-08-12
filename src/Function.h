@@ -4,6 +4,12 @@
 #include <unordered_map>
 #include <array>
 
+class runtime_error : public std::exception
+{
+public:
+	runtime_error(std::string msg) : std::exception(msg.c_str()) {};
+};
+
 class Function
 {
 public:
@@ -23,6 +29,9 @@ private:
 	uint8_t readByte(); //read the next byte in chunk.bytes
 	uint16_t readShort(); //read the next 2 bytes in chunk.bytes as short
 	Value readConstant(); //read the next byte in chunk.bytes and lookup the constant it indicates
+
+	void printValue(Value& val); //print the Value formatted
+	void addition(); //seperate function for  the OpCode::Add case in run
 public:
 	std::vector<ValueType> args; //the types and count of the arguments the function takes (none for the main function)
 	Chunk chunk; //holds the byte code of the function

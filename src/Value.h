@@ -45,7 +45,7 @@ public:
 	Value(const std::vector<char>& v);
 	Value(const std::vector<std::string>& v);
 
-	ValueType Type(); //return the current type of the variant
+	ValueType Type() const; //return the current type of the variant
 
 	//get a reference to the current value
 	int& Int();

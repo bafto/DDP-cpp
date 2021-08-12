@@ -19,6 +19,11 @@ InterpretResult VirtualMachine::run()
 		}
 		functions.at("").run(&globals, &functions);
 	}
+	catch (runtime_error& err)
+	{
+		std::cerr << err.what() << "\n";
+		return InterpretResult::RuntimeError;
+	}
 	catch (std::exception& e)
 	{
 		std::cerr << "Standard Exception: " << e.what() << "\n";

@@ -143,7 +143,7 @@ Value::Value(const std::vector<std::string>& v)
 	_val(new std::vector<std::string>(v))
 {}
 
-ValueType Value::Type()
+ValueType Value::Type() const
 {
 	return (ValueType)_val.index();
 }
