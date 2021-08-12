@@ -36,7 +36,7 @@ public:
 	std::vector<ValueType> args; //the types and count of the arguments the function takes (none for the main function)
 	Chunk chunk; //holds the byte code of the function
 	ValueType returnType; //the return type of the function
-	std::unordered_map<std::string, Value> locals; //local variables of the function. At compile-time the values are empty.
+	std::unordered_map<int, std::unordered_map<std::string, Value>> locals; //local variables of the function mapped to the numner their scope unit appeared at. At compile-time the values are empty.
 
 private:
 	//Stuff needed during runtime, be carefull here, this should only be touched through it's getter functions

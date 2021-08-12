@@ -12,7 +12,8 @@ public:
 
 	bool compile(); //returns true on success, fills globals with declarations and functions with definitions
 private:
-	Chunk* currentChunk() { return &currentFunction->chunk; }; //the chunk that is currently filled
+	Function* currentFunction() { return currentScopeUnit->enclosingFunction; }; //the function that is currently being compiled (most often the nameless main function)
+	Chunk* currentChunk() { return &currentFunction()->chunk; }; //the chunk that is currently filled
 
 	//common emits
 	void emitByte(uint8_t byte) { currentChunk()->write(byte); };
@@ -33,6 +34,24 @@ private:
 	bool match(TokenType type); //if currIt matches the type we advance and return true, else we return false and don't advance
 	bool check(TokenType type); //same as match but without advancing
 	bool checkNext(TokenType type); //check but the Token after currIt
+private:
+	struct ScopeUnit
+	{
+		static inline int count = 0; //used to uniquly identify each scopeUnit
+
+		ScopeUnit(const ScopeUnit&) = delete;
+		ScopeUnit& operator=(const ScopeUnit&) = delete;
+
+		ScopeUnit(ScopeUnit* enclosingUnit, Function* enclosingFunction, int scopeDepth);
+		~ScopeUnit();
+
+		Function* enclosingFunction; //the function in which the scopeUnit appeared
+		ScopeUnit* enclosingUnit; //the scopeUnit in which this scopeUnit appeared (nullptr for the main scopeUnit)
+		int scopeDepth; //depth of the unit (0 for the main scopeUnit)
+		int identifier; //the unique identifier of this unit, evaluated using count in the constructor
+
+		std::unordered_map<std::string, ValueType> locals; //local variables in this scopeUnit
+	};
 private:
 	void declaration(); //starting point of the compiler
 	void statement(); //statements like loops or function calls
@@ -211,7 +230,7 @@ private:
 	std::vector<Token>::iterator preIt; //previously scanned token
 	std::vector<Token>::iterator currIt; //current token
 
-	Function* currentFunction; //the function that is currently being compiled (most often the nameless main function)
+	ScopeUnit* currentScopeUnit; //the scopUnit that is currently being compiled (most often the main scopeUnit)
 
 	ValueType lastEmittedType;
 };

@@ -11,7 +11,7 @@ Compiler::Compiler(const std::string& filePath,
 	functions(functions),
 	hadError(false),
 	panicMode(false),
-	currentFunction(nullptr),
+	currentScopeUnit(nullptr),
 	lastEmittedType(ValueType::None)
 {}
 
@@ -26,7 +26,9 @@ bool Compiler::compile()
 	}
 
 	Function mainFunction;
-	currentFunction = &mainFunction;
+
+	ScopeUnit mainUnit(nullptr, &mainFunction, 0);
+	currentScopeUnit = &mainUnit;
 
 	while (!match(TokenType::END))
 		declaration();
@@ -617,5 +619,20 @@ void Compiler::printStatement()
 	emitByte(op::PRINT);
 }
 #endif
+
+#pragma endregion
+
+#pragma region ScopeUnit
+
+Compiler::ScopeUnit::ScopeUnit(ScopeUnit* enclosingUnit, Function* enclosingFunction, int scopeDepth)
+	:
+	identifier(count++),
+	enclosingUnit(enclosingUnit),
+	enclosingFunction(enclosingFunction),
+	scopeDepth(scopeDepth)
+{}
+
+Compiler::ScopeUnit::~ScopeUnit()
+{}
 
 #pragma endregion
