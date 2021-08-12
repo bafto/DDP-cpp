@@ -28,10 +28,8 @@ bool Compiler::compile()
 	Function mainFunction;
 	currentFunction = &mainFunction;
 
-	//compile code into mainFunction
-	//test code
-	ValueType val = expression();
-	emitByte(op::PRINT);
+	while (!match(TokenType::END))
+		declaration();
 	emitReturn();
 
 	functions->insert(std::make_pair("", std::move(mainFunction)));
@@ -483,5 +481,141 @@ ValueType Compiler::index(bool canAssign)
 	error("Not implemented yet!");
 	return ValueType::None;
 }
+
+#pragma endregion
+
+void Compiler::declaration()
+{
+	if (match(TokenType::DER) || match(TokenType::DIE) || match(TokenType::DAS))
+	{
+		if (preIt->type == TokenType::DIE && match(TokenType::FUNKTION))
+			funDeclaration();
+		else
+			varDeclaration();
+	}
+	else
+		statement();
+
+	if (panicMode) synchronize();
+}
+
+void Compiler::statement()
+{
+#ifndef NDEBUG
+	if (match(TokenType::PRINT))
+	{
+		printStatement();
+		return;
+	}
+#endif
+
+	if (match(TokenType::WENN))
+		ifStatement();
+	else if (match(TokenType::FUER))
+		forStatement();
+	else if (match(TokenType::SOLANGE))
+		whileStatement();
+	else if (match(TokenType::COLON))
+	{
+		beginScope();
+		block();
+		endScope();
+	}
+	else
+		expressionStatement();
+}
+
+void Compiler::synchronize()
+{
+	panicMode = false;
+
+	while (currIt->type != TokenType::END)
+	{
+		if (preIt->type == TokenType::DOT) return;
+		switch (currIt->type)
+		{
+#ifndef NDEBUG
+		case TokenType::PRINT:
+#endif
+		case TokenType::FUNKTION:
+		case TokenType::DER:
+		case TokenType::DIE:
+		case TokenType::DAS:
+		case TokenType::FUER:
+		case TokenType::WENN:
+		case TokenType::SOLANGE:
+		case TokenType::GIB:
+			return;
+		default:;
+		}
+
+		advance();
+	}
+}
+
+#pragma region statements
+
+void Compiler::beginScope()
+{
+	error("Not implemented yet!");
+}
+
+void Compiler::block()
+{
+	error("Not implemented yet!");
+}
+
+void Compiler::endScope()
+{
+	error("Not implemented yet!");
+}
+
+void Compiler::expressionStatement()
+{
+	ValueType expr = expression();
+	consume(TokenType::DOT, u8"Es wrude ein '.' nach einem Ausdruck erwartet!");
+	emitByte(op::POP);
+}
+
+void Compiler::varDeclaration()
+{
+	error("Not implemented yet!");
+}
+
+void Compiler::funDeclaration()
+{
+	error("Not implemented yet!");
+}
+
+void Compiler::patchJump(int offset)
+{
+	error("Not implemented yet!");
+}
+
+void Compiler::ifStatement()
+{
+	error("Not implemented yet!");
+}
+
+void Compiler::whileStatement()
+{
+	error("Not implemented yet!");
+}
+
+void Compiler::forStatement()
+{
+	error("Not implemented yet!");
+}
+
+#ifndef NDEBUG
+void Compiler::printStatement()
+{
+	ValueType type = expression();
+	if (type == ValueType::None)
+		error(u8"Cannot print expression of type none!");
+	consume(TokenType::DOT, u8"Es wurde ein '.' nach '$' erwartet!");
+	emitByte(op::PRINT);
+}
+#endif
 
 #pragma endregion

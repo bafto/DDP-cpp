@@ -28,12 +28,40 @@ private:
 	void error(std::string msg);
 
 	//Functions to work with the tokens
-
 	void advance();
 	void consume(TokenType type, std::string errorMsg); //if currIt matches the type we advance, else we report an error with errorMsg
 	bool match(TokenType type); //if currIt matches the type we advance and return true, else we return false and don't advance
 	bool check(TokenType type); //same as match but without advancing
 	bool checkNext(TokenType type); //check but the Token after currIt
+private:
+	void declaration(); //starting point of the compiler
+	void statement(); //statements like loops or function calls
+	//if we are in panicMode after a declaration
+	//we advance until we reach the end of a statement 
+	//and then continue compiling
+	// so that we can report all following errors
+	void synchronize(); 
+
+	//scoped statements
+	void beginScope();
+	void block();
+	void endScope();
+
+	void expressionStatement(); //if you simply write an expression without anything else it should not be an error
+
+	//declarations
+	void varDeclaration();
+	void funDeclaration();
+
+	//statements where we need to jump over code
+	void patchJump(int offset);
+	void ifStatement();
+	void whileStatement();
+	void forStatement();
+
+#ifndef NDEBUG
+	void printStatement();
+#endif
 private:
 	enum class Precedence
 	{

@@ -441,6 +441,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			if (returnType != ValueType::None) return pop();
 			return Value();
 		}
+		case op::POP: pop(); break;
 #ifndef NDEBUG
 		case op::PRINT:
 		{
