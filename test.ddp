@@ -1,2 +1,4 @@
-der Boolean b ist wahr wenn wahr oder falsch.
-$ b.
+die Funktion foo(Zahl x, Zahl y, Zeichenketten c) vom Typ Zahl macht:
+	$ "hi".
+	$ "hi".
+$ "test".

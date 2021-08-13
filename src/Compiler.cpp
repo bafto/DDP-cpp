@@ -855,9 +855,64 @@ void Compiler::varDeclaration()
 		emitByte(makeConstant(Value(unit)));
 }
 
+ValueType Compiler::tokenToValueType(TokenType type)
+{
+	switch (type)
+	{
+	case TokenType::ZAHL: return ValueType::Int;
+	case TokenType::KOMMAZAHL: return ValueType::Double;
+	case TokenType::BOOLEAN: return ValueType::Bool;
+	case TokenType::ZEICHEN: return ValueType::Char;
+	case TokenType::ZEICHENKETTE: return ValueType::String;
+	case TokenType::ZAHLEN: return ValueType::IntArr;
+	case TokenType::KOMMAZAHLEN: return ValueType::DoubleArr;
+	case TokenType::BOOLEANS: return ValueType::DoubleArr;
+	case TokenType::ZEICHENKETTEN: return ValueType::DoubleArr;
+	}
+	return ValueType::None;
+}
+
 void Compiler::funDeclaration()
 {
-	error("Not implemented yet!");
+	if (currentScopeUnit->scopeDepth > 0) error(u8"Du kannst nur globale Funktionen definieren!");
+	consume(TokenType::IDENTIFIER, u8"Es wurde ein Funktions-Name erwartet!");
+	std::string funcName = preIt->literal;
+	Function function;
+	ScopeUnit unit(currentScopeUnit, &function);
+	currentScopeUnit = &unit;
+
+	consume(TokenType::LEFT_PAREN, u8"Es wurde eine '(' erwartet!");
+
+	while (currIt->type != TokenType::RIGHT_PAREN)
+	{
+		do
+		{
+			if (currentScopeUnit->enclosingFunction->args.size() > 254) error(u8"Eine Funktion darf maximal 255 Parameter enthalten!");
+			advance();
+			TokenType parameterType = preIt->type;
+			if (!(parameterType >= TokenType::ZAHL && parameterType <= TokenType::ZEICHENKETTEN))
+				error(u8"Es wurde ein Typ spezifizierer erwartet!");
+			ValueType argType = tokenToValueType(parameterType);
+			consume(TokenType::IDENTIFIER, u8"Es wurde ein Parameter-Name erwartet!");
+			addLocal(preIt->literal, argType);
+			currentFunction()->args.insert(std::make_pair(preIt->literal, argType));
+		} while (match(TokenType::COMMA));
+	}
+
+	consume(TokenType::RIGHT_PAREN, u8"Es wurde eine ')' erwartet!");
+	if (match(TokenType::VOM))
+	{
+		consume(TokenType::TYP, u8"Es wurde 'Typ' nach 'vom' erwartet!");
+		currentFunction()->returnType = tokenToValueType(currIt->type);
+		advance();
+	}
+	consume(TokenType::MACHT, u8"Es wurde 'macht' erwartet!");
+	consume(TokenType::COLON, "Es wurde ein ':' erwartet!");
+	while (currIt->type != TokenType::END && currIt->depth >= currentScopeUnit->scopeDepth)
+		declaration();
+
+	unit.endUnit(currentScopeUnit);
+	functions->insert(std::make_pair(funcName, std::move(function)));
 }
 
 void Compiler::patchJump(int offset)

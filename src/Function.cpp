@@ -1,10 +1,10 @@
 #include "Function.h"
 #include <iostream>
 
-Function::Function(ValueType returnType, const std::vector<ValueType>& args)
+Function::Function()
 	:
-	returnType(returnType),
-	args(args),
+	returnType(ValueType::None),
+	args(),
 	functions(nullptr),
 	globals(nullptr)
 {}

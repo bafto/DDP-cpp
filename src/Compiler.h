@@ -85,6 +85,7 @@ private:
 	void addLocal(std::string name, ValueType type); //helper to add a local variable
 	ValueType boolAssignement();
 	void varDeclaration();
+	ValueType tokenToValueType(TokenType type); //helper for funDeclaration
 	void funDeclaration();
 
 	//statements where we need to jump over code
