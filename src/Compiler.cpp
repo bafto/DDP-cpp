@@ -847,22 +847,148 @@ void Compiler::funDeclaration()
 
 void Compiler::patchJump(int offset)
 {
-	error("Not implemented yet!");
+	int jump = static_cast<int>(currentChunk()->bytes.size() - offset - 2);
+
+	if (jump > UINT16_MAX)
+		error(u8"Zu viele bytes zu überspringen!");
+
+	currentChunk()->bytes[offset] = (jump >> 8) & 0xff;
+	currentChunk()->bytes[offset + 1] = jump & 0xff;
 }
 
 void Compiler::ifStatement()
 {
-	error("Not implemented yet!");
+	ValueType expr = expression();
+	if (expr != ValueType::Bool)
+		error(u8"Die Bedingung einer 'wenn' Anweisung muss einen Boolschen Wert ergeben!");
+	consume(TokenType::COMMA, u8"Nach der Bedingung einer 'wenn' Anweisung wurde ein ',' erwartet!");
+	consume(TokenType::DANN, u8"Nach dem ',' einer 'wenn' Anweisung wurde ein 'dann' erwartet!");
+
+	int thenJump = emitJump(op::JUMP_IF_FALSE);
+	emitByte(op::POP);
+	statement();
+
+	int elseJump = emitJump(op::JUMP);
+	emitByte(op::POP);
+
+	patchJump(thenJump);
+
+	if (match(TokenType::SONST))
+		statement();
+	else if (check(TokenType::WENN) && checkNext(TokenType::ABER))
+	{
+		advance();
+		advance();
+		ifStatement();
+	}
+
+	patchJump(elseJump);
 }
 
 void Compiler::whileStatement()
 {
-	error("Not implemented yet!");
+	int loopStart = static_cast<int>(currentChunk()->bytes.size());
+	ValueType expr = expression();
+	if (expr != ValueType::Bool) error(u8"Die Bedingung einer 'solange' Anweisung muss ein Boolean sein!");
+
+	consume(TokenType::COMMA, u8"Nach der Bedingung einer 'solange' Anweisung wurde ein ',' erwartet!");
+	consume(TokenType::MACHE, u8"Nach dem ',' einer 'solange' Anweisung wurde ein 'mache' erwartet!");
+
+	int exitJump = emitJump(op::JUMP_IF_FALSE);
+	emitByte(op::POP);
+	statement();
+	emitLoop(loopStart);
+
+	patchJump(exitJump);
+	emitByte(op::POP);
 }
 
 void Compiler::forStatement()
 {
-	error("Not implemented yet!");
+	ScopeUnit unit(currentScopeUnit, currentFunction());
+	currentScopeUnit = &unit;
+
+	consume(TokenType::JEDE, u8"Nach einem 'für' sollte ein 'jede' stehen!");
+	consume(TokenType::ZAHL, u8"Eine fuer Anweisung kann nur durch Zahlen iterieren!");
+
+	consume(TokenType::IDENTIFIER, u8"Es wurde ein Variablen-Name erwartet!");
+	std::string localName = preIt->literal;
+	int localNameConstant = makeConstant(localName);
+	uint8_t unitConstant = makeConstant(currentScopeUnit->identifier);
+	addLocal(localName, ValueType::Int);
+	consume(TokenType::VON, u8"Es wurde ein 'von' erwartet!");
+
+	ValueType expr = expression();
+	if (expr != ValueType::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
+
+	emitBytes(op::SET_LOCAL, localNameConstant);
+	emitByte(unitConstant);
+	emitByte(op::POP);
+
+	consume(TokenType::BIS, u8"Es wurde ein 'bis' erwartet!");
+
+	emitByte(op::FORPREP);
+	int conditionLoop = static_cast<int>(currentChunk()->bytes.size());
+	
+	emitBytes(op::GET_LOCAL, localNameConstant);
+	emitByte(unitConstant);
+
+	expr = expression();
+	if (expr != ValueType::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
+
+	emitBytes(op::GREATER, (uint8_t)op::NOT);
+	emitByte(op::FORDONE);
+
+	int exitJump = emitJump(op::JUMP_IF_FALSE);
+	emitByte(op::POP);
+
+	int loopJump = emitJump(op::JUMP);
+
+	int loopStart = static_cast<int>(currentChunk()->bytes.size());
+
+	if (match(TokenType::MIT))
+	{
+		consume(TokenType::SCHRITTGROESSE, u8"Nach 'mit' in einer für Anweisung wird 'schrittgröße' erwartet!");
+		expr = expression();
+		if (expr != ValueType::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
+		emitBytes(op::GET_LOCAL, localNameConstant);
+		emitByte(unitConstant);
+		emitByte(op::ADD);
+
+		emitBytes(op::SET_LOCAL, localNameConstant);
+		emitByte(unitConstant);
+		emitByte(op::POP);
+
+		emitLoop(conditionLoop);
+	}
+	else
+	{
+		emitConstant(Value(1));
+		emitBytes(op::GET_LOCAL, localNameConstant);
+		emitByte(unitConstant);
+		emitByte(op::ADD);
+		emitBytes(op::SET_LOCAL, localNameConstant);
+		emitByte(unitConstant);
+		emitByte(op::POP);
+
+		emitLoop(conditionLoop);
+	}
+
+	consume(TokenType::COMMA, u8"Es wurde ein ',' erwartet!");
+	consume(TokenType::MACHE, u8"Es wurde ein 'mache' erwartet!");
+	consume(TokenType::COLON, u8"Nach einer für Anweisung sollte ein neuer Bereich beginnen!");
+
+	patchJump(loopJump);
+
+	while (currIt->type != TokenType::END && currIt->depth >= currentScopeUnit->scopeDepth)
+		declaration();
+
+	emitLoop(loopStart);
+
+	patchJump(exitJump);
+	emitByte(op::POP);
+
+	unit.endUnit(currentScopeUnit);
 }
 
 #ifndef NDEBUG

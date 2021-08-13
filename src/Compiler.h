@@ -24,6 +24,16 @@ private:
 	void emitBytes(OpCode code, uint8_t byte) { emitByte(code); emitByte(byte); };
 	void emitReturn() { emitByte(OpCode::RETURN); };
 	void emitConstant(Value value) { emitBytes(OpCode::CONSTANT, makeConstant(std::move(value))); };
+	int emitJump(OpCode code) { emitByte(code); emitBytes(0xff, 0xff); return static_cast<int>(currentChunk()->bytes.size() - 2); };
+	void emitLoop(int loopStart)
+	{
+		emitByte(op::LOOP);
+		int offset = static_cast<int>(currentChunk()->bytes.size() - loopStart + 2);
+		if (offset > UINT16_MAX) error(u8"Zuviele Anweisungen in einer 'solange' Anweisung!");
+
+		emitByte((offset >> 8) & 0xff);
+		emitByte(offset & 0xff);
+	}
 
 	uint8_t makeConstant(Value value); //add a constant to the current chunk and return its index
 

@@ -19,6 +19,8 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 	stackTop = stack.begin();
 	ip = chunk.bytes.begin();
 
+	bool forPrep = false;
+
 	while (true)
 	{
 		switch ((OpCode)readByte())
@@ -337,7 +339,19 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			{
 				switch (b.Type())
 				{
-				case ValueType::Int: push(Value(a.Int() > b.Int())); break;
+				case ValueType::Int:
+				{
+					if (forPrep)
+					{
+						OpCode code = a.Int() <= b.Int() ? op::GREATER : op::LESS;
+						ip[-1] = (uint8_t)code;
+						if (code == op::GREATER) push(Value(a.Int() > b.Int()));
+						else push(Value(a.Int() < b.Int()));
+						break;
+					}
+					push(Value(a.Int() > b.Int()));
+					break;
+				}
 				case ValueType::Double: push(Value((double)a.Int() > b.Double())); break;
 				}
 				break;
@@ -566,6 +580,24 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			}
 			break;
 		}
+		case op::JUMP_IF_FALSE:
+		{
+			uint16_t offset = readShort();
+			if (!(peek(0).Bool())) ip += offset;
+			break;
+		}
+		case op::JUMP:
+		{
+			uint16_t offset = readShort();
+			ip += offset;
+			break;
+		}
+		case op::LOOP:
+		{
+			uint16_t offset = readShort();
+			ip -= offset;
+			break;
+		}
 		case op::RETURN:
 		{
 			//Temp
@@ -573,6 +605,8 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			return Value();
 		}
 		case op::POP: pop(); break;
+		case op::FORPREP: forPrep = true; break;
+		case op::FORDONE: forPrep = false; break;
 #ifndef NDEBUG
 		case op::PRINT:
 		{
@@ -594,6 +628,8 @@ void Function::push(Value value)
 {
 	*stackTop = std::move(value);
 	stackTop++;
+	if (stackTop == stack.end())
+		runtime_error("Stapel Überfluss!");
 }
 
 Value Function::pop()

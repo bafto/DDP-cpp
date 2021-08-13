@@ -1,6 +1,2 @@
-:
-	die Zeichenketten ketten sind ["Hallo"; "Welt"; "wie"; "gehts?"].
-	ketten an der Stelle 3 ist "nicht".
-	$ ketten an der Stelle 3.
-	$ ketten.
-$ ketten.
+für jede Zahl i von 1 bis 10 mit schrittgröße -1, mache:
+	$ i.
