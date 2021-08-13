@@ -629,7 +629,7 @@ void Function::push(Value value)
 	*stackTop = std::move(value);
 	stackTop++;
 	if (stackTop == stack.end())
-		runtime_error("Stapel Überfluss!");
+		throw runtime_error("Stapel Überfluss!");
 }
 
 Value Function::pop()

@@ -489,14 +489,29 @@ ValueType Compiler::bitwise(bool canAssign)
 
 ValueType Compiler::and_(bool canAssign)
 {
-	error("Not implemented yet!");
-	return ValueType::None;
+	int endJump = emitJump(op::JUMP_IF_FALSE);
+	emitByte(op::POP);
+
+	ValueType expr = parsePrecedence(Precedence::And);
+	if (expr != ValueType::Bool) error(u8"Die Operanden eines 'und' Ausdrucks müssen Booleans sein!");
+
+	patchJump(endJump);
+	return expr;
 }
 
 ValueType Compiler::or_(bool canAssign)
 {
-	error("Not implemented yet!");
-	return ValueType::None;
+	int elseJump = emitJump(op::JUMP_IF_FALSE);
+	int endJump = emitJump(op::JUMP);
+
+	patchJump(elseJump);
+	emitByte(op::POP);
+
+	ValueType expr = parsePrecedence(Precedence::Or);
+	if (expr != ValueType::Bool) error(u8"Die Operanden eines 'oder' Ausdrucks müssen Booleans sein!");
+	patchJump(endJump);
+
+	return expr;
 }
 
 std::pair<int, ValueType> Compiler::getLocal(std::string name)
