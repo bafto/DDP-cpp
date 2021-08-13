@@ -6,9 +6,20 @@ Value::Value()
 {}
 
 Value::Value(const Value& other)
-	:
-	_val(other._val)
 {
+	switch (Type())
+	{
+	case ValueType::String: delete String(); break;
+	case ValueType::IntArr: delete IntArr(); break;
+	case ValueType::DoubleArr: delete DoubleArr(); break;
+	case ValueType::BoolArr: delete BoolArr(); break;
+	case ValueType::CharArr: delete CharArr(); break;
+	case ValueType::StringArr: delete StringArr(); break;
+	default: break;
+	}
+
+	_val = other._val;
+
 	switch (Type())
 	{
 	case ValueType::String: _val = new std::string(*String()); break;
@@ -22,9 +33,20 @@ Value::Value(const Value& other)
 }
 
 Value::Value(Value&& other) noexcept
-	:
-	_val(other._val)
 {
+	switch (Type())
+	{
+	case ValueType::String: delete String(); break;
+	case ValueType::IntArr: delete IntArr(); break;
+	case ValueType::DoubleArr: delete DoubleArr(); break;
+	case ValueType::BoolArr: delete BoolArr(); break;
+	case ValueType::CharArr: delete CharArr(); break;
+	case ValueType::StringArr: delete StringArr(); break;
+	default: break;
+	}
+
+	_val = other._val;
+
 	switch (Type())
 	{
 	case ValueType::String: other.String() = nullptr; break;
@@ -39,6 +61,17 @@ Value::Value(Value&& other) noexcept
 
 Value& Value::operator=(const Value& other)
 {
+	switch (Type())
+	{
+	case ValueType::String: delete String(); break;
+	case ValueType::IntArr: delete IntArr(); break;
+	case ValueType::DoubleArr: delete DoubleArr(); break;
+	case ValueType::BoolArr: delete BoolArr(); break;
+	case ValueType::CharArr: delete CharArr(); break;
+	case ValueType::StringArr: delete StringArr(); break;
+	default: break;
+	}
+
 	_val = other._val;
 
 	switch (Type())
@@ -57,6 +90,17 @@ Value& Value::operator=(const Value& other)
 
 Value& Value::operator=(Value&& other) noexcept
 {
+	switch (Type())
+	{
+	case ValueType::String: delete String(); break;
+	case ValueType::IntArr: delete IntArr(); break;
+	case ValueType::DoubleArr: delete DoubleArr(); break;
+	case ValueType::BoolArr: delete BoolArr(); break;
+	case ValueType::CharArr: delete CharArr(); break;
+	case ValueType::StringArr: delete StringArr(); break;
+	default: break;
+	}
+
 	_val = other._val;
 
 	switch (Type())
