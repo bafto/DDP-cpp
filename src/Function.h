@@ -32,6 +32,13 @@ private:
 
 	void printValue(Value& val); //print the Value formatted
 	void addition(); //seperate function for  the OpCode::Add case in run
+
+	template<typename T>
+	void validateArray(std::vector<T> const* vec, int index)
+	{
+		if (index >= vec->size())
+			throw runtime_error("Es wurde versucht auf ein Array Element auﬂerhalb der Reichweite zuzugreifen!");
+	}
 public:
 	std::vector<ValueType> args; //the types and count of the arguments the function takes (none for the main function)
 	Chunk chunk; //holds the byte code of the function

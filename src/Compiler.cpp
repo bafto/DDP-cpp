@@ -7,7 +7,7 @@ Compiler::Compiler(const std::string& filePath,
 	std::unordered_map<std::string, Function>* functions)
 	:
 	filePath(filePath),
-	globals(globals),
+	runtimeGlobals(globals),
 	functions(functions),
 	hadError(false),
 	panicMode(false),
@@ -27,16 +27,43 @@ bool Compiler::compile()
 
 	Function mainFunction;
 
-	ScopeUnit mainUnit(nullptr, &mainFunction, 0);
+	ScopeUnit mainUnit(nullptr, &mainFunction);
 	currentScopeUnit = &mainUnit;
 
 	while (!match(TokenType::END))
 		declaration();
 	emitReturn();
 
+	mainUnit.endUnit(currentScopeUnit);
+
 	functions->insert(std::make_pair("", std::move(mainFunction)));
 
+	finishCompilation();
+
 	return !hadError;
+}
+
+void Compiler::finishCompilation()
+{
+	for (auto it = globals.begin(), end = globals.end(); it != end; it++)
+	{
+		Value val;
+		switch (it->second)
+		{
+		case ValueType::Int: val = Value(1); break;
+		case ValueType::Double: val = Value(1.0); break;
+		case ValueType::Bool: val = Value(false); break;
+		case ValueType::Char: val = Value((char)0); break;
+		case ValueType::String: val = Value(""); break;
+		case ValueType::IntArr: val = Value(std::vector<int>()); break;
+		case ValueType::DoubleArr: val = Value(std::vector<double>()); break;
+		case ValueType::BoolArr: val = Value(std::vector<bool>()); break;
+		case ValueType::CharArr: val = Value(std::vector<char>()); break;
+		case ValueType::StringArr: val = Value(std::vector<std::string>()); break;
+		}
+
+		runtimeGlobals->insert(std::make_pair(it->first, val));
+	}
 }
 
 uint8_t Compiler::makeConstant(Value value)
@@ -472,16 +499,113 @@ ValueType Compiler::or_(bool canAssign)
 	return ValueType::None;
 }
 
-ValueType Compiler::variable(bool canAssign)
+std::pair<int, ValueType> Compiler::getLocal(std::string name)
 {
-	error("Not implemented yet!");
-	return ValueType::None;
+	for (ScopeUnit* unit = currentScopeUnit; unit != nullptr; unit = unit->enclosingUnit)
+	{
+		if (unit->locals.count(name) != 0)
+			return std::make_pair(unit->identifier, unit->locals.at(name));
+	}
+	return std::make_pair(-1, ValueType::None);
 }
 
-ValueType Compiler::index(bool canAssign)
+ValueType Compiler::variable(bool canAssign)
 {
-	error("Not implemented yet!");
-	return ValueType::None;
+	std::string varName = preIt->literal;
+	auto pair = getLocal(varName); //pair of unit and type
+	int local = pair.first;
+	ValueType type = pair.second;
+	OpCode getOp, setOp;
+	if (local != -1)
+	{
+		getOp = op::GET_LOCAL;
+		setOp = op::SET_LOCAL;
+	}
+	else
+	{
+		if (globals.count(varName) == 0)
+		{
+			error(u8"Die globale Variable '" + varName + u8"' wurde noch nicht definiert!");
+			return ValueType::None;
+		}
+		getOp = op::GET_GLOBAL;
+		setOp = op::SET_GLOBAL;
+		type = globals.at(varName);
+	}
+
+	if (canAssign && match(TokenType::IST))
+	{
+		ValueType expr = ValueType::None;
+		if (type >= ValueType::IntArr && type <= ValueType::StringArr)
+			error(u8"Bei einer Array Zuweisung muss 'sind' anstatt 'ist' stehen!");
+		if (type == ValueType::Bool)
+			expr = boolAssignement();
+		else
+			expr = expression();
+		if (expr != type)
+			error(u8"Falscher Zuweisungs Typ!");
+		emitBytes(setOp, makeConstant(varName));
+		if (setOp == op::SET_LOCAL)
+			emitByte(makeConstant(local));
+	}
+	else if (canAssign && match(TokenType::SIND))
+	{
+		if (!(type >= ValueType::IntArr && type <= ValueType::StringArr))
+			error(u8"Bei einer Variablen zuweisung muss 'ist' anstatt 'sind' stehen!");
+		ValueType expr = expression();
+		if (expr != type)
+			error(u8"Falscher Zuweisungs Typ!");
+		emitBytes(setOp, makeConstant(varName));
+		if (setOp == op::SET_LOCAL)
+			emitByte(makeConstant(local));
+	}
+	else if (match(TokenType::AN))
+	{
+		if (!(type >= ValueType::IntArr && type <= ValueType::StringArr))
+			error(u8"Es können nur Arrays indexiert werden!");
+		index(canAssign, varName, type, local);
+	}
+	else
+	{
+		emitBytes(getOp, makeConstant(varName));
+		if (setOp == op::SET_LOCAL)
+			emitByte(makeConstant(local));
+	}
+	lastEmittedType = type;
+	return type;
+}
+
+void Compiler::index(bool canAssign, std::string arrName, ValueType type, int local)
+{
+	OpCode getOp = local == -1 ? op::GET_ARRAY_ELEMENT : op::GET_ARRAY_ELEMENT_LOCAL;
+	OpCode setOp = local == -1 ? op::SET_ARRAY_ELEMENT : op::SET_ARRAY_ELEMENT_LOCAL;
+
+	ValueType elementType = (ValueType)((int)type - 5);
+
+	ValueType rhs = parsePrecedence(Precedence::Indexing);
+	if (rhs != ValueType::Int)
+		error(u8"Du kannst nur ganze Zahlen zum indexieren benutzen!");
+
+	if (match(TokenType::IST))
+	{
+		ValueType expr = ValueType::None;
+		if (elementType == ValueType::Bool)
+			expr = boolAssignement();
+		else
+			expr = expression();
+		if (expr != elementType)
+			error(u8"Falscher Zuweisungs Typ!");
+		emitBytes(setOp, makeConstant(arrName));
+		if (setOp == op::SET_ARRAY_ELEMENT_LOCAL)
+			emitByte(makeConstant(local));
+	}
+	else
+	{
+		emitBytes(getOp, makeConstant(arrName));
+		if (getOp == op::GET_ARRAY_ELEMENT_LOCAL)
+			emitByte(makeConstant(local));
+	}
+	lastEmittedType = elementType;
 }
 
 #pragma endregion
@@ -518,11 +642,7 @@ void Compiler::statement()
 	else if (match(TokenType::SOLANGE))
 		whileStatement();
 	else if (match(TokenType::COLON))
-	{
-		beginScope();
 		block();
-		endScope();
-	}
 	else
 		expressionStatement();
 }
@@ -557,19 +677,15 @@ void Compiler::synchronize()
 
 #pragma region statements
 
-void Compiler::beginScope()
-{
-	error("Not implemented yet!");
-}
-
 void Compiler::block()
 {
-	error("Not implemented yet!");
-}
+	ScopeUnit unit(currentScopeUnit, currentFunction());
+	currentScopeUnit = &unit;
 
-void Compiler::endScope()
-{
-	error("Not implemented yet!");
+	while (currIt->type != TokenType::END && currIt->depth >= currentScopeUnit->scopeDepth)
+		declaration();
+
+	unit.endUnit(currentScopeUnit);
 }
 
 void Compiler::expressionStatement()
@@ -579,9 +695,149 @@ void Compiler::expressionStatement()
 	emitByte(op::POP);
 }
 
+void Compiler::addGlobal(std::string name, ValueType type)
+{
+	if (globals.count(name) != 0)
+	{
+		error(u8"Eine Variable mit dem Namen '" + name + "' existiert bereits im Globalen Bereich!");
+		return;
+	}
+
+	globals.insert(std::make_pair(name, type));
+}
+
+void Compiler::addLocal(std::string name, ValueType type)
+{
+	if (currentScopeUnit->locals.count(name) != 0)
+	{
+		error(u8"Eine Variable mit dem Namen '" + name + "' existiert bereits in diesem Bereich!");
+		return;
+	}
+
+	currentScopeUnit->locals.insert(std::make_pair(name, type));
+}
+
+ValueType Compiler::boolAssignement()
+{
+	if (match(TokenType::WAHR))
+	{
+		if (match(TokenType::WENN))
+			return expression();
+		else
+			emitConstant(Value(true));
+	}
+	else if (match(TokenType::FALSCH))
+	{
+		if (match(TokenType::WENN))
+		{
+			ValueType expr = expression();
+			emitByte(op::NOT);
+			return expr;
+		}
+		else
+			emitConstant(Value(false));
+	}
+	else
+		error("Ein Boolean muss als wahr oder falsch definiert werden!");
+	return ValueType::Bool;
+}
+
 void Compiler::varDeclaration()
 {
-	error("Not implemented yet!");
+	ValueType varType = ValueType::None;
+	switch (preIt->type)
+	{
+	case TokenType::DER:
+	{
+		if (!match(TokenType::BOOLEAN))
+		{
+			error(u8"Falscher Artikel!", currIt);
+			return;
+		}
+		varType = ValueType::Bool;
+		break;
+	}
+	case TokenType::DAS:
+	{
+		if (!match(TokenType::ZEICHEN))
+		{
+			error(u8"Falscher Artikel!", currIt);
+			return;
+		}
+		varType = ValueType::Char;
+		break;
+	}
+	case TokenType::DIE:
+	{
+		if (!match(TokenType::ZAHL) && !match(TokenType::ZEICHENKETTE) && !match(TokenType::KOMMAZAHL) &&
+			!match(TokenType::ZAHLEN) && !match(TokenType::KOMMAZAHLEN) && !match(TokenType::ZEICHEN) && !match(TokenType::ZEICHENKETTEN) && !match(TokenType::BOOLEANS))
+		{
+			error(u8"Falscher Artikel!", currIt);
+			return;
+		}
+		varType = preIt->type == TokenType::ZAHL ? ValueType::Int : ValueType::None;
+		varType = preIt->type == TokenType::KOMMAZAHL ? ValueType::Double : varType;
+		varType = preIt->type == TokenType::ZEICHENKETTE ? ValueType::String : varType;
+		varType = preIt->type == TokenType::ZAHLEN ? ValueType::IntArr : varType;
+		varType = preIt->type == TokenType::KOMMAZAHLEN ? ValueType::DoubleArr : varType;
+		varType = preIt->type == TokenType::BOOLEANS ? ValueType::BoolArr : varType;
+		varType = preIt->type == TokenType::ZEICHEN ? ValueType::CharArr : varType;
+		varType = preIt->type == TokenType::ZEICHENKETTEN ? ValueType::StringArr : varType;
+		break;
+	}
+	}
+
+	consume(TokenType::IDENTIFIER, "Es wurde ein Variablen-Name erwartet!");
+
+	std::string varName = preIt->literal;
+	OpCode defineCode;
+	int unit = -1;
+	if (currentScopeUnit->scopeDepth == 0) //scopeDepth is zero so we are in global scope
+	{
+		addGlobal(varName, varType);
+		defineCode = op::DEFINE_GLOBAL;
+	}
+	else
+	{
+		addLocal(varName, varType);
+		defineCode = op::DEFINE_LOCAL;
+		unit = currentScopeUnit->identifier;
+	}
+
+	if (match(TokenType::IST))
+	{
+		//if the variable is an Array you must use 'sind' instead of 'ist'
+		if (varType >= ValueType::IntArr && varType <= ValueType::StringArr)
+			error(u8"Beim definieren einer Variablen Gruppe sollte 'sind' verwendet werden!");
+
+		ValueType rhs = ValueType::None;
+		if (varType == ValueType::Bool)
+			rhs = boolAssignement();
+		else
+			rhs = expression();
+
+		if (rhs != varType)
+			error(u8"Der Zuweisungs-Typ und der Variablen-Typ stimmen nicht überein!");
+	}
+	else if (match(TokenType::SIND))
+	{
+		//if the variable is not an Array you must use 'ist' instead of 'sind'
+		if (varType >= ValueType::Int && varType <= ValueType::String)
+			error(u8"Beim definieren einer Variable sollte 'ist' verwendet werden!");
+
+		ValueType rhs = expression();
+		if (rhs == ValueType::Int)
+			consume(TokenType::STUECK, u8"Beim definieren einer leeren Variablen Gruppe wurde 'Stück' erwartet!");
+		if (rhs != varType && rhs != ValueType::Int)
+			error(u8"Der Zuweisungs-Typ und der Variablen-Typ stimmen nicht überein!");
+	}
+	else
+		error(u8"Eine Variable muss immer definiert werden!");
+	consume(TokenType::DOT, u8"Es fehlt ein Punkt nach einer Variablen Definition!");
+
+	emitBytes(defineCode, makeConstant(Value(varName)));
+	if (defineCode == op::DEFINE_LOCAL)
+		emitByte(makeConstant(Value(unit)));
 }
 
 void Compiler::funDeclaration()
@@ -624,15 +880,42 @@ void Compiler::printStatement()
 
 #pragma region ScopeUnit
 
-Compiler::ScopeUnit::ScopeUnit(ScopeUnit* enclosingUnit, Function* enclosingFunction, int scopeDepth)
+Compiler::ScopeUnit::ScopeUnit(ScopeUnit* enclosingUnit, Function* enclosingFunction)
 	:
 	identifier(count++),
 	enclosingUnit(enclosingUnit),
 	enclosingFunction(enclosingFunction),
-	scopeDepth(scopeDepth)
+	scopeDepth(enclosingUnit == nullptr ? 0 : enclosingUnit->scopeDepth + 1)
 {}
 
 Compiler::ScopeUnit::~ScopeUnit()
 {}
+
+void Compiler::ScopeUnit::endUnit(ScopeUnit*& currentScopeUnit)
+{
+	std::unordered_map<std::string, Value> temp;
+	for (auto it = locals.begin(), end = locals.end(); it != end; it++)
+	{
+		Value val;
+		switch (it->second)
+		{
+		case ValueType::Int: val = Value(1); break;
+		case ValueType::Double: val = Value(1.0); break;
+		case ValueType::Bool: val = Value(false); break;
+		case ValueType::Char: val = Value((char)0); break;
+		case ValueType::String: val = Value(""); break;
+		case ValueType::IntArr: val = Value(std::vector<int>()); break;
+		case ValueType::DoubleArr: val = Value(std::vector<double>()); break;
+		case ValueType::BoolArr: val = Value(std::vector<bool>()); break;
+		case ValueType::CharArr: val = Value(std::vector<char>()); break;
+		case ValueType::StringArr: val = Value(std::vector<std::string>()); break;
+		}
+
+		temp.insert(std::make_pair(it->first, val));
+	}
+	enclosingFunction->locals.insert(std::make_pair(identifier, std::move(temp)));
+
+	currentScopeUnit = enclosingUnit;
+}
 
 #pragma endregion

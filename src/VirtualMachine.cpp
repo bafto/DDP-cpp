@@ -21,12 +21,12 @@ InterpretResult VirtualMachine::run()
 	}
 	catch (runtime_error& err)
 	{
-		std::cerr << err.what() << "\n";
+		std::cerr << u8"[runtime error] " << err.what() << "\n";
 		return InterpretResult::RuntimeError;
 	}
 	catch (std::exception& e)
 	{
-		std::cerr << "Standard Exception: " << e.what() << "\n";
+		std::cerr << "[standard exception] " << e.what() << "\n";
 		return InterpretResult::Exception;
 	}
 	catch (...)

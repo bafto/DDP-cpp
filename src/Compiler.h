@@ -12,6 +12,8 @@ public:
 
 	bool compile(); //returns true on success, fills globals with declarations and functions with definitions
 private:
+	void finishCompilation();
+private:
 	Function* currentFunction() { return currentScopeUnit->enclosingFunction; }; //the function that is currently being compiled (most often the nameless main function)
 	Chunk* currentChunk() { return &currentFunction()->chunk; }; //the chunk that is currently filled
 
@@ -42,8 +44,10 @@ private:
 		ScopeUnit(const ScopeUnit&) = delete;
 		ScopeUnit& operator=(const ScopeUnit&) = delete;
 
-		ScopeUnit(ScopeUnit* enclosingUnit, Function* enclosingFunction, int scopeDepth);
+		ScopeUnit(ScopeUnit* enclosingUnit, Function* enclosingFunction);
 		~ScopeUnit();
+
+		void endUnit(ScopeUnit*& currentScopeUnit);
 
 		Function* enclosingFunction; //the function in which the scopeUnit appeared
 		ScopeUnit* enclosingUnit; //the scopeUnit in which this scopeUnit appeared (nullptr for the main scopeUnit)
@@ -62,13 +66,14 @@ private:
 	void synchronize(); 
 
 	//scoped statements
-	void beginScope();
 	void block();
-	void endScope();
 
 	void expressionStatement(); //if you simply write an expression without anything else it should not be an error
 
 	//declarations
+	void addGlobal(std::string name, ValueType type); //helper to add a global variable
+	void addLocal(std::string name, ValueType type); //helper to add a local variable
+	ValueType boolAssignement();
 	void varDeclaration();
 	void funDeclaration();
 
@@ -118,8 +123,9 @@ private:
 	[[nodiscard]] ValueType bitwise(bool canAssign);
 	[[nodiscard]] ValueType and_(bool canAssign);
 	[[nodiscard]] ValueType or_(bool canAssign);
+	[[nodiscard]] std::pair<int, ValueType> getLocal(std::string name); //return the ScopeUnit identifier the local is in. Returns -1 if not found
 	[[nodiscard]] ValueType variable(bool canAssign);
-	[[nodiscard]] ValueType index(bool canAssign);
+	void index(bool canAssign, std::string arrName, ValueType type, int local); //helper for variable to handle array indexing
 private:
 	using MemFunctPtr = ValueType(Compiler::*)(bool); //pointer to a member function of Compiler that takes a bool and returns a ValueType
 	struct ParseRule
@@ -183,7 +189,7 @@ private:
 		{ TokenType::BOOLEANS,		ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::KOMMAZAHLEN,	ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::ZEICHENKETTEN,	ParseRule{nullptr,			nullptr,			Precedence::None}},
-		{ TokenType::AN,			ParseRule{nullptr,			&Compiler::index,	Precedence::Call}},
+		{ TokenType::AN,			ParseRule{nullptr,			nullptr,			Precedence::Call}},
 		{ TokenType::STELLE,		ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::STUECK,		ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::LEFT_SQAREBRACKET,ParseRule{&Compiler::arrLiteral,	nullptr,	Precedence::None}},
@@ -220,7 +226,9 @@ private:
 private:
 	const std::string filePath;
 
-	std::unordered_map<std::string, Value>* globals;
+	std::unordered_map<std::string, ValueType> globals;
+
+	std::unordered_map<std::string, Value>* runtimeGlobals;
 	std::unordered_map<std::string, Function>* functions;
 
 	bool hadError; //did an error occure?

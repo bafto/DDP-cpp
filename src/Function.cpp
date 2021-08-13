@@ -435,6 +435,137 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			}
 			break;
 		}
+		case op::DEFINE_GLOBAL:
+		{
+			std::string varName = *readConstant().String();
+			Value val = pop();
+			ValueType varType = globals->at(varName).Type();
+			if ((int)varType >= (int)ValueType::IntArr && (int)varType <= (int)ValueType::StringArr && val.Type() == ValueType::Int)
+			{
+				switch (varType)
+				{
+				case ValueType::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
+				case ValueType::DoubleArr: val = Value(std::vector<double>(val.Int(), 0.0)); break;
+				case ValueType::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
+				case ValueType::CharArr: val = Value(std::vector<char>(val.Int(), (char)0)); break;
+				case ValueType::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
+				}
+			}
+
+			(*globals)[varName] = std::move(val);
+			break;
+		}
+		case op::DEFINE_LOCAL:
+		{
+			std::string varName = *readConstant().String();
+			int unit = readConstant().Int();
+			Value val = pop();
+			ValueType varType = locals.at(unit).at(varName).Type();
+			if ((int)varType >= (int)ValueType::IntArr && (int)varType <= (int)ValueType::StringArr && val.Type() == ValueType::Int)
+			{
+				switch (varType)
+				{
+				case ValueType::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
+				case ValueType::DoubleArr: val = Value(std::vector<double>(val.Int(), 0.0)); break;
+				case ValueType::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
+				case ValueType::CharArr: val = Value(std::vector<char>(val.Int(), (char)0)); break;
+				case ValueType::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
+				}
+			}
+
+			locals.at(unit)[varName] = std::move(val);
+			break;
+		}
+		case op::GET_GLOBAL:
+		{
+			std::string varName = *readConstant().String();
+			push(globals->at(varName));
+			break;
+		}
+		case op::GET_LOCAL:
+		{
+			std::string varName = *readConstant().String();
+			int unit = readConstant().Int();
+			push(locals.at(unit).at(varName));
+			break;
+		}
+		case op::GET_ARRAY_ELEMENT:
+		{
+			std::string arrName = *readConstant().String();
+			int index = pop().Int();
+			switch (globals->at(arrName).Type())
+			{
+			case ValueType::IntArr: validateArray(globals->at(arrName).IntArr(), index); push(Value(globals->at(arrName).IntArr()->at(index))); break;
+			case ValueType::DoubleArr: validateArray(globals->at(arrName).DoubleArr(), index); push(Value(globals->at(arrName).DoubleArr()->at(index))); break;
+			case ValueType::BoolArr: validateArray(globals->at(arrName).BoolArr(), index); push(Value(globals->at(arrName).BoolArr()->at(index))); break;
+			case ValueType::CharArr: validateArray(globals->at(arrName).CharArr(), index); push(Value(globals->at(arrName).CharArr()->at(index))); break;
+			case ValueType::StringArr: validateArray(globals->at(arrName).StringArr(), index); push(Value(globals->at(arrName).StringArr()->at(index))); break;
+			default: throw runtime_error("Tried to index non-Array!");
+			}
+			break;
+		}
+		case op::GET_ARRAY_ELEMENT_LOCAL:
+		{
+			std::string arrName = *readConstant().String();
+			int unit = readConstant().Int();
+			int index = pop().Int();
+			switch (locals.at(unit).at(arrName).Type())
+			{
+			case ValueType::IntArr: validateArray(locals.at(unit).at(arrName).IntArr(), index); push(Value(locals.at(unit).at(arrName).IntArr()->at(index))); break;
+			case ValueType::DoubleArr: validateArray(locals.at(unit).at(arrName).DoubleArr(), index); push(Value(locals.at(unit).at(arrName).DoubleArr()->at(index))); break;
+			case ValueType::BoolArr: validateArray(locals.at(unit).at(arrName).BoolArr(), index); push(Value(locals.at(unit).at(arrName).BoolArr()->at(index))); break;
+			case ValueType::CharArr: validateArray(locals.at(unit).at(arrName).CharArr(), index); push(Value(locals.at(unit).at(arrName).CharArr()->at(index))); break;
+			case ValueType::StringArr: validateArray(locals.at(unit).at(arrName).StringArr(), index); push(Value(locals.at(unit).at(arrName).StringArr()->at(index))); break;
+			default: throw runtime_error("Tried to index non-Array!");
+			}
+			break;
+		}
+		case op::SET_GLOBAL:
+		{
+			std::string varName = *readConstant().String();
+			(*globals)[varName] = std::move(peek(0));
+			break;
+		}
+		case op::SET_LOCAL:
+		{
+			std::string varName = *readConstant().String();
+			int unit = readConstant().Int();
+			(locals[unit])[varName] = std::move(peek(0));
+			break;
+		}
+		case op::SET_ARRAY_ELEMENT:
+		{
+			std::string arrName = *readConstant().String();
+			Value val = std::move(pop());
+			int index = peek(0).Int();
+			switch (globals->at(arrName).Type())
+			{
+			case ValueType::IntArr: validateArray(globals->at(arrName).IntArr(), index); (*(globals->at(arrName).IntArr()))[index] = val.Int(); break;
+			case ValueType::DoubleArr: validateArray(globals->at(arrName).DoubleArr(), index); (*(globals->at(arrName).DoubleArr()))[index] = val.Double(); break;
+			case ValueType::BoolArr: validateArray(globals->at(arrName).BoolArr(), index); (*(globals->at(arrName).BoolArr()))[index] = val.Bool(); break;
+			case ValueType::CharArr: validateArray(globals->at(arrName).CharArr(), index); (*(globals->at(arrName).CharArr()))[index] = val.Char(); break;
+			case ValueType::StringArr: validateArray(globals->at(arrName).StringArr(), index); (*(globals->at(arrName).StringArr()))[index] = *val.String(); break;
+			default: throw runtime_error("Tried to index non-Array!");
+			}
+			break;
+		}
+		case op::SET_ARRAY_ELEMENT_LOCAL:
+		{
+			std::string arrName = *readConstant().String();
+			int unit = readConstant().Int();
+			Value val = std::move(pop());
+			int index = peek(0).Int();
+			switch (locals.at(unit).at(arrName).Type())
+			{
+			case ValueType::IntArr: validateArray(locals.at(unit).at(arrName).IntArr(), index); (*(locals.at(unit).at(arrName).IntArr()))[index] = val.Int(); break;
+			case ValueType::DoubleArr: validateArray(locals.at(unit).at(arrName).DoubleArr(), index); (*(locals.at(unit).at(arrName).DoubleArr()))[index] = val.Double(); break;
+			case ValueType::BoolArr: validateArray(locals.at(unit).at(arrName).BoolArr(), index); (*(locals.at(unit).at(arrName).BoolArr()))[index] = val.Bool(); break;
+			case ValueType::CharArr: validateArray(locals.at(unit).at(arrName).CharArr(), index); (*(locals.at(unit).at(arrName).CharArr()))[index] = val.Char(); break;
+			case ValueType::StringArr: validateArray(locals.at(unit).at(arrName).StringArr(), index); (*(locals.at(unit).at(arrName).StringArr()))[index] = *val.String(); break;
+			default: throw runtime_error("Tried to index non-Array!");
+			}
+			break;
+		}
 		case op::RETURN:
 		{
 			//Temp
@@ -473,7 +604,7 @@ Value Function::pop()
 
 Value Function::peek(int distance)
 {
-	return stackTop[-1 - distance];
+	return stackTop[-1 - static_cast<ptrdiff_t>(distance)];
 }
 
 uint8_t Function::readByte()

@@ -1,1 +1,6 @@
-$ (27 plus 3) minus 25.
+:
+	die Zeichenketten ketten sind ["Hallo"; "Welt"; "wie"; "gehts?"].
+	ketten an der Stelle 3 ist "nicht".
+	$ ketten an der Stelle 3.
+	$ ketten.
+$ ketten.

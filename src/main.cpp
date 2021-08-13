@@ -13,7 +13,7 @@ int runFile(std::string file, std::vector<std::string> sysArgs)
 		std::cerr << u8"Während dem compilieren des Programms ist ein Fehler aufgetreten!\n";
 		return -1;
 	case InterpretResult::RuntimeError:
-		std::cerr << u8"Während dem ausführen des Programms ist ein Fehler aufgetreten!\nDas sollte eigentlich nicht vorkommen, bitte melden sie es zusammen mit dem Error-Log einem DDP Developer!\n";
+		std::cerr << u8"Während dem ausführen des Programms ist ein Fehler aufgetreten!\n";
 		return -2;
 	case InterpretResult::Exception:
 		std::cerr << u8"Während dem ausführen des Programms ist eine Ausnahme aufgetreten!\nDas sollte eigentlich nicht vorkommen, bitte melden sie es zusammen mit dem Error-Log einem DDP Developer!\n";
