@@ -6,7 +6,9 @@ Function::Function()
 	returnType(ValueType::None),
 	args(),
 	functions(nullptr),
-	globals(nullptr)
+	globals(nullptr),
+	argUnit(0),
+	returned(false)
 {}
 
 Value Function::run(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions)
@@ -603,6 +605,16 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			//Temp
 			if (returnType != ValueType::None) return pop();
 			return Value();
+		}
+		case op::CALL:
+		{
+			Function* func = &functions->at(*readConstant().String());
+			for (int i = func->args.size() - 1; i >= 0; i--)
+			{
+				func->locals.at(func->argUnit)[func->args.at(i).first] = pop();
+			}
+			push(func->run(globals, functions));
+			break;
 		}
 		case op::POP: pop(); break;
 		case op::FORPREP: forPrep = true; break;

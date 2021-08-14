@@ -171,11 +171,11 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 			error(u8"Das Token '" + preIt->literal + "' ist kein infix Operator!");
 			return ValueType::None;
 		}
-		/*if (infix == parseRules.at(TokenType::LEFT_PAREN).infix && expr != ValueType::FUNCTION)
+		if (infix == parseRules.at(TokenType::LEFT_PAREN).infix && expr != ValueType::Function)
 		{
-			errorAtCurrent("Du kannst nur Funktionen aufrufen!");
-			return ValueType::NONE;
-		}*/
+			error(u8"Du kannst nur Funktionen aufrufen!");
+			return ValueType::None;
+		}
 		expr = (this->*infix)(false);
 	}
 
@@ -527,6 +527,11 @@ std::pair<int, ValueType> Compiler::getLocal(std::string name)
 ValueType Compiler::variable(bool canAssign)
 {
 	std::string varName = preIt->literal;
+	if (functions->count(varName) == 1)
+	{
+		calledFuncName = varName;
+		return ValueType::Function;
+	}
 	auto pair = getLocal(varName); //pair of unit and type
 	int local = pair.first;
 	ValueType type = pair.second;
@@ -623,6 +628,33 @@ void Compiler::index(bool canAssign, std::string arrName, ValueType type, int lo
 	lastEmittedType = elementType;
 }
 
+ValueType Compiler::call(bool canAssign)
+{
+	Function* func = &functions->at(calledFuncName);
+
+	int argCount = 0;
+	if (currIt->type != TokenType::RIGHT_PAREN)
+	{
+		int unit = makeConstant(func->argUnit);
+		do
+		{
+			ValueType expr = expression();
+			if (func->args.at(argCount).second != expr)
+				error(u8"Falscher Argument Type!");
+			argCount++;
+		} while (match(TokenType::COMMA));
+	}
+	if (argCount > func->args.size())
+		error(u8"Zu viele Argumente beim Funktions Aufruf!");
+	else if (argCount < func->args.size())
+		error(u8"Zu wenige Argumente beim Funktions Aufruf!");
+	consume(TokenType::RIGHT_PAREN, u8"Es wurde eine ')' beim Funktions Aufruf erwartet!");
+
+	emitBytes(op::CALL, makeConstant(Value(calledFuncName)));
+	lastEmittedType = func->returnType;
+	return func->returnType;
+}
+
 #pragma endregion
 
 void Compiler::declaration()
@@ -658,6 +690,8 @@ void Compiler::statement()
 		whileStatement();
 	else if (match(TokenType::COLON))
 		block();
+	else if (match(TokenType::GIB))
+		returnStatement();
 	else
 		expressionStatement();
 }
@@ -866,8 +900,8 @@ ValueType Compiler::tokenToValueType(TokenType type)
 	case TokenType::ZEICHENKETTE: return ValueType::String;
 	case TokenType::ZAHLEN: return ValueType::IntArr;
 	case TokenType::KOMMAZAHLEN: return ValueType::DoubleArr;
-	case TokenType::BOOLEANS: return ValueType::DoubleArr;
-	case TokenType::ZEICHENKETTEN: return ValueType::DoubleArr;
+	case TokenType::BOOLEANS: return ValueType::BoolArr;
+	case TokenType::ZEICHENKETTEN: return ValueType::StringArr;
 	}
 	return ValueType::None;
 }
@@ -880,6 +914,7 @@ void Compiler::funDeclaration()
 	Function function;
 	ScopeUnit unit(currentScopeUnit, &function);
 	currentScopeUnit = &unit;
+	function.argUnit = unit.identifier;
 
 	consume(TokenType::LEFT_PAREN, u8"Es wurde eine '(' erwartet!");
 
@@ -895,7 +930,7 @@ void Compiler::funDeclaration()
 			ValueType argType = tokenToValueType(parameterType);
 			consume(TokenType::IDENTIFIER, u8"Es wurde ein Parameter-Name erwartet!");
 			addLocal(preIt->literal, argType);
-			currentFunction()->args.insert(std::make_pair(preIt->literal, argType));
+			currentFunction()->args.push_back(std::make_pair(preIt->literal, argType));
 		} while (match(TokenType::COMMA));
 	}
 
@@ -911,8 +946,39 @@ void Compiler::funDeclaration()
 	while (currIt->type != TokenType::END && currIt->depth >= currentScopeUnit->scopeDepth)
 		declaration();
 
+	if (!function.returned)
+	{
+		emitReturn();
+		if (function.returnType != ValueType::None)
+			error(u8"Es fehlt eine Rückgabe Anweisung!");
+	}
+
 	unit.endUnit(currentScopeUnit);
+
 	functions->insert(std::make_pair(funcName, std::move(function)));
+}
+
+void Compiler::returnStatement()
+{
+	if (currentScopeUnit->scopeDepth == 0)
+		error("In der Hauptfunktion ist keine Rückgabe Anweisung erlaubt!");
+	if (match(TokenType::ZURUECK))
+	{
+		emitReturn();
+		if(currentScopeUnit->scopeDepth == 1) currentFunction()->returned = true;
+		if (currentFunction()->returnType != ValueType::None) 
+			error(u8"Diese funktion sollte nichts zurückgeben!");
+	}
+	else
+	{
+		ValueType expr = expression();
+		if (expr != currentFunction()->returnType)
+			error(u8"Der Rückgabe Typ stimmt nicht mit dem Rückgabe Typ der Funktion überein!");
+		consume(TokenType::ZURUECK, u8"Es wurde 'zurück' erwartet!");
+		emitReturn();
+		if (currentScopeUnit->scopeDepth == 1) currentFunction()->returned = true;
+	}
+	consume(TokenType::DOT, u8"Es wurde '.' erwartet!");
 }
 
 void Compiler::patchJump(int offset)

@@ -40,7 +40,9 @@ private:
 			throw runtime_error("Es wurde versucht auf ein Array Element auﬂerhalb der Reichweite zuzugreifen!");
 	}
 public:
-	std::unordered_map<std::string, ValueType> args; //the types and count of the arguments the function takes (none for the main function)
+	std::vector<std::pair<std::string, ValueType>> args; //the types and count of the arguments the function takes (none for the main function)
+	int argUnit;
+	bool returned;
 	Chunk chunk; //holds the byte code of the function
 	ValueType returnType; //the return type of the function
 	std::unordered_map<int, std::unordered_map<std::string, Value>> locals; //local variables of the function mapped to the numner their scope unit appeared at. At compile-time the values are empty.

@@ -46,6 +46,7 @@ enum class OpCode
 	POP, // pop the top of the value stack
 	FORPREP,
 	FORDONE,
+	CALL,
 	RETURN,
 #ifndef NDEBUG
 	PRINT,

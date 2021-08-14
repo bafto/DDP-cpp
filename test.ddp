@@ -1,4 +1,6 @@
-die Funktion foo(Zahl x, Zahl y, Zeichenketten c) vom Typ Zahl macht:
-	$ "hi".
-	$ "hi".
-$ "test".
+die Funktion schreibeZeichenketten(Zeichenketten z, Zahl längeZ) macht:
+	für jede Zahl i von 0 bis längeZ minus 1, mache:
+		$ z an der Stelle i.
+
+die Zeichenketten z sind ["Hallo"; "Welt"].
+schreibeZeichenketten(z, 2).

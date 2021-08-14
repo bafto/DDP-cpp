@@ -17,7 +17,8 @@ enum class ValueType
 	DoubleArr,
 	BoolArr,
 	CharArr,
-	StringArr
+	StringArr,
+	Function, //not inside Value, but used in the compiler to indicate wether a variable is a function
 };
 
 class Value

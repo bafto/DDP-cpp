@@ -87,6 +87,7 @@ private:
 	void varDeclaration();
 	ValueType tokenToValueType(TokenType type); //helper for funDeclaration
 	void funDeclaration();
+	void returnStatement();
 
 	//statements where we need to jump over code
 	void patchJump(int offset);
@@ -137,6 +138,7 @@ private:
 	[[nodiscard]] std::pair<int, ValueType> getLocal(std::string name); //return the ScopeUnit identifier the local is in. Returns -1 if not found
 	[[nodiscard]] ValueType variable(bool canAssign);
 	void index(bool canAssign, std::string arrName, ValueType type, int local); //helper for variable to handle array indexing
+	[[nodiscard]] ValueType call(bool canAssign);
 private:
 	using MemFunctPtr = ValueType(Compiler::*)(bool); //pointer to a member function of Compiler that takes a bool and returns a ValueType
 	struct ParseRule
@@ -146,7 +148,7 @@ private:
 		Precedence precedence; //the precedende of the operator
 	};
 	static inline const std::unordered_map<TokenType, ParseRule> parseRules = {
-		{ TokenType::LEFT_PAREN,	ParseRule{&Compiler::grouping, nullptr,			Precedence::Call}},
+		{ TokenType::LEFT_PAREN,	ParseRule{&Compiler::grouping, &Compiler::call,	Precedence::Call}},
 		{ TokenType::RIGHT_PAREN,	ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::COLON,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::COMMA,			ParseRule{nullptr,			nullptr,			Precedence::None}},
@@ -252,5 +254,7 @@ private:
 	ScopeUnit* currentScopeUnit; //the scopUnit that is currently being compiled (most often the main scopeUnit)
 
 	ValueType lastEmittedType;
+
+	std::string calledFuncName; //the name of the function that was lastly called
 };
 
