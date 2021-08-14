@@ -72,9 +72,16 @@ void Compiler::makeNatives()
 {
 	addNative("schreibe", ValueType::None, { {"x", ValueType::Any} }, &Function::schreibeNative);
 	addNative("schreibeZeile", ValueType::None, { {"x", ValueType::Any} }, &Function::schreibeZeileNative);
-	addNative("clock", ValueType::Double, {}, &Function::clockNative);
 	addNative("lese", ValueType::Char, {}, &Function::leseNative);
 	addNative("leseZeile", ValueType::String, {}, &Function::leseZeileNative);
+
+	addNative("clock", ValueType::Double, {}, &Function::clockNative);
+
+	addNative("zuZahl", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuZahlNative);
+	addNative("zuKommazahl", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuKommazahlNative);
+	addNative("zuBoolean", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuBooleanNative);
+	addNative("zuZeichen", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuZeichenNative);
+	addNative("zuZeichenkette", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuZeichenketteNative);
 }
 
 void Compiler::addNative(std::string name, ValueType returnType, std::vector<std::pair<std::string, ValueType>> args, Function::MemFuncPtr native)

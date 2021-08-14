@@ -33,7 +33,74 @@ private:
 	uint16_t readShort(); //read the next 2 bytes in chunk.bytes as short
 	Value readConstant(); //read the next byte in chunk.bytes and lookup the constant it indicates
 
-	void printValue(Value& val); //print the Value formatted
+	template<class stream>
+	void printValue(Value& val, stream& ostr)
+	{
+		switch (val.Type())
+		{
+		case ValueType::Int: ostr << val.Int(); break;
+		case ValueType::Double: ostr << val.Double(); break;
+		case ValueType::Bool: ostr << (val.Bool() ? u8"wahr" : u8"falsch"); break;
+		case ValueType::Char: ostr << val.Char(); break;
+		case ValueType::String: ostr << *val.String(); break;
+		case ValueType::IntArr:
+		{
+			ostr << u8"[";
+			std::vector<int>*& vec = val.IntArr();
+			for (size_t i = 0; i < vec->size() - 1; i++)
+			{
+				ostr << vec->at(i) << u8"; ";
+			}
+			ostr << vec->at(vec->size() - 1) << u8"]";
+			break;
+		}
+		case ValueType::DoubleArr:
+		{
+			ostr << u8"[";
+			std::vector<double>*& vec = val.DoubleArr();
+			for (size_t i = 0; i < vec->size() - 1; i++)
+			{
+				ostr << vec->at(i) << u8"; ";
+			}
+			ostr << vec->at(vec->size() - 1) << u8"]";
+			break;
+		}
+		case ValueType::BoolArr:
+		{
+			ostr << u8"[";
+			std::vector<bool>*& vec = val.BoolArr();
+			for (size_t i = 0; i < vec->size() - 1; i++)
+			{
+				ostr << (vec->at(i) ? u8"wahr" : u8"falsch") << u8"; ";
+			}
+			ostr << (vec->at(vec->size() - 1) ? u8"wahr" : u8"falsch") << u8"]";
+			break;
+		}
+		case ValueType::CharArr:
+		{
+			ostr << u8"[";
+			std::vector<char>*& vec = val.CharArr();
+			for (size_t i = 0; i < vec->size() - 1; i++)
+			{
+				ostr << vec->at(i) << u8"; ";
+			}
+			ostr << vec->at(vec->size() - 1) << u8"]";
+			break;
+		}
+		case ValueType::StringArr:
+		{
+			ostr << u8"[\"";
+			std::vector<std::string>*& vec = val.StringArr();
+			for (size_t i = 0; i < vec->size() - 1; i++)
+			{
+				ostr << vec->at(i) << u8"\"; \"";
+			}
+			ostr << vec->at(vec->size() - 1) << u8"\"]";
+			break;
+		}
+		default: ostr << "Invalid type!\n"; break;
+		}
+	}
 	void addition(); //seperate function for  the OpCode::Add case in run
 
 	template<typename T>
@@ -45,9 +112,16 @@ private:
 public: //Natives
 	Value schreibeNative(std::vector<Value> args);
 	Value schreibeZeileNative(std::vector<Value> args);
-	Value clockNative(std::vector<Value> args);
 	Value leseNative(std::vector<Value> args);
 	Value leseZeileNative(std::vector<Value> args);
+
+	Value clockNative(std::vector<Value> args);
+
+	Value zuZahlNative(std::vector<Value> args);
+	Value zuKommazahlNative(std::vector<Value> args);
+	Value zuBooleanNative(std::vector<Value> args);
+	Value zuZeichenNative(std::vector<Value> args);
+	Value zuZeichenketteNative(std::vector<Value> args);
 public:
 	std::vector<std::pair<std::string, ValueType>> args; //the types and count of the arguments the function takes (none for the main function)
 	int argUnit;
