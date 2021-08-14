@@ -1,6 +1,1 @@
-die Funktion schreibeZeichenketten(Zeichenketten z, Zahl längeZ) macht:
-	für jede Zahl i von 0 bis längeZ minus 1, mache:
-		$ z an der Stelle i.
-
-die Zeichenketten z sind ["Hallo"; "Welt"].
-schreibeZeichenketten(z, 2).
+schreibeZeile(leseZeile()).

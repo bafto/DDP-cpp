@@ -18,6 +18,7 @@ enum class ValueType
 	BoolArr,
 	CharArr,
 	StringArr,
+	Any, //not inside Value, only used for native functions that take any or multiple types as Arguments
 	Function, //not inside Value, but used in the compiler to indicate wether a variable is a function
 };
 

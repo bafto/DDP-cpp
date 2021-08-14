@@ -13,6 +13,9 @@ public:
 	bool compile(); //returns true on success, fills globals with declarations and functions with definitions
 private:
 	void finishCompilation();
+
+	void makeNatives();
+	void addNative(std::string name, ValueType returnType, std::vector<std::pair<std::string, ValueType>> args, Function::MemFuncPtr native);
 private:
 	Function* currentFunction() { return currentScopeUnit->enclosingFunction; }; //the function that is currently being compiled (most often the nameless main function)
 	Chunk* currentChunk() { return &currentFunction()->chunk; }; //the chunk that is currently filled

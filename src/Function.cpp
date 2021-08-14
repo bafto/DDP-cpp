@@ -1,5 +1,6 @@
 #include "Function.h"
 #include <iostream>
+#include <ctime>
 
 Function::Function()
 	:
@@ -8,7 +9,8 @@ Function::Function()
 	functions(nullptr),
 	globals(nullptr),
 	argUnit(0),
-	returned(false)
+	returned(false),
+	native(nullptr)
 {}
 
 Value Function::run(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions)
@@ -609,6 +611,19 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		case op::CALL:
 		{
 			Function* func = &functions->at(*readConstant().String());
+
+			if (func->native != nullptr)
+			{
+				std::vector<Value> args;
+				args.reserve(func->args.size());
+				for (int i = func->args.size() - 1; i >= 0; i--)
+				{
+					args.push_back(std::move(pop()));
+				}
+				push(func->runNative(globals, functions, std::move(args)));
+				break;
+			}
+
 			for (int i = func->args.size() - 1; i >= 0; i--)
 			{
 				func->locals.at(func->argUnit)[func->args.at(i).first] = pop();
@@ -634,6 +649,14 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 
 	if (returnType != ValueType::None) return pop();
 	return Value();
+}
+
+Value Function::runNative(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions, std::vector<Value> args)
+{
+	this->globals = globals;
+	this->functions = functions;
+
+	return (this->*native)(std::move(args));
 }
 
 void Function::push(Value value)
@@ -674,11 +697,11 @@ void Function::printValue(Value& val)
 {
 	switch (val.Type())
 	{
-	case ValueType::Int: std::cout << val.Int() << "\n"; break;
-	case ValueType::Double: std::cout << val.Double() << "\n"; break;
-	case ValueType::Bool: std::cout << (val.Bool() ? u8"wahr" : u8"falsch") << "\n"; break;
-	case ValueType::Char: std::cout << val.Char() << "\n"; break;
-	case ValueType::String: std::cout << *val.String() << "\n"; break;
+	case ValueType::Int: std::cout << val.Int(); break;
+	case ValueType::Double: std::cout << val.Double(); break;
+	case ValueType::Bool: std::cout << (val.Bool() ? u8"wahr" : u8"falsch"); break;
+	case ValueType::Char: std::cout << val.Char(); break;
+	case ValueType::String: std::cout << *val.String(); break;
 	case ValueType::IntArr:
 	{
 		std::cout << u8"[";
@@ -820,4 +843,34 @@ void Function::addition()
 			return;
 		}
 	}
+}
+
+Value Function::schreibeNative(std::vector<Value> args)
+{
+	printValue(args.at(0));
+	return Value();
+}
+
+Value Function::schreibeZeileNative(std::vector<Value> args)
+{
+	printValue(args.at(0));
+	std::cout << "\n";
+	return Value();
+}
+
+Value Function::clockNative(std::vector<Value> args)
+{
+	return Value((double)clock() / (double)CLOCKS_PER_SEC);
+}
+
+Value Function::leseNative(std::vector<Value> args)
+{
+	return Value((char)std::cin.get());
+}
+
+Value Function::leseZeileNative(std::vector<Value> args)
+{
+	std::string line;
+	std::getline(std::cin, line);
+	return Value(line);
 }

@@ -20,6 +20,9 @@ private:
 
 	//run the functions byte-code and return it's result. If the return type is ValueType::None the return Value should be discarded
 	Value run(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions); //only the VirtualMachine should call this function
+	Value runNative(std::unordered_map<std::string, Value>* globals,
+		std::unordered_map<std::string, Function>* functions,
+		std::vector<Value> args);
 
 	//these functions are only needed during runtime
 	void push(Value value); //push a value onto the stack
@@ -39,6 +42,12 @@ private:
 		if (index >= vec->size())
 			throw runtime_error("Es wurde versucht auf ein Array Element auﬂerhalb der Reichweite zuzugreifen!");
 	}
+public: //Natives
+	Value schreibeNative(std::vector<Value> args);
+	Value schreibeZeileNative(std::vector<Value> args);
+	Value clockNative(std::vector<Value> args);
+	Value leseNative(std::vector<Value> args);
+	Value leseZeileNative(std::vector<Value> args);
 public:
 	std::vector<std::pair<std::string, ValueType>> args; //the types and count of the arguments the function takes (none for the main function)
 	int argUnit;
@@ -46,7 +55,9 @@ public:
 	Chunk chunk; //holds the byte code of the function
 	ValueType returnType; //the return type of the function
 	std::unordered_map<int, std::unordered_map<std::string, Value>> locals; //local variables of the function mapped to the numner their scope unit appeared at. At compile-time the values are empty.
-
+public:
+	using MemFuncPtr = Value(Function::*)(std::vector<Value>);
+	MemFuncPtr native;
 private:
 	//Stuff needed during runtime, be carefull here, this should only be touched through it's getter functions
 	static constexpr size_t StackMax = UINT8_MAX + 1; //the maximum count of the stack

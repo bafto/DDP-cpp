@@ -25,6 +25,8 @@ bool Compiler::compile()
 		currIt = tokens.begin();
 	}
 
+	makeNatives();
+
 	Function mainFunction;
 
 	ScopeUnit mainUnit(nullptr, &mainFunction);
@@ -64,6 +66,25 @@ void Compiler::finishCompilation()
 
 		runtimeGlobals->insert(std::make_pair(it->first, val));
 	}
+}
+
+void Compiler::makeNatives()
+{
+	addNative("schreibe", ValueType::None, { {"x", ValueType::Any} }, &Function::schreibeNative);
+	addNative("schreibeZeile", ValueType::None, { {"x", ValueType::Any} }, &Function::schreibeZeileNative);
+	addNative("clock", ValueType::Double, {}, &Function::clockNative);
+	addNative("lese", ValueType::Char, {}, &Function::leseNative);
+	addNative("leseZeile", ValueType::String, {}, &Function::leseZeileNative);
+}
+
+void Compiler::addNative(std::string name, ValueType returnType, std::vector<std::pair<std::string, ValueType>> args, Function::MemFuncPtr native)
+{
+	Function func;
+	func.returnType = returnType;
+	func.native = native;
+	func.args = std::move(args);
+
+	functions->insert(std::make_pair(name, std::move(func)));
 }
 
 uint8_t Compiler::makeConstant(Value value)
@@ -630,16 +651,16 @@ void Compiler::index(bool canAssign, std::string arrName, ValueType type, int lo
 
 ValueType Compiler::call(bool canAssign)
 {
-	Function* func = &functions->at(calledFuncName);
+	std::string funcName = calledFuncName;
+	Function* func = &functions->at(funcName);
 
 	int argCount = 0;
 	if (currIt->type != TokenType::RIGHT_PAREN)
 	{
-		int unit = makeConstant(func->argUnit);
 		do
 		{
 			ValueType expr = expression();
-			if (func->args.at(argCount).second != expr)
+			if (func->args.at(argCount).second != ValueType::Any && func->args.at(argCount).second != expr)
 				error(u8"Falscher Argument Type!");
 			argCount++;
 		} while (match(TokenType::COMMA));
@@ -650,7 +671,7 @@ ValueType Compiler::call(bool canAssign)
 		error(u8"Zu wenige Argumente beim Funktions Aufruf!");
 	consume(TokenType::RIGHT_PAREN, u8"Es wurde eine ')' beim Funktions Aufruf erwartet!");
 
-	emitBytes(op::CALL, makeConstant(Value(calledFuncName)));
+	emitBytes(op::CALL, makeConstant(Value(funcName)));
 	lastEmittedType = func->returnType;
 	return func->returnType;
 }
