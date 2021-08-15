@@ -207,6 +207,7 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 			return ValueType::None;
 		}
 		expr = (this->*infix)(false);
+		lastEmittedType = expr;
 	}
 
 	if (canAssign && match(TokenType::IST))

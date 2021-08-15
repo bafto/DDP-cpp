@@ -1,11 +1,1 @@
-die Funktion fib(Zahl n) vom Typ Zahl macht:
-    wenn n kleiner als, oder 1 ist, dann:
-        gib n zurück.
-
-    gib (fib(n minus 2) plus fib(n minus 1)) zurück.
-
-die Kommazahl bevor ist clock().
-schreibeZeile(fib(5)).
-die Kommazahl danach ist clock().
-
-schreibeZeile("laufzeit: " plus zuZeichenkette((danach minus bevor))).
+schreibe(Länge(5)).

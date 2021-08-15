@@ -663,14 +663,14 @@ Value Function::runNative(std::unordered_map<std::string, Value>* globals, std::
 void Function::push(Value value)
 {
 	*stackTop = std::move(value);
-	stackTop++;
+	++stackTop;
 	if (stackTop == stack.end())
 		throw runtime_error("Stapel Überfluss!");
 }
 
 Value Function::pop()
 {
-	stackTop--;
+	--stackTop;
 	return *stackTop;
 }
 
@@ -681,7 +681,9 @@ Value Function::peek(int distance)
 
 uint8_t Function::readByte()
 {
-	return *ip++;
+	uint8_t byte = *ip;
+	++ip;
+	return byte;
 }
 
 uint16_t Function::readShort()
@@ -762,7 +764,7 @@ void Function::addition()
 		case ValueType::Double:
 		{
 			std::string str(std::to_string(b.Double()));
-			str.replace(str.begin(), str.end(), '.', ',');
+			std::replace(str.begin(), str.end(), '.', ',');
 			push(Value(*a.String() + str));
 			return;
 		}
