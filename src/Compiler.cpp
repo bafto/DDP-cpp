@@ -82,6 +82,8 @@ void Compiler::makeNatives()
 	addNative("zuBoolean", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuBooleanNative);
 	addNative("zuZeichen", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuZeichenNative);
 	addNative("zuZeichenkette", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuZeichenketteNative);
+
+	addNative("Länge", ValueType::Int, { {"x", ValueType::Any} }, &Function::LaengeNative);
 }
 
 void Compiler::addNative(std::string name, ValueType returnType, std::vector<std::pair<std::string, ValueType>> args, Function::MemFuncPtr native)
@@ -971,6 +973,9 @@ void Compiler::funDeclaration()
 	}
 	consume(TokenType::MACHT, u8"Es wurde 'macht' erwartet!");
 	consume(TokenType::COLON, "Es wurde ein ':' erwartet!");
+
+	functions->insert(std::make_pair(funcName, function));
+
 	while (currIt->type != TokenType::END && currIt->depth >= currentScopeUnit->scopeDepth)
 		declaration();
 
@@ -983,7 +988,7 @@ void Compiler::funDeclaration()
 
 	unit.endUnit(currentScopeUnit);
 
-	functions->insert(std::make_pair(funcName, std::move(function)));
+	(*functions)[funcName] = std::move(function);
 }
 
 void Compiler::returnStatement()

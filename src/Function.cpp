@@ -606,31 +606,30 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		}
 		case op::RETURN:
 		{
-			//Temp
 			if (returnType != ValueType::None) return pop();
 			return Value();
 		}
 		case op::CALL:
 		{
-			Function* func = &functions->at(*readConstant().String());
+			Function func = functions->at(*readConstant().String());
 
-			if (func->native != nullptr)
+			if (func.native != nullptr)
 			{
 				std::vector<Value> args;
-				args.reserve(func->args.size());
-				for (int i = func->args.size() - 1; i >= 0; i--)
+				args.reserve(func.args.size());
+				for (int i = func.args.size() - 1; i >= 0; i--)
 				{
 					args.push_back(std::move(pop()));
 				}
-				push(func->runNative(globals, functions, std::move(args)));
+				push(func.runNative(globals, functions, std::move(args)));
 				break;
 			}
 
-			for (int i = func->args.size() - 1; i >= 0; i--)
+			for (int i = func.args.size() - 1; i >= 0; i--)
 			{
-				func->locals.at(func->argUnit)[func->args.at(i).first] = pop();
+				func.locals.at(func.argUnit)[func.args.at(i).first] = pop();
 			}
-			push(func->run(globals, functions));
+			push(func.run(globals, functions));
 			break;
 		}
 		case op::POP: pop(); break;
@@ -907,4 +906,18 @@ Value Function::zuZeichenketteNative(std::vector<Value> args)
 	std::stringstream ss;
 	printValue(args.at(0), ss);
 	return Value(ss.str());
+}
+
+Value Function::LaengeNative(std::vector<Value> args)
+{
+	switch (args.at(0).Type())
+	{
+	case ValueType::String: return Value((int)(*args.at(0).String()).length());
+	case ValueType::IntArr: return Value((int)args.at(0).IntArr()->size());
+	case ValueType::DoubleArr: return Value((int)args.at(0).DoubleArr()->size());
+	case ValueType::BoolArr: return Value((int)args.at(0).BoolArr()->size());
+	case ValueType::CharArr: return Value((int)args.at(0).CharArr()->size());
+	case ValueType::StringArr: return Value((int)args.at(0).StringArr()->size());
+	default: throw runtime_error(u8"Du kannst nur die Länge von Strings oder Variablen Gruppen überprüfen!");
+	}
 }

@@ -122,6 +122,8 @@ public: //Natives
 	Value zuBooleanNative(std::vector<Value> args);
 	Value zuZeichenNative(std::vector<Value> args);
 	Value zuZeichenketteNative(std::vector<Value> args);
+
+	Value LaengeNative(std::vector<Value> args);
 public:
 	std::vector<std::pair<std::string, ValueType>> args; //the types and count of the arguments the function takes (none for the main function)
 	int argUnit;
