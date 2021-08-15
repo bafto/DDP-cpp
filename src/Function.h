@@ -45,9 +45,14 @@ private:
 		case ValueType::String: ostr << *val.String(); break;
 		case ValueType::IntArr:
 		{
-			ostr << u8"[";
 			std::vector<int>*& vec = val.IntArr();
-			for (size_t i = 0; i < vec->size() - 1; i++)
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
 			{
 				ostr << vec->at(i) << u8"; ";
 			}
@@ -56,9 +61,14 @@ private:
 		}
 		case ValueType::DoubleArr:
 		{
-			ostr << u8"[";
 			std::vector<double>*& vec = val.DoubleArr();
-			for (size_t i = 0; i < vec->size() - 1; i++)
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
 			{
 				ostr << vec->at(i) << u8"; ";
 			}
@@ -67,9 +77,14 @@ private:
 		}
 		case ValueType::BoolArr:
 		{
-			ostr << u8"[";
 			std::vector<bool>*& vec = val.BoolArr();
-			for (size_t i = 0; i < vec->size() - 1; i++)
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
 			{
 				ostr << (vec->at(i) ? u8"wahr" : u8"falsch") << u8"; ";
 			}
@@ -78,9 +93,14 @@ private:
 		}
 		case ValueType::CharArr:
 		{
-			ostr << u8"[";
 			std::vector<char>*& vec = val.CharArr();
-			for (size_t i = 0; i < vec->size() - 1; i++)
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
 			{
 				ostr << vec->at(i) << u8"; ";
 			}
@@ -89,9 +109,14 @@ private:
 		}
 		case ValueType::StringArr:
 		{
-			ostr << u8"[\"";
 			std::vector<std::string>*& vec = val.StringArr();
-			for (size_t i = 0; i < vec->size() - 1; i++)
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[\"";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
 			{
 				ostr << vec->at(i) << u8"\"; \"";
 			}

@@ -25,6 +25,10 @@ bool Compiler::compile()
 		currIt = tokens.begin();
 	}
 
+	for (auto& pair : *runtimeGlobals)
+	{
+		globals.insert(std::make_pair(pair.first, pair.second.Type()));
+	}
 	makeNatives();
 
 	Function mainFunction;

@@ -6,7 +6,7 @@ VirtualMachine::VirtualMachine(const std::string& filePath, const std::vector<st
 	:
 	filePath(filePath)
 {
-	globals.insert(make_pair("System_Argumente", sysArgs));
+	globals.insert(std::make_pair("System_Argumente", Value(sysArgs)));
 }
 
 InterpretResult VirtualMachine::run()
