@@ -11,3 +11,5 @@ die Kommazahl danach ist clock().
 
 schreibeZeile("Laufzeit: " plus (danach minus bevor)).
 schreibeZeile(System_Argumente).
+
+lese().
