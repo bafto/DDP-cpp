@@ -638,8 +638,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 #ifndef NDEBUG
 		case op::PRINT:
 		{
-			Value val = pop();
-			printValue(val, std::cout);
+			pop().print(std::cout);
 			break;
 		}
 #endif
@@ -657,7 +656,7 @@ Value Function::runNative(std::unordered_map<std::string, Value>* globals, std::
 	this->globals = globals;
 	this->functions = functions;
 
-	return (this->*native)(std::move(args));
+	return (*native)(std::move(args));
 }
 
 void Function::push(Value value)
@@ -777,149 +776,5 @@ void Function::addition()
 		default:
 			return;
 		}
-	}
-}
-
-Value Function::schreibeNative(std::vector<Value> args)
-{
-	printValue(args.at(0), std::cout);
-	return Value();
-}
-
-Value Function::schreibeZeileNative(std::vector<Value> args)
-{
-	printValue(args.at(0), std::cout);
-	std::cout << "\n";
-	return Value();
-}
-
-Value Function::leseNative(std::vector<Value> args)
-{
-	return Value((char)std::cin.get());
-}
-
-Value Function::leseZeileNative(std::vector<Value> args)
-{
-	std::string line;
-	std::getline(std::cin, line);
-	return Value(line);
-}
-
-Value Function::clockNative(std::vector<Value> args)
-{
-	return Value((double)clock() / (double)CLOCKS_PER_SEC);
-}
-
-Value Function::zuZahlNative(std::vector<Value> args)
-{
-	try
-	{
-		switch (args.at(0).Type())
-		{
-		case ValueType::Int: return args.at(0);
-		case ValueType::Double: return Value((int)args.at(0).Double());
-		case ValueType::Bool: return Value(args.at(0).Bool() ? 1 : 0);
-		case ValueType::Char: return Value((int)args.at(0).Char());
-		case ValueType::String: return Value(std::stoi(*args.at(0).String()));
-		case ValueType::IntArr: return Value((int)args.at(0).IntArr()->size());
-		case ValueType::DoubleArr: return Value((int)args.at(0).DoubleArr()->size());
-		case ValueType::BoolArr: return Value((int)args.at(0).BoolArr()->size());
-		case ValueType::CharArr: return Value((int)args.at(0).CharArr()->size());
-		case ValueType::StringArr: return Value((int)args.at(0).StringArr()->size());
-		}
-	}
-	catch (std::exception&)
-	{
-		throw runtime_error("Diese Zeichenkette kann nicht in eine Zahl umgewandelt werden!");
-	}
-	return Value();
-}
-
-Value Function::zuKommazahlNative(std::vector<Value> args)
-{
-	try
-	{
-		switch (args.at(0).Type())
-		{
-		case ValueType::Int: return Value((double)args.at(0).Int());
-		case ValueType::Double: return args.at(0);
-		case ValueType::Bool: return Value(args.at(0).Bool() ? 1.0 : 0.0);
-		case ValueType::Char: return Value((double)args.at(0).Char());
-		case ValueType::String:
-		{
-			std::string str = *args.at(0).String();
-			std::replace(str.begin(), str.end(), ',', '.');
-			return Value(std::stod(str));
-		}
-		case ValueType::IntArr: return Value((double)args.at(0).IntArr()->size());
-		case ValueType::DoubleArr: return Value((double)args.at(0).DoubleArr()->size());
-		case ValueType::BoolArr: return Value((double)args.at(0).BoolArr()->size());
-		case ValueType::CharArr: return Value((double)args.at(0).CharArr()->size());
-		case ValueType::StringArr: return Value((double)args.at(0).StringArr()->size());
-		}
-	}
-	catch (std::exception&)
-	{
-		throw runtime_error("Diese Zeichenkette kann nicht in eine Kommazahl umgewandelt werden!");
-	}
-	return Value();
-}
-
-Value Function::zuBooleanNative(std::vector<Value> args)
-{
-	switch (args.at(0).Type())
-	{
-	case ValueType::Int: return Value((bool)args.at(0).Int());
-	case ValueType::Double: return Value((bool)args.at(0).Double());
-	case ValueType::Bool: return args.at(0);
-	case ValueType::Char: return Value((bool)args.at(0).Char());
-	case ValueType::String:
-	{
-		std::string str = *args.at(0).String();
-		if (str == "wahr") return Value(true);
-		else if (str == "falsch") return Value(false);
-		else throw runtime_error("Diese Zeichenkette kann nicht in einen Boolean umgewandelt werden!");
-	}
-	case ValueType::IntArr: return Value(true);
-	case ValueType::DoubleArr: return Value(true);
-	case ValueType::BoolArr: return Value(true);
-	case ValueType::CharArr: return Value(true);
-	case ValueType::StringArr: return Value(true);
-	}
-	return Value();
-}
-
-Value Function::zuZeichenNative(std::vector<Value> args)
-{
-	switch (args.at(0).Type())
-	{
-	case ValueType::Int: return Value((char)args.at(0).Int());
-	case ValueType::Double: return Value((char)args.at(0).Double());
-	case ValueType::Bool: return Value(args.at(0).Bool() ? 'w' : 'f');
-	case ValueType::Char: return args.at(0).Char();
-	case ValueType::String: return Value(args.at(0).String()->at(0));
-	default: throw runtime_error("Variablen Gruppen können nicht zu Zeichen umgewandelt werden!");
-	}
-	return Value();
-}
-
-Value Function::zuZeichenketteNative(std::vector<Value> args)
-{
-	std::stringstream ss;
-	printValue(args.at(0), ss);
-	return Value(ss.str());
-}
-
-Value Function::LaengeNative(std::vector<Value> args)
-{
-	switch (args.at(0).Type())
-	{
-	case ValueType::String: return Value((int)(*args.at(0).String()).length());
-	case ValueType::IntArr: return Value((int)args.at(0).IntArr()->size());
-	case ValueType::DoubleArr: return Value((int)args.at(0).DoubleArr()->size());
-	case ValueType::BoolArr: return Value((int)args.at(0).BoolArr()->size());
-	case ValueType::CharArr: return Value((int)args.at(0).CharArr()->size());
-	case ValueType::StringArr: return Value((int)args.at(0).StringArr()->size());
-	default: throw runtime_error(u8"Du kannst nur die Länge von Strings oder Variablen Gruppen überprüfen!");
 	}
 }

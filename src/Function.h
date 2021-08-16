@@ -1,14 +1,9 @@
 #pragma once
 
 #include "Chunk.h"
+#include "Natives.h"
 #include <unordered_map>
 #include <array>
-
-class runtime_error : public std::exception
-{
-public:
-	runtime_error(std::string msg) : std::exception(msg.c_str()) {};
-};
 
 class Function
 {
@@ -32,100 +27,7 @@ private:
 	uint8_t readByte(); //read the next byte in chunk.bytes
 	uint16_t readShort(); //read the next 2 bytes in chunk.bytes as short
 	Value readConstant(); //read the next byte in chunk.bytes and lookup the constant it indicates
-
-	template<class stream>
-	void printValue(Value& val, stream& ostr)
-	{
-		switch (val.Type())
-		{
-		case ValueType::Int: ostr << val.Int(); break;
-		case ValueType::Double: ostr << val.Double(); break;
-		case ValueType::Bool: ostr << (val.Bool() ? u8"wahr" : u8"falsch"); break;
-		case ValueType::Char: ostr << val.Char(); break;
-		case ValueType::String: ostr << *val.String(); break;
-		case ValueType::IntArr:
-		{
-			std::vector<int>*& vec = val.IntArr();
-			if (vec->empty())
-			{
-				ostr << u8"[]";
-				return;
-			}
-			ostr << u8"[";
-			for (int i = 0; i < (int)vec->size() - 1; i++)
-			{
-				ostr << vec->at(i) << u8"; ";
-			}
-			ostr << vec->at(vec->size() - 1) << u8"]";
-			break;
-		}
-		case ValueType::DoubleArr:
-		{
-			std::vector<double>*& vec = val.DoubleArr();
-			if (vec->empty())
-			{
-				ostr << u8"[]";
-				return;
-			}
-			ostr << u8"[";
-			for (int i = 0; i < (int)vec->size() - 1; i++)
-			{
-				ostr << vec->at(i) << u8"; ";
-			}
-			ostr << vec->at(vec->size() - 1) << u8"]";
-			break;
-		}
-		case ValueType::BoolArr:
-		{
-			std::vector<bool>*& vec = val.BoolArr();
-			if (vec->empty())
-			{
-				ostr << u8"[]";
-				return;
-			}
-			ostr << u8"[";
-			for (int i = 0; i < (int)vec->size() - 1; i++)
-			{
-				ostr << (vec->at(i) ? u8"wahr" : u8"falsch") << u8"; ";
-			}
-			ostr << (vec->at(vec->size() - 1) ? u8"wahr" : u8"falsch") << u8"]";
-			break;
-		}
-		case ValueType::CharArr:
-		{
-			std::vector<char>*& vec = val.CharArr();
-			if (vec->empty())
-			{
-				ostr << u8"[]";
-				return;
-			}
-			ostr << u8"[";
-			for (int i = 0; i < (int)vec->size() - 1; i++)
-			{
-				ostr << vec->at(i) << u8"; ";
-			}
-			ostr << vec->at(vec->size() - 1) << u8"]";
-			break;
-		}
-		case ValueType::StringArr:
-		{
-			std::vector<std::string>*& vec = val.StringArr();
-			if (vec->empty())
-			{
-				ostr << u8"[]";
-				return;
-			}
-			ostr << u8"[\"";
-			for (int i = 0; i < (int)vec->size() - 1; i++)
-			{
-				ostr << vec->at(i) << u8"\"; \"";
-			}
-			ostr << vec->at(vec->size() - 1) << u8"\"]";
-			break;
-		}
-		default: ostr << "Invalid type!\n"; break;
-		}
-	}
+	
 	void addition(); //seperate function for  the OpCode::Add case in run
 
 	template<typename T>
@@ -134,21 +36,6 @@ private:
 		if (index >= vec->size())
 			throw runtime_error("Es wurde versucht auf ein Array Element auﬂerhalb der Reichweite zuzugreifen!");
 	}
-public: //Natives
-	Value schreibeNative(std::vector<Value> args);
-	Value schreibeZeileNative(std::vector<Value> args);
-	Value leseNative(std::vector<Value> args);
-	Value leseZeileNative(std::vector<Value> args);
-
-	Value clockNative(std::vector<Value> args);
-
-	Value zuZahlNative(std::vector<Value> args);
-	Value zuKommazahlNative(std::vector<Value> args);
-	Value zuBooleanNative(std::vector<Value> args);
-	Value zuZeichenNative(std::vector<Value> args);
-	Value zuZeichenketteNative(std::vector<Value> args);
-
-	Value LaengeNative(std::vector<Value> args);
 public:
 	std::vector<std::pair<std::string, ValueType>> args; //the types and count of the arguments the function takes (none for the main function)
 	int argUnit;
@@ -157,8 +44,9 @@ public:
 	ValueType returnType; //the return type of the function
 	std::unordered_map<int, std::unordered_map<std::string, Value>> locals; //local variables of the function mapped to the numner their scope unit appeared at. At compile-time the values are empty.
 public:
-	using MemFuncPtr = Value(Function::*)(std::vector<Value>);
-	MemFuncPtr native;
+	using NativePtr = Value(*)(std::vector<Value>);
+	NativePtr native; //the native function, nullptr if the function is not a native
+	Natives::CombineableValueType nativeArgs; //the types of the arguments the function takes if it is a native. only used at compile time
 private:
 	//Stuff needed during runtime, be carefull here, this should only be touched through it's getter functions
 	static constexpr size_t StackMax = UINT8_MAX + 1; //the maximum count of the stack

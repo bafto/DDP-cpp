@@ -49,6 +49,100 @@ public:
 
 	ValueType Type() const; //return the current type of the variant
 
+	template<class stream>
+	void print(stream& ostr)
+	{
+		switch (this->Type())
+		{
+		case ValueType::Int: ostr << this->Int(); break;
+		case ValueType::Double: ostr << this->Double(); break;
+		case ValueType::Bool: ostr << (this->Bool() ? u8"wahr" : u8"falsch"); break;
+		case ValueType::Char: ostr << this->Char(); break;
+		case ValueType::String: ostr << *this->String(); break;
+		case ValueType::IntArr:
+		{
+			std::vector<int>*& vec = this->IntArr();
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
+			{
+				ostr << vec->at(i) << u8"; ";
+			}
+			ostr << vec->at(vec->size() - 1) << u8"]";
+			break;
+		}
+		case ValueType::DoubleArr:
+		{
+			std::vector<double>*& vec = this->DoubleArr();
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
+			{
+				ostr << vec->at(i) << u8"; ";
+			}
+			ostr << vec->at(vec->size() - 1) << u8"]";
+			break;
+		}
+		case ValueType::BoolArr:
+		{
+			std::vector<bool>*& vec = this->BoolArr();
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
+			{
+				ostr << (vec->at(i) ? u8"wahr" : u8"falsch") << u8"; ";
+			}
+			ostr << (vec->at(vec->size() - 1) ? u8"wahr" : u8"falsch") << u8"]";
+			break;
+		}
+		case ValueType::CharArr:
+		{
+			std::vector<char>*& vec = this->CharArr();
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
+			{
+				ostr << vec->at(i) << u8"; ";
+			}
+			ostr << vec->at(vec->size() - 1) << u8"]";
+			break;
+		}
+		case ValueType::StringArr:
+		{
+			std::vector<std::string>*& vec = this->StringArr();
+			if (vec->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[\"";
+			for (int i = 0; i < (int)vec->size() - 1; i++)
+			{
+				ostr << vec->at(i) << u8"\"; \"";
+			}
+			ostr << vec->at(vec->size() - 1) << u8"\"]";
+			break;
+		}
+		default: ostr << "Invalid type!\n"; break;
+		}
+	}
+
 	//get a reference to the current value
 	int& Int();
 	double& Double();

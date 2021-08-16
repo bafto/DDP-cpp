@@ -15,7 +15,7 @@ private:
 	void finishCompilation();
 
 	void makeNatives();
-	void addNative(std::string name, ValueType returnType, std::vector<std::pair<std::string, ValueType>> args, Function::MemFuncPtr native);
+	void addNative(std::string name, ValueType returnType, Natives::CombineableValueType args, int argCount, Function::NativePtr native);
 private:
 	Function* currentFunction() { return currentScopeUnit->enclosingFunction; }; //the function that is currently being compiled (most often the nameless main function)
 	Chunk* currentChunk() { return &currentFunction()->chunk; }; //the chunk that is currently filled

@@ -36,6 +36,9 @@
     <ClCompile Include="src\Function.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\Natives.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Chunk.h">
@@ -57,6 +60,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Natives.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

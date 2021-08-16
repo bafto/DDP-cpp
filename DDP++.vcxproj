@@ -151,6 +151,7 @@
     <ClCompile Include="src\Compiler.cpp" />
     <ClCompile Include="src\Function.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Natives.cpp" />
     <ClCompile Include="src\Scanner.cpp" />
     <ClCompile Include="src\Value.cpp" />
     <ClCompile Include="src\VirtualMachine.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="src\Chunk.h" />
     <ClInclude Include="src\Compiler.h" />
     <ClInclude Include="src\Function.h" />
+    <ClInclude Include="src\Natives.h" />
     <ClInclude Include="src\Scanner.h" />
     <ClInclude Include="src\Value.h" />
     <ClInclude Include="src\VirtualMachine.h" />

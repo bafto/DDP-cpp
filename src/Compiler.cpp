@@ -2,6 +2,8 @@
 #include <iostream>
 #include <algorithm>
 
+#pragma warning (disable : 26812)
+
 Compiler::Compiler(const std::string& filePath,
 	std::unordered_map<std::string, Value>* globals,
 	std::unordered_map<std::string, Function>* functions)
@@ -74,28 +76,32 @@ void Compiler::finishCompilation()
 
 void Compiler::makeNatives()
 {
-	addNative("schreibe", ValueType::None, { {"x", ValueType::Any} }, &Function::schreibeNative);
-	addNative("schreibeZeile", ValueType::None, { {"x", ValueType::Any} }, &Function::schreibeZeileNative);
-	addNative("lese", ValueType::Char, {}, &Function::leseNative);
-	addNative("leseZeile", ValueType::String, {}, &Function::leseZeileNative);
+	using ty = Natives::CombineableValueType;
 
-	addNative("clock", ValueType::Double, {}, &Function::clockNative);
+	addNative("schreibe", ValueType::None, ty::Any, 1, &Natives::schreibeNative);
+	addNative("schreibeZeile", ValueType::None, ty::Any, 1, &Natives::schreibeZeileNative);
+	addNative("lese", ValueType::Char, ty::None, 0, &Natives::leseNative);
+	addNative("leseZeile", ValueType::String, ty::None, 0, &Natives::leseZeileNative);
 
-	addNative("zuZahl", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuZahlNative);
-	addNative("zuKommazahl", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuKommazahlNative);
-	addNative("zuBoolean", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuBooleanNative);
-	addNative("zuZeichen", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuZeichenNative);
-	addNative("zuZeichenkette", ValueType::Int, { {"x", ValueType::Any} }, &Function::zuZeichenketteNative);
+	addNative("clock", ValueType::Double, ty::None, 0, &Natives::clockNative);
 
-	addNative("Länge", ValueType::Int, { {"x", ValueType::Any} }, &Function::LaengeNative);
+	addNative("zuZahl", ValueType::Int, ty::Any, 1, &Natives::zuZahlNative);
+	addNative("zuKommazahl", ValueType::Double, ty::Any, 1, &Natives::zuKommazahlNative);
+	addNative("zuBoolean", ValueType::Bool, (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String), 1, &Natives::zuBooleanNative);
+	addNative("zuZeichen", ValueType::Char, (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String), 1, &Natives::zuZeichenNative);
+	addNative("zuZeichenkette", ValueType::String, ty::Any, 1, &Natives::zuZeichenketteNative);
+
+	addNative("Länge", ValueType::Int, (ty)(ty::String | ty::IntArr | ty::DoubleArr | ty::BoolArr | ty::CharArr | ty::StringArr), 1, &Natives::LaengeNative);
 }
 
-void Compiler::addNative(std::string name, ValueType returnType, std::vector<std::pair<std::string, ValueType>> args, Function::MemFuncPtr native)
+void Compiler::addNative(std::string name, ValueType returnType, Natives::CombineableValueType args, int argCount, Function::NativePtr native)
 {
 	Function func;
 	func.returnType = returnType;
 	func.native = native;
-	func.args = std::move(args);
+	func.nativeArgs = args;
+	for (int i = 0; i < argCount; i++)
+		func.args.push_back(std::make_pair("", ValueType::None));
 
 	functions->insert(std::make_pair(name, std::move(func)));
 }
@@ -674,8 +680,16 @@ ValueType Compiler::call(bool canAssign)
 		do
 		{
 			ValueType expr = expression();
-			if (func->args.at(argCount).second != ValueType::Any && func->args.at(argCount).second != expr)
-				error(u8"Falscher Argument Type!");
+			if (func->native != nullptr)
+			{
+				if (!Natives::ContainsType(func->nativeArgs, expr))
+					error(u8"Falscher Argument Typ!");
+			}
+			else
+			{
+				if (func->args.at(argCount).second != expr)
+					error(u8"Falscher Argument Typ!");
+			}
 			argCount++;
 		} while (match(TokenType::COMMA));
 	}
