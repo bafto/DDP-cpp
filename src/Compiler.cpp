@@ -352,6 +352,16 @@ ValueType Compiler::binary(bool canAssign)
 	{
 	case TokenType::PLUS:
 	{
+		if (lhs >= ValueType::IntArr && lhs <= ValueType::StringArr)
+		{
+			ValueType elementType = (ValueType)((int)lhs - 5);
+			if (expr != elementType && expr != lhs)
+				error(u8"Du kannst Arrays nur elemente oder andere Arrays desselben Typs hinzufügen!");
+
+			emitByte(op::ADD);
+			return lhs;
+		}
+
 		if (lhs == ValueType::Bool || expr == ValueType::Bool)
 			error(u8"Ein Boolean kann kein Operand in einer addition sein");
 		emitByte(op::ADD);

@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <sstream>
 
+#pragma warning (disable : 4267)
+
 Function::Function()
 	:
 	returnType(ValueType::None),
@@ -629,7 +631,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 				{
 					throw e;
 				}
-				catch (std::exception& e)
+				catch (std::exception&)
 				{
 					throw runtime_error("Falsche Nutzung einer eingebauten Funktion!");
 				}
@@ -787,5 +789,105 @@ void Function::addition()
 		default:
 			return;
 		}
+	case ValueType::IntArr:
+	{
+		std::vector<int> vec = *a.IntArr();
+		switch (bType)
+		{
+		case ValueType::Int:
+			vec.push_back(b.Int());
+			push(Value(vec));
+			return;
+		case ValueType::IntArr:
+		{
+			std::vector<int> bvec = *b.IntArr();
+			vec.insert(vec.end(), bvec.begin(), bvec.end());
+			push(Value(vec));
+			return;
+		}
+		default:
+			return;
+		}
+	}
+	case ValueType::DoubleArr:
+	{
+		std::vector<double> vec = *a.DoubleArr();
+		switch (bType)
+		{
+		case ValueType::Double:
+			vec.push_back(b.Int());
+			push(Value(vec));
+			return;
+		case ValueType::DoubleArr:
+		{
+			std::vector<double> bvec = *b.DoubleArr();
+			vec.insert(vec.end(), bvec.begin(), bvec.end());
+			push(Value(vec));
+			return;
+		}
+		default:
+			return;
+		}
+	}
+	case ValueType::BoolArr:
+	{
+		std::vector<bool> vec = *a.BoolArr();
+		switch (bType)
+		{
+		case ValueType::Bool:
+			vec.push_back(b.Bool());
+			push(Value(vec));
+			return;
+		case ValueType::BoolArr:
+		{
+			std::vector<bool> bvec = *b.BoolArr();
+			vec.insert(vec.end(), bvec.begin(), bvec.end());
+			push(Value(vec));
+			return;
+		}
+		default:
+			return;
+		}
+	}
+	case ValueType::CharArr:
+	{
+		std::vector<char> vec = *a.CharArr();
+		switch (bType)
+		{
+		case ValueType::Char:
+			vec.push_back(b.Char());
+			push(Value(vec));
+			return;
+		case ValueType::CharArr:
+		{
+			std::vector<char> bvec = *b.CharArr();
+			vec.insert(vec.end(), bvec.begin(), bvec.end());
+			push(Value(vec));
+			return;
+		}
+		default:
+			return;
+		}
+	}
+	case ValueType::StringArr:
+	{
+		std::vector<std::string> vec = *a.StringArr();
+		switch (bType)
+		{
+		case ValueType::String:
+			vec.push_back(*b.String());
+			push(Value(vec));
+			return;
+		case ValueType::StringArr:
+		{
+			std::vector<std::string> bvec = *b.StringArr();
+			vec.insert(vec.end(), bvec.begin(), bvec.end());
+			push(Value(vec));
+			return;
+		}
+		default:
+			return;
+		}
+	}
 	}
 }
