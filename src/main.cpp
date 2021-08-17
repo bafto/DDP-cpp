@@ -11,14 +11,19 @@ int runFile(std::string file, std::vector<std::string> sysArgs)
 	case InterpretResult::OK: return 0;
 	case InterpretResult::CompileTimeError:
 		std::cerr << u8"Während dem compilieren des Programms ist ein Fehler aufgetreten!\n";
+		system("pause");
 		return -1;
 	case InterpretResult::RuntimeError:
 		std::cerr << u8"Während dem ausführen des Programms ist ein Fehler aufgetreten!\n";
+		system("pause");
 		return -2;
 	case InterpretResult::Exception:
 		std::cerr << u8"Während dem ausführen des Programms ist eine Ausnahme aufgetreten!\nDas sollte eigentlich nicht vorkommen, bitte melden sie es zusammen mit dem Error-Log einem DDP Developer!\n";
+		system("pause");
 		return -3;
-	default: return -69;
+	default:
+		system("pause");
+		return -69;
 	}
 }
 

@@ -1,1 +1,1 @@
-schreibeZeile(Länge(16)).
+schreibeZeile(Beschneiden("   Hallo  \n")).

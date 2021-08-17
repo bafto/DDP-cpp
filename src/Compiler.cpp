@@ -78,30 +78,38 @@ void Compiler::makeNatives()
 {
 	using ty = Natives::CombineableValueType;
 
-	addNative("schreibe", ValueType::None, ty::Any, 1, &Natives::schreibeNative);
-	addNative("schreibeZeile", ValueType::None, ty::Any, 1, &Natives::schreibeZeileNative);
-	addNative("lese", ValueType::Char, ty::None, 0, &Natives::leseNative);
-	addNative("leseZeile", ValueType::String, ty::None, 0, &Natives::leseZeileNative);
+	addNative("schreibe", ValueType::None, { ty::Any }, &Natives::schreibeNative);
+	addNative("schreibeZeile", ValueType::None, { ty::Any }, &Natives::schreibeZeileNative);
+	addNative("lese", ValueType::Char, {}, &Natives::leseNative);
+	addNative("leseZeile", ValueType::String, {}, &Natives::leseZeileNative);
 
-	addNative("clock", ValueType::Double, ty::None, 0, &Natives::clockNative);
+	addNative("clock", ValueType::Double, {}, &Natives::clockNative);
 
-	addNative("zuZahl", ValueType::Int, ty::Any, 1, &Natives::zuZahlNative);
-	addNative("zuKommazahl", ValueType::Double, ty::Any, 1, &Natives::zuKommazahlNative);
-	addNative("zuBoolean", ValueType::Bool, (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String), 1, &Natives::zuBooleanNative);
-	addNative("zuZeichen", ValueType::Char, (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String), 1, &Natives::zuZeichenNative);
-	addNative("zuZeichenkette", ValueType::String, ty::Any, 1, &Natives::zuZeichenketteNative);
+	addNative("zuZahl", ValueType::Int, { ty::Any }, &Natives::zuZahlNative);
+	addNative("zuKommazahl", ValueType::Double, { ty::Any }, &Natives::zuKommazahlNative);
+	addNative("zuBoolean", ValueType::Bool, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBooleanNative);
+	addNative("zuZeichen", ValueType::Char, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuZeichenNative);
+	addNative("zuZeichenkette", ValueType::String, { ty::Any }, &Natives::zuZeichenketteNative);
 
-	addNative("Länge", ValueType::Int, (ty)(ty::String | ty::IntArr | ty::DoubleArr | ty::BoolArr | ty::CharArr | ty::StringArr), 1, &Natives::LaengeNative);
+	addNative(u8"Länge", ValueType::Int, { (ty)(ty::String | ty::IntArr | ty::DoubleArr | ty::BoolArr | ty::CharArr | ty::StringArr) }, &Natives::LaengeNative);
+
+	addNative("Zuschneiden", ValueType::String, { ty::String, ty::Int, ty::Int }, &Natives::ZuschneidenNative);
+	addNative("Spalten", ValueType::StringArr, { ty::String, (ty)(ty::String | ty::Char) }, &Natives::SpaltenNative);
+	addNative("Ersetzen", ValueType::String, { ty::String, (ty)(ty::String | ty::Char), (ty)(ty::String | ty::Char) }, &Natives::ErsetzenNative);
+	addNative("Entfernen", ValueType::String, { ty::String, ty::Int, ty::Int }, &Natives::EntfernenNative);
+	addNative(u8"Einfügen", ValueType::String, { ty::String, ty::Int, ty::String }, &Natives::EinfügenNative);
+	addNative(u8"Enthält", ValueType::Bool, { ty::String, (ty)(ty::String | ty::Char) }, &Natives::EnthältNative);
+	addNative("Beschneiden", ValueType::String, { ty::String }, &Natives::BeschneidenNative);
 }
 
-void Compiler::addNative(std::string name, ValueType returnType, Natives::CombineableValueType args, int argCount, Function::NativePtr native)
+void Compiler::addNative(std::string name, ValueType returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native)
 {
 	Function func;
 	func.returnType = returnType;
 	func.native = native;
-	func.nativeArgs = args;
-	for (int i = 0; i < argCount; i++)
+	for (int i = 0; i < args.size(); i++)
 		func.args.push_back(std::make_pair("", ValueType::None));
+	func.nativeArgs = std::move(args);
 
 	functions->insert(std::make_pair(name, std::move(func)));
 }
@@ -680,15 +688,22 @@ ValueType Compiler::call(bool canAssign)
 		do
 		{
 			ValueType expr = expression();
-			if (func->native != nullptr)
+			try
 			{
-				if (!Natives::ContainsType(func->nativeArgs, expr))
-					error(u8"Falscher Argument Typ!");
+				if (func->native != nullptr)
+				{
+					if (!Natives::ContainsType(func->nativeArgs.at(argCount), expr))
+						error(u8"Falscher Argument Typ!");
+				}
+				else
+				{
+					if (func->args.at(argCount).second != expr)
+						error(u8"Falscher Argument Typ!");
+				}
 			}
-			else
+			catch (std::exception&)
 			{
-				if (func->args.at(argCount).second != expr)
-					error(u8"Falscher Argument Typ!");
+				error(u8"Zu viele Argumente beim Funktions Aufruf!");
 			}
 			argCount++;
 		} while (match(TokenType::COMMA));

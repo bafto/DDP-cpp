@@ -366,9 +366,19 @@ bool Scanner::isDigit(char c)
 
 bool Scanner::isAlphabetical(char c, bool firstLetter)
 {
-	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' ||
-		c == 'ß' ||
-		c == 'ü' || c == 'ä' || c == 'ö' ||
-		c == 'Ü' || c == 'Ä' || c == 'Ö') return true;
+	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') return true;
+	else if (c == '\xc3') {
+		switch (firstLetter ? peek() : peekNext())
+		{
+		case '\x9c': //Ü
+		case '\x96': //Ö
+		case '\x84': //Ä
+		case '\xbc': //ü
+		case '\xa4': //ä
+		case '\x9f': //ß
+		case '\xb6': advance(); return true; //ö
+		default: return false;
+		}
+	}
 	else return false;
 }

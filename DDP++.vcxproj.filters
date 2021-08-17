@@ -68,7 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="test.ddp" />
-    <None Include="test2.ddp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DDP++.rc">

@@ -167,11 +167,116 @@ namespace Natives
 		case ValueType::CharArr: return Value((int)args.at(0).CharArr()->size());
 		case ValueType::StringArr: return Value((int)args.at(0).StringArr()->size());
 		}
+		return Value(-1);
 	}
 
 	Value ZuschneidenNative(std::vector<Value> args)
 	{
-		return Value();
+		std::string str = *args.at(0).String();
+		int start = args.at(1).Int();
+		int length = args.at(2).Int();
+
+		return Value(str.substr(start, length));
+	}
+
+	Value SpaltenNative(std::vector<Value> args)
+	{
+		std::string str = *args.at(0).String();
+		std::string delimiter;
+		switch (args.at(1).Type())
+		{
+		case ValueType::Char: delimiter = std::string(1, args.at(1).Char()); break;
+		case ValueType::String: delimiter = *args.at(1).String(); break;
+		}
+		size_t pos = 0;
+		std::vector<std::string> tokens;
+		while ((pos = str.find(delimiter)) != std::string::npos)
+		{
+			tokens.push_back(str.substr(0, pos));
+			str.erase(0, pos + delimiter.length());
+		}
+		tokens.push_back(str);
+		return Value(std::move(tokens));
+	}
+
+	Value ErsetzenNative(std::vector<Value> args)
+	{
+		std::string str = *args.at(0).String();
+		std::string from;
+		std::string to;
+		switch (args.at(1).Type())
+		{
+		case ValueType::Char: from = std::string(1, args.at(1).Char()); break;
+		case ValueType::String: from = *args.at(1).String(); break;
+		}
+		switch (args.at(2).Type())
+		{
+		case ValueType::Char: to = std::string(1, args.at(2).Char()); break;
+		case ValueType::String: to = *args.at(2).String(); break;
+		}
+
+		if (from.empty())
+			return Value(str);
+		size_t start_pos = 0;
+		while ((start_pos = str.find(from, start_pos)) != std::string::npos)
+		{
+			str.replace(start_pos, from.length(), to);
+			start_pos += to.length();
+		}
+		
+		return Value(str);
+	}
+
+	Value EntfernenNative(std::vector<Value> args)
+	{
+		std::string str = *args.at(0).String();
+		int start = args.at(1).Int();
+		int length = args.at(2).Int();
+
+		if (start + length > str.length())
+			str.erase(str.begin() + start, str.end());
+		else
+			str.erase(str.begin() + start, str.begin() + start + length);
+		return Value(str);
+	}
+
+	Value EinfügenNative(std::vector<Value> args)
+	{
+		std::string str = *args.at(0).String();
+		int pos = args.at(1).Int();
+		std::string in = *args.at(2).String();
+
+		if (pos > (int)str.length())
+			str.insert(str.length(), in);
+		else if (pos < 0)
+			str.insert(0, in);
+		else
+			str.insert(pos, in);
+		return Value(str);
+	}
+
+	Value EnthältNative(std::vector<Value> args)
+	{
+		std::string str = *args.at(0).String();
+		std::string x;
+		switch (args.at(1).Type())
+		{
+		case ValueType::Char: x = std::string(1, args.at(1).Char()); break;
+		case ValueType::String: x = *args.at(1).String(); break;
+		}
+		return Value(str.find(x) != std::string::npos);
+	}
+
+	Value BeschneidenNative(std::vector<Value> args)
+	{
+		std::string s = *args.at(0).String();
+		s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+			return !std::isspace(ch);
+			}));
+		s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+			return !std::isspace(ch);
+			}).base(), s.end());
+		return Value(s);
 	}
 
 }

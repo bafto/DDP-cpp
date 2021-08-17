@@ -616,12 +616,23 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			if (func.native != nullptr)
 			{
 				std::vector<Value> args;
-				args.reserve(func.args.size());
+				args.resize(func.args.size());
 				for (int i = func.args.size() - 1; i >= 0; i--)
 				{
-					args.push_back(std::move(pop()));
+					args[i] = std::move(pop());
 				}
-				push(func.runNative(globals, functions, std::move(args)));
+				try
+				{
+					push(func.runNative(globals, functions, std::move(args)));
+				}
+				catch (runtime_error& e)
+				{
+					throw e;
+				}
+				catch (std::exception& e)
+				{
+					throw runtime_error("Falsche Nutzung einer eingebauten Funktion!");
+				}
 				break;
 			}
 

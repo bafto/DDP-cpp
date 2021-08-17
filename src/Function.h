@@ -46,7 +46,7 @@ public:
 public:
 	using NativePtr = Value(*)(std::vector<Value>);
 	NativePtr native; //the native function, nullptr if the function is not a native
-	Natives::CombineableValueType nativeArgs; //the types of the arguments the function takes if it is a native. only used at compile time
+	std::vector<Natives::CombineableValueType> nativeArgs; //the types of the arguments the function takes if it is a native. only used at compile time
 private:
 	//Stuff needed during runtime, be carefull here, this should only be touched through it's getter functions
 	static constexpr size_t StackMax = UINT8_MAX + 1; //the maximum count of the stack
