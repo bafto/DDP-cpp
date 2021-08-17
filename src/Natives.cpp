@@ -279,4 +279,124 @@ namespace Natives
 		return Value(s);
 	}
 
+	Value Max(std::vector<Value> args)
+	{
+		switch (args.at(0).Type())
+		{
+		case ValueType::Int:
+		{
+			switch (args.at(1).Type())
+			{
+			case ValueType::Int: return Value(std::max((double)args.at(0).Int(), (double)args.at(1).Int()));
+			case ValueType::Double: return Value(std::max((double)args.at(0).Int(), args.at(1).Double()));
+			}
+		}
+		case ValueType::Double:
+		{
+			switch (args.at(1).Type())
+			{
+			case ValueType::Int: return Value(std::max(args.at(0).Double(), (double)args.at(1).Int()));
+			case ValueType::Double: return Value(std::max(args.at(0).Double(), args.at(1).Double()));
+			}
+		}
+		}
+		return Value();
+	}
+
+	Value Min(std::vector<Value> args)
+	{
+		switch (args.at(0).Type())
+		{
+		case ValueType::Int:
+		{
+			switch (args.at(1).Type())
+			{
+			case ValueType::Int: return Value(std::min((double)args.at(0).Int(), (double)args.at(1).Int()));
+			case ValueType::Double: return Value(std::min((double)args.at(0).Int(), args.at(1).Double()));
+			}
+		}
+		case ValueType::Double:
+		{
+			switch (args.at(1).Type())
+			{
+			case ValueType::Int: return Value(std::min(args.at(0).Double(), (double)args.at(1).Int()));
+			case ValueType::Double: return Value(std::min(args.at(0).Double(), args.at(1).Double()));
+			}
+		}
+		}
+		return Value();
+	}
+
+	Value Clamp(std::vector<Value> args)
+	{
+		switch (args.at(0).Type())
+		{
+		case ValueType::Int:
+		{
+			switch (args.at(1).Type())
+			{
+			case ValueType::Int:
+			{
+				switch (args.at(2).Type())
+				{
+				case ValueType::Int: return Value((double)(std::clamp(args.at(0).Int(), args.at(1).Int(), args.at(2).Int())));
+				case ValueType::Double: return Value(std::clamp((double)args.at(0).Int(), (double)args.at(1).Int(), args.at(2).Double()));
+				}
+			}
+			case ValueType::Double:
+			{
+				switch (args.at(2).Type())
+				{
+				case ValueType::Int: return Value(std::clamp((double)args.at(0).Int(), args.at(1).Double(), (double)args.at(2).Int()));
+				case ValueType::Double: return Value(std::clamp((double)args.at(0).Int(), args.at(1).Double(), args.at(2).Double()));
+				}
+			}
+			}
+		}
+		case ValueType::Double:
+		{
+			switch (args.at(1).Type())
+			{
+			case ValueType::Int:
+			{
+				switch (args.at(2).Type())
+				{
+				case ValueType::Int: return Value(std::clamp(args.at(0).Double(), (double)args.at(1).Int(), (double)args.at(2).Int()));
+				case ValueType::Double: return Value(std::clamp(args.at(0).Double(), (double)args.at(1).Int(), args.at(2).Double()));
+				}
+			}
+			case ValueType::Double:
+			{
+				switch (args.at(2).Type())
+				{
+				case ValueType::Int: return Value(std::clamp(args.at(0).Double(), args.at(1).Double(), (double)args.at(2).Int()));
+				case ValueType::Double: return Value(std::clamp(args.at(0).Double(), args.at(1).Double(), args.at(2).Double()));
+				}
+			}
+			}
+		}
+		}
+		return Value();
+	}
+
+	Value Trunkiert(std::vector<Value> args)
+	{
+		return Value(std::trunc(args.at(0).Double()));
+	}
+
+	Value Rund(std::vector<Value> args)
+	{
+		return Value(std::round(args.at(0).Double()));
+	}
+
+	Value Decke(std::vector<Value> args)
+	{
+		return Value(std::ceil(args.at(0).Double()));
+	}
+
+	Value Boden(std::vector<Value> args)
+	{
+		return Value(std::floor(args.at(0).Double()));
+	}
+
 }

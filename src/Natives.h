@@ -52,4 +52,13 @@ namespace Natives
 	Value EinfügenNative(std::vector<Value> args);
 	Value EnthältNative(std::vector<Value> args);
 	Value BeschneidenNative(std::vector<Value> args);
+
+	//math stuff
+	Value Max(std::vector<Value> args);
+	Value Min(std::vector<Value> args);
+	Value Clamp(std::vector<Value> args);
+	Value Trunkiert(std::vector<Value> args);
+	Value Rund(std::vector<Value> args);
+	Value Decke(std::vector<Value> args);
+	Value Boden(std::vector<Value> args);
 }

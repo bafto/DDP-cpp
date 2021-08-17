@@ -1,3 +1,1 @@
-die Zahlen z sind [1; 69; 420].
-die Zahlen z2 sind z plus 100.
-schreibeZeile(z2).
+schreibeZeile(Clamp(69, 15, 30)).

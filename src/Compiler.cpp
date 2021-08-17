@@ -100,6 +100,14 @@ void Compiler::makeNatives()
 	addNative(u8"Einfügen", ValueType::String, { ty::String, ty::Int, ty::String }, &Natives::EinfügenNative);
 	addNative(u8"Enthält", ValueType::Bool, { ty::String, (ty)(ty::String | ty::Char) }, &Natives::EnthältNative);
 	addNative("Beschneiden", ValueType::String, { ty::String }, &Natives::BeschneidenNative);
+
+	addNative("Max", ValueType::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Max);
+	addNative("Min", ValueType::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Min);
+	addNative("Clamp", ValueType::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Clamp);
+	addNative("Trunkiert", ValueType::Double, { ty::Double }, &Natives::Trunkiert);
+	addNative("Rund", ValueType::Double, { ty::Double }, &Natives::Rund);
+	addNative("Decke", ValueType::Double, { ty::Double }, &Natives::Decke);
+	addNative("Boden", ValueType::Double, { ty::Double }, &Natives::Boden);
 }
 
 void Compiler::addNative(std::string name, ValueType returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native)
