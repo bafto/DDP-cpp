@@ -2,6 +2,20 @@
 #include <iostream>
 #include <Windows.h>
 
+bool hasOwnWindow()
+{
+	HWND consoleWnd = GetConsoleWindow();
+	DWORD dwProcessId;
+	GetWindowThreadProcessId(consoleWnd, &dwProcessId);
+	return GetCurrentProcessId() == dwProcessId;
+}
+
+void pauseIfWindowOwner() 
+{
+	if (hasOwnWindow())
+		system("pause");
+}
+
 int runFile(std::string file, std::vector<std::string> sysArgs)
 {
 	VirtualMachine vm(file, sysArgs);
@@ -11,18 +25,18 @@ int runFile(std::string file, std::vector<std::string> sysArgs)
 	case InterpretResult::OK: return 0;
 	case InterpretResult::CompileTimeError:
 		std::cerr << u8"Während dem compilieren des Programms ist ein Fehler aufgetreten!\n";
-		system("pause");
+		pauseIfWindowOwner();
 		return -1;
 	case InterpretResult::RuntimeError:
 		std::cerr << u8"Während dem ausführen des Programms ist ein Fehler aufgetreten!\n";
-		system("pause");
+		pauseIfWindowOwner();
 		return -2;
 	case InterpretResult::Exception:
-		std::cerr << u8"Während dem ausführen des Programms ist eine Ausnahme aufgetreten!\nDas sollte eigentlich nicht vorkommen, bitte melden sie es zusammen mit dem Error-Log einem DDP Developer!\n";
-		system("pause");
+		std::cerr << u8"Während dem ausführen des Programms ist eine Ausnahme aufgetreten!\nDas sollte eigentlich nicht vorkommen, bitte melden sie es zusammen mit dem Error-Log einem DDP++ Developer!\n";
+		pauseIfWindowOwner();
 		return -3;
 	default:
-		system("pause");
+		pauseIfWindowOwner();
 		return -69;
 	}
 }
@@ -33,7 +47,8 @@ int main(int argc, char* argv[])
 	//enable buffering if there are problems with the utf8 printing.
 	//setvbuf(stdout, nullptr, _IOFBF, 1000);  //!!!If enabled you gotta flush the stream from time to time (with std::endl or std::flush for example)
 
-	std::cout << std::unitbuf;
+	if (!hasOwnWindow())
+		std::cout << std::unitbuf;
 
 	switch (argc)
 	{
