@@ -33,6 +33,8 @@ int main(int argc, char* argv[])
 	//enable buffering if there are problems with the utf8 printing.
 	//setvbuf(stdout, nullptr, _IOFBF, 1000);  //!!!If enabled you gotta flush the stream from time to time (with std::endl or std::flush for example)
 
+	std::cout << std::unitbuf;
+
 	switch (argc)
 	{
 	case 1: std::cout << u8"Usage: ddp++ <filename.ddp>\n"; break;
