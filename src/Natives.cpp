@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <thread>
 
 #pragma warning (disable : 26812)
 
@@ -60,6 +61,13 @@ namespace Natives
 	Value clockNative(std::vector<Value> args)
 	{
 		return Value((double)clock() / (double)CLOCKS_PER_SEC);
+	}
+
+	Value warteNative(std::vector<Value> args)
+	{
+		double seconds = args.at(0).Double();
+		std::this_thread::sleep_for(std::chrono::milliseconds((int)(seconds * 1000)));
+		return Value();
 	}
 
 	Value zuZahlNative(std::vector<Value> args)

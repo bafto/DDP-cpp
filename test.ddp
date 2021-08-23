@@ -1,1 +1,7 @@
-schreibeZeile(Clamp(69, 15, 30)).
+die Kommazahl bevor ist clock().
+
+warte(3,54305).
+
+die Kommazahl danach ist clock().
+
+schreibeZeile("laufzeit: " plus (danach minus bevor))

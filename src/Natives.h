@@ -34,6 +34,7 @@ namespace Natives
 	Value leseZeileNative(std::vector<Value> args);
 
 	Value clockNative(std::vector<Value> args);
+	Value warteNative(std::vector<Value> args);
 
 	//casts
 	Value zuZahlNative(std::vector<Value> args);

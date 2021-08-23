@@ -84,6 +84,7 @@ void Compiler::makeNatives()
 	addNative("leseZeile", ValueType::String, {}, &Natives::leseZeileNative);
 
 	addNative("clock", ValueType::Double, {}, &Natives::clockNative);
+	addNative("warte", ValueType::None, { ty::Double }, &Natives::warteNative);
 
 	addNative("zuZahl", ValueType::Int, { ty::Any }, &Natives::zuZahlNative);
 	addNative("zuKommazahl", ValueType::Double, { ty::Any }, &Natives::zuKommazahlNative);
