@@ -66,7 +66,7 @@ void Compiler::finishCompilation()
 		case ValueType::IntArr: val = Value(std::vector<int>()); break;
 		case ValueType::DoubleArr: val = Value(std::vector<double>()); break;
 		case ValueType::BoolArr: val = Value(std::vector<bool>()); break;
-		case ValueType::CharArr: val = Value(std::vector<char>()); break;
+		case ValueType::CharArr: val = Value(std::vector<short>()); break;
 		case ValueType::StringArr: val = Value(std::vector<std::string>()); break;
 		}
 
@@ -266,7 +266,16 @@ ValueType Compiler::string(bool canAssign)
 
 ValueType Compiler::character(bool canAssign)
 {
-	emitConstant(Value(preIt->literal[1])); //remove the leading and trailing '
+	if (preIt->literal.length() == 3)
+		emitConstant(Value((short)preIt->literal[1])); //remove the leading and trailing '
+	else if (preIt->literal.length() == 4)
+	{
+		char a = preIt->literal[1];
+		char b = preIt->literal[2];
+		emitConstant(Value((short)((((short)a) << 8) | (0x00ff & b))));
+	}
+	else
+		error("Zu langes Zeichen literal");
 	return ValueType::Char;
 }
 
@@ -1250,12 +1259,12 @@ void Compiler::ScopeUnit::endUnit(ScopeUnit*& currentScopeUnit)
 		case ValueType::Int: val = Value(1); break;
 		case ValueType::Double: val = Value(1.0); break;
 		case ValueType::Bool: val = Value(false); break;
-		case ValueType::Char: val = Value((char)0); break;
+		case ValueType::Char: val = Value((short)0); break;
 		case ValueType::String: val = Value(""); break;
 		case ValueType::IntArr: val = Value(std::vector<int>()); break;
 		case ValueType::DoubleArr: val = Value(std::vector<double>()); break;
 		case ValueType::BoolArr: val = Value(std::vector<bool>()); break;
-		case ValueType::CharArr: val = Value(std::vector<char>()); break;
+		case ValueType::CharArr: val = Value(std::vector<short>()); break;
 		case ValueType::StringArr: val = Value(std::vector<std::string>()); break;
 		}
 

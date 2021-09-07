@@ -193,7 +193,7 @@ namespace Natives
 		std::string delimiter;
 		switch (args.at(1).Type())
 		{
-		case ValueType::Char: delimiter = std::string(1, args.at(1).Char()); break;
+		case ValueType::Char: delimiter = Value::U8CharToString(args.at(1).Char()); break;
 		case ValueType::String: delimiter = *args.at(1).String(); break;
 		}
 		size_t pos = 0;
@@ -214,12 +214,12 @@ namespace Natives
 		std::string to;
 		switch (args.at(1).Type())
 		{
-		case ValueType::Char: from = std::string(1, args.at(1).Char()); break;
+		case ValueType::Char: from = Value::U8CharToString(args.at(1).Char()); break;
 		case ValueType::String: from = *args.at(1).String(); break;
 		}
 		switch (args.at(2).Type())
 		{
-		case ValueType::Char: to = std::string(1, args.at(2).Char()); break;
+		case ValueType::Char: to = Value::U8CharToString(args.at(2).Char()); break;
 		case ValueType::String: to = *args.at(2).String(); break;
 		}
 
@@ -269,7 +269,7 @@ namespace Natives
 		std::string x;
 		switch (args.at(1).Type())
 		{
-		case ValueType::Char: x = std::string(1, args.at(1).Char()); break;
+		case ValueType::Char: x = Value::U8CharToString(args.at(1).Char()); break;
 		case ValueType::String: x = *args.at(1).String(); break;
 		}
 		return Value(str.find(x) != std::string::npos);

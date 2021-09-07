@@ -5,6 +5,8 @@
 #include <variant>
 #include <algorithm>
 
+//#pragma warning (disable : 4244)
+
 //aligns with _val's template parameters in Value
 enum class ValueType
 {
@@ -39,16 +41,18 @@ public:
 	Value(int v);
 	Value(double v);
 	Value(bool v);
-	Value(char v);
+	Value(short v);
 	Value(std::string v);
 	Value(const char* v);
 	Value(std::vector<int> v);
 	Value( std::vector<double> v);
 	Value( std::vector<bool> v);
-	Value( std::vector<char> v);
+	Value( std::vector<short> v);
 	Value( std::vector<std::string> v);
 
 	ValueType Type() const; //return the current type of the variant
+
+	static std::string U8CharToString(short ch);
 
 	template<class stream>
 	void print(stream& ostr)
@@ -64,7 +68,7 @@ public:
 			break;
 		}
 		case ValueType::Bool: ostr << (this->Bool() ? u8"wahr" : u8"falsch"); break;
-		case ValueType::Char: ostr << this->Char(); break;
+		case ValueType::Char: ostr << U8CharToString(this->Char()); break;
 		case ValueType::String: ostr << *this->String(); break;
 		case ValueType::IntArr:
 		{
@@ -116,7 +120,7 @@ public:
 		}
 		case ValueType::CharArr:
 		{
-			std::vector<char>*& vec = this->CharArr();
+			std::vector<short>*& vec = this->CharArr();
 			if (vec->empty())
 			{
 				ostr << u8"[]";
@@ -125,9 +129,9 @@ public:
 			ostr << u8"[";
 			for (int i = 0; i < (int)vec->size() - 1; i++)
 			{
-				ostr << vec->at(i) << u8"; ";
+				ostr << U8CharToString(vec->at(i)) << u8"; ";
 			}
-			ostr << vec->at(vec->size() - 1) << u8"]";
+			ostr << U8CharToString(vec->at(vec->size() - 1)) << u8"]";
 			break;
 		}
 		case ValueType::StringArr:
@@ -154,12 +158,12 @@ public:
 	int& Int();
 	double& Double();
 	bool& Bool();
-	char& Char();
+	short& Char();
 	std::string*& String();
 	std::vector<int>*& IntArr();
 	std::vector<double>*& DoubleArr();
 	std::vector<bool>*& BoolArr();
-	std::vector<char>*& CharArr();
+	std::vector<short>*& CharArr();
 	std::vector<std::string>*& StringArr();
 private:
 	std::variant<
@@ -167,12 +171,12 @@ private:
 		int,
 		double,
 		bool,
-		char,
+		short,
 		std::string*,
 		std::vector<int>*,
 		std::vector<double>*,
 		std::vector<bool>*,
-		std::vector<char>*,
+		std::vector<short>*,
 		std::vector<std::string>*
 	> _val;
 };

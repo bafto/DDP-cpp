@@ -312,7 +312,13 @@ Token Scanner::string()
 
 Token Scanner::character()
 {
-	if (!isAtEnd() && peekNext() != '\'') return errorToken(u8"Unfertiger Buchstabe");
+	if (!isAtEnd() && peekNext() != '\'')
+	{
+		if (peek() == '\n') line++;
+		if (peek() >= 32 && peek() <= 126 || peek() == '\n') return errorToken(u8"Zu viele Zeichen in einem Zeichen Literal!");
+		advance();
+		if (!isAtEnd() && peekNext() != '\'') return errorToken(u8"Unfertiger Buchstabe!");
+	}
 	if (peek() == '\n') line++;
 	advance();
 	advance();

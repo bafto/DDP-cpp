@@ -26,7 +26,7 @@ Value::Value(const Value& other)
 	case ValueType::IntArr: _val = new std::vector<int>(*IntArr()); break;
 	case ValueType::DoubleArr: _val = new std::vector<double>(*DoubleArr()); break;
 	case ValueType::BoolArr: _val = new std::vector<bool>(*BoolArr()); break;
-	case ValueType::CharArr: _val = new std::vector<char>(*CharArr()); break;
+	case ValueType::CharArr: _val = new std::vector<short>(*CharArr()); break;
 	case ValueType::StringArr: _val = new std::vector<std::string>(*StringArr()); break;
 	default: break;
 	}
@@ -80,7 +80,7 @@ Value& Value::operator=(const Value& other)
 	case ValueType::IntArr: _val = new std::vector<int>(*IntArr()); break;
 	case ValueType::DoubleArr: _val = new std::vector<double>(*DoubleArr()); break;
 	case ValueType::BoolArr: _val = new std::vector<bool>(*BoolArr()); break;
-	case ValueType::CharArr: _val = new std::vector<char>(*CharArr()); break;
+	case ValueType::CharArr: _val = new std::vector<short>(*CharArr()); break;
 	case ValueType::StringArr: _val = new std::vector<std::string>(*StringArr()); break;
 	default: break;
 	}
@@ -146,7 +146,7 @@ Value::Value(bool v)
 	_val(v)
 {}
 
-Value::Value(char v)
+Value::Value(short v)
 	:
 	_val(v)
 {}
@@ -177,9 +177,9 @@ Value::Value(std::vector<bool> v)
 	_val(new std::vector<bool>(std::move(v)))
 {}
 
-Value::Value(std::vector<char> v)
+Value::Value(std::vector<short> v)
 	:
-	_val(new std::vector<char>(std::move(v)))
+	_val(new std::vector<short>(std::move(v)))
 {}
 
 Value::Value(std::vector<std::string> v)
@@ -190,6 +190,16 @@ Value::Value(std::vector<std::string> v)
 ValueType Value::Type() const
 {
 	return (ValueType)_val.index();
+}
+
+std::string Value::U8CharToString(short ch)
+{
+	char a = ch;
+	char b = (ch >> 8);
+	std::string s = "  ";
+	s[0] = b;
+	s[1] = a;
+	return s;
 }
 
 int& Value::Int()
@@ -207,9 +217,9 @@ bool& Value::Bool()
 	return std::get<bool>(_val);
 }
 
-char& Value::Char()
+short& Value::Char()
 {
-	return std::get<char>(_val);
+	return std::get<short>(_val);
 }
 
 std::string*& Value::String()
@@ -232,9 +242,9 @@ std::vector<bool>*& Value::BoolArr()
 	return std::get<std::vector<bool>*>(_val);
 }
 
-std::vector<char>*& Value::CharArr()
+std::vector<short>*& Value::CharArr()
 {
-	return std::get<std::vector<char>*>(_val);
+	return std::get<std::vector<short>*>(_val);
 }
 
 std::vector<std::string>*& Value::StringArr()

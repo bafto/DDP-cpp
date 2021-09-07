@@ -78,7 +78,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			}
 			case ValueType::CharArr:
 			{
-				std::vector<char> vec;
+				std::vector<short> vec;
 				vec.reserve(size);
 				for (int i = 0; i < size; i++)
 				{
@@ -469,7 +469,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 				case ValueType::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
 				case ValueType::DoubleArr: val = Value(std::vector<double>(val.Int(), 0.0)); break;
 				case ValueType::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
-				case ValueType::CharArr: val = Value(std::vector<char>(val.Int(), (char)0)); break;
+				case ValueType::CharArr: val = Value(std::vector<short>(val.Int(), (short)0)); break;
 				case ValueType::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
 				}
 			}
@@ -490,7 +490,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 				case ValueType::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
 				case ValueType::DoubleArr: val = Value(std::vector<double>(val.Int(), 0.0)); break;
 				case ValueType::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
-				case ValueType::CharArr: val = Value(std::vector<char>(val.Int(), (char)0)); break;
+				case ValueType::CharArr: val = Value(std::vector<short>(val.Int(), (short)0)); break;
 				case ValueType::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
 				}
 			}
@@ -761,10 +761,10 @@ void Function::addition()
 			push(Value((a.Char() + (int)b.Double())));
 			return;
 		case ValueType::Char:
-			push(Value(std::string(1, a.Char()) + std::string(1, b.Char())));
+			push(Value(Value::U8CharToString(a.Char()) + Value::U8CharToString(b.Char())));
 			return;
 		case ValueType::String:
-			push(Value(std::string(1, a.Char()) + *b.String()));
+			push(Value(Value::U8CharToString(a.Char()) + *b.String()));
 			return;
 		}
 	case ValueType::String:
@@ -781,7 +781,7 @@ void Function::addition()
 			return;
 		}
 		case ValueType::Char:
-			push(Value(*a.String() + std::string(1, b.Char())));
+			push(Value(*a.String() + Value::U8CharToString(b.Char())));
 			return;
 		case ValueType::String:
 			push(Value(*a.String() + *b.String()));
@@ -851,7 +851,7 @@ void Function::addition()
 	}
 	case ValueType::CharArr:
 	{
-		std::vector<char> vec = *a.CharArr();
+		std::vector<short> vec = *a.CharArr();
 		switch (bType)
 		{
 		case ValueType::Char:
@@ -860,7 +860,7 @@ void Function::addition()
 			return;
 		case ValueType::CharArr:
 		{
-			std::vector<char> bvec = *b.CharArr();
+			std::vector<short> bvec = *b.CharArr();
 			vec.insert(vec.end(), bvec.begin(), bvec.end());
 			push(Value(vec));
 			return;
