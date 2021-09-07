@@ -130,7 +130,7 @@ namespace Natives
 		switch (args.at(0).Type())
 		{
 		case ValueType::Int: return Value((bool)args.at(0).Int());
-		case ValueType::Double: return Value((bool)args.at(0).Double());
+		case ValueType::Double: return Value(args.at(0).Double() == 0.0);
 		case ValueType::Bool: return args.at(0);
 		case ValueType::Char: return Value((bool)args.at(0).Char());
 		case ValueType::String:

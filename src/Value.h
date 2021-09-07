@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <variant>
+#include <algorithm>
 
 //aligns with _val's template parameters in Value
 enum class ValueType
@@ -55,7 +56,13 @@ public:
 		switch (this->Type())
 		{
 		case ValueType::Int: ostr << this->Int(); break;
-		case ValueType::Double: ostr << this->Double(); break;
+		case ValueType::Double:
+		{
+			std::string str = std::to_string(this->Double());
+			std::replace(str.begin(), str.end(), '.', ',');
+			ostr << str;
+			break;
+		}
 		case ValueType::Bool: ostr << (this->Bool() ? u8"wahr" : u8"falsch"); break;
 		case ValueType::Char: ostr << this->Char(); break;
 		case ValueType::String: ostr << *this->String(); break;
