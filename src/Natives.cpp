@@ -132,7 +132,11 @@ namespace Natives
 		case ValueType::Int: return Value((bool)args.at(0).Int());
 		case ValueType::Double: return Value(args.at(0).Double() == 0.0);
 		case ValueType::Bool: return args.at(0);
-		case ValueType::Char: return Value((bool)args.at(0).Char());
+		case ValueType::Char:
+		{
+			if (args.at(0).Char() == (short)'w') return Value(true);
+			else return Value(false);
+		}
 		case ValueType::String:
 		{
 			std::string str = *args.at(0).String();
