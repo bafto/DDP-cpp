@@ -233,7 +233,7 @@ private:
 		{ TokenType::SIND,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::DER,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::DIE,			ParseRule{nullptr,			nullptr,			Precedence::None}},
-		{ TokenType::DAS,			ParseRule{nullptr,			nullptr,			Precedence::None}},
+		//{ TokenType::DAS,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::ERROR,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::END,			ParseRule{nullptr,			nullptr,			Precedence::None}}
 #ifdef _MDEBUG_

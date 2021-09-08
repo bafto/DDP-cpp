@@ -34,7 +34,7 @@ enum class TokenType
 	//assignement
 	IST, SIND,
 	//Artikel
-	DER, DIE, DAS,
+	DER, DIE,// DAS,
 	//Typen
 	ZAHL, KOMMAZAHL, BOOLEAN, BUCHSTABE, TEXT,
 	//Arrays
@@ -154,13 +154,13 @@ private:
 		{u8"Zahl", TokenType::ZAHL},
 		{u8"Kommazahl", TokenType::KOMMAZAHL},
 		{u8"Boolean", TokenType::BOOLEAN},
-		{u8"Text", TokenType::TEXT},
 		{u8"Buchstabe", TokenType::BUCHSTABE},
+		{u8"Text", TokenType::TEXT},
 		{u8"Zahlen", TokenType::ZAHLEN},
 		{u8"Kommazahlen", TokenType::KOMMAZAHLEN},
 		{u8"Booleans", TokenType::BOOLEANS},
-		{u8"Texte", TokenType::TEXTE},
 		{u8"Buchstaben", TokenType::BUCHSTABEN},
+		{u8"Texte", TokenType::TEXTE},
 		{u8"an", TokenType::AN},
 		{u8"Stelle", TokenType::STELLE},
 		{u8"Stück", TokenType::STUECK},

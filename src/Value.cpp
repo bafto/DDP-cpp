@@ -196,6 +196,9 @@ std::string Value::U8CharToString(short ch)
 {
 	char a = ch;
 	char b = (ch >> 8);
+	if (a >= 32 && a <= 126 || a == '\n' || a == '\t' || a == '\r') {
+		return std::string(1, a);
+	}
 	std::string s = "  ";
 	s[0] = b;
 	s[1] = a;

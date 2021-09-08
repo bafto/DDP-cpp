@@ -61,7 +61,7 @@ void Compiler::finishCompilation()
 		case ValueType::Int: val = Value(1); break;
 		case ValueType::Double: val = Value(1.0); break;
 		case ValueType::Bool: val = Value(false); break;
-		case ValueType::Char: val = Value((char)0); break;
+		case ValueType::Char: val = Value((short)0); break;
 		case ValueType::String: val = Value(""); break;
 		case ValueType::IntArr: val = Value(std::vector<int>()); break;
 		case ValueType::DoubleArr: val = Value(std::vector<double>()); break;
@@ -70,7 +70,7 @@ void Compiler::finishCompilation()
 		case ValueType::StringArr: val = Value(std::vector<std::string>()); break;
 		}
 
-		runtimeGlobals->insert(std::make_pair(it->first, val));
+		runtimeGlobals->insert(std::make_pair(it->first, std::move(val)));
 	}
 }
 
@@ -89,8 +89,8 @@ void Compiler::makeNatives()
 	addNative("zuZahl", ValueType::Int, { ty::Any }, &Natives::zuZahlNative);
 	addNative("zuKommazahl", ValueType::Double, { ty::Any }, &Natives::zuKommazahlNative);
 	addNative("zuBoolean", ValueType::Bool, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBooleanNative);
-	addNative("zuZeichen", ValueType::Char, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuZeichenNative);
-	addNative("zuZeichenkette", ValueType::String, { ty::Any }, &Natives::zuZeichenketteNative);
+	addNative("zuBuchstabe", ValueType::Char, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBuchstabeNative);
+	addNative("zuText", ValueType::String, { ty::Any }, &Natives::zuTextNative);
 
 	addNative(u8"Länge", ValueType::Int, { (ty)(ty::String | ty::IntArr | ty::DoubleArr | ty::BoolArr | ty::CharArr | ty::StringArr) }, &Natives::LaengeNative);
 
@@ -751,7 +751,7 @@ ValueType Compiler::call(bool canAssign)
 
 void Compiler::declaration()
 {
-	if (match(TokenType::DER) || match(TokenType::DIE) || match(TokenType::DAS))
+	if (match(TokenType::DER) || match(TokenType::DIE)/* || match(TokenType::DAS) */)
 	{
 		if (preIt->type == TokenType::DIE && match(TokenType::FUNKTION))
 			funDeclaration();
@@ -803,7 +803,7 @@ void Compiler::synchronize()
 		case TokenType::FUNKTION:
 		case TokenType::DER:
 		case TokenType::DIE:
-		case TokenType::DAS:
+		//case TokenType::DAS:
 		case TokenType::FUER:
 		case TokenType::WENN:
 		case TokenType::SOLANGE:

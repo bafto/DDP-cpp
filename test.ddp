@@ -1,7 +1,5 @@
-die Kommazahl bevor ist clock().
+der Buchstabe b ist 'h'.
 
-warte(3,54305).
-
-die Kommazahl danach ist clock().
-
-schreibeZeile("laufzeit: " plus (danach minus bevor))
+solange b ungleich '.' ist, mache:
+	b ist lese().
+	schreibe(b).

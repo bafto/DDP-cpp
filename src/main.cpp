@@ -42,8 +42,10 @@ int runFile(std::string file, std::vector<std::string> sysArgs)
 
 int main(int argc, char* argv[])
 {
-	if (hasOwnWindow())
+	if (hasOwnWindow()) {
 		SetConsoleOutputCP(CP_UTF8); //set the code page of the windows console to utf8
+		SetConsoleCP(CP_UTF8);
+	}
 
 	if (!hasOwnWindow())
 		std::cout << std::unitbuf;

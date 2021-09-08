@@ -40,8 +40,8 @@ namespace Natives
 	Value zuZahlNative(std::vector<Value> args);
 	Value zuKommazahlNative(std::vector<Value> args);
 	Value zuBooleanNative(std::vector<Value> args);
-	Value zuZeichenNative(std::vector<Value> args);
-	Value zuZeichenketteNative(std::vector<Value> args);
+	Value zuBuchstabeNative(std::vector<Value> args);
+	Value zuTextNative(std::vector<Value> args);
 
 	Value LaengeNative(std::vector<Value> args);
 

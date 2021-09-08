@@ -48,7 +48,7 @@ namespace Natives
 
 	Value leseNative(std::vector<Value> args)
 	{
-		return Value((char)std::cin.get());
+		return Value((short)std::cin.get());
 	}
 
 	Value leseZeileNative(std::vector<Value> args)
@@ -144,20 +144,28 @@ namespace Natives
 		return Value();
 	}
 
-	Value zuZeichenNative(std::vector<Value> args)
+	Value zuBuchstabeNative(std::vector<Value> args)
 	{
 		switch (args.at(0).Type())
 		{
-		case ValueType::Int: return Value((char)args.at(0).Int());
-		case ValueType::Double: return Value((char)args.at(0).Double());
-		case ValueType::Bool: return Value(args.at(0).Bool() ? 'w' : 'f');
+		case ValueType::Int: return Value((short)((char)args.at(0).Int()));
+		case ValueType::Double: return Value((short)((char)args.at(0).Double()));
+		case ValueType::Bool: return Value(args.at(0).Bool() ? (short)'w' : (short)'f');
 		case ValueType::Char: return args.at(0).Char();
-		case ValueType::String: return Value(args.at(0).String()->at(0));
+		case ValueType::String:
+		{
+			char a = args.at(0).String()->at(0);
+			char b = args.at(0).String()->length() > 1 ? args.at(0).String()->at(1) : 0;
+			if (a >= 32 && a <= 126 || a == '\n' || a == '\t' || a == '\r') {
+				return Value((short)a);
+			}
+			return Value((short)((((short)a) << 8) | (0x00ff & b)));
+		}
 		}
 		return Value();
 	}
 
-	Value zuZeichenketteNative(std::vector<Value> args)
+	Value zuTextNative(std::vector<Value> args)
 	{
 		std::stringstream ss;
 		args.at(0).print(ss);
