@@ -36,9 +36,9 @@ enum class TokenType
 	//Artikel
 	DER, DIE, DAS,
 	//Typen
-	ZAHL, KOMMAZAHL, BOOLEAN, ZEICHEN, ZEICHENKETTE,
+	ZAHL, KOMMAZAHL, BOOLEAN, BUCHSTABE, TEXT,
 	//Arrays
-	ZAHLEN, KOMMAZAHLEN, BOOLEANS, ZEICHENKETTEN, AN, STELLE, STUECK, LEFT_SQAREBRACKET, RIGHT_SQAREBRACKET, SEMICOLON,
+	ZAHLEN, KOMMAZAHLEN, BOOLEANS, BUCHSTABEN, TEXTE, AN, STELLE, STUECK, LEFT_SQAREBRACKET, RIGHT_SQAREBRACKET, SEMICOLON,
 	//bool literals
 	WAHR, FALSCH,
 	//return
@@ -150,16 +150,17 @@ private:
 		{u8"sind", TokenType::SIND},
 		{u8"der", TokenType::DER},
 		{u8"die", TokenType::DIE},
-		{u8"das", TokenType::DAS},
+		//{u8"das", TokenType::DAS},
 		{u8"Zahl", TokenType::ZAHL},
 		{u8"Kommazahl", TokenType::KOMMAZAHL},
 		{u8"Boolean", TokenType::BOOLEAN},
-		{u8"Zeichenkette", TokenType::ZEICHENKETTE},
-		{u8"Zeichen", TokenType::ZEICHEN},
+		{u8"Text", TokenType::TEXT},
+		{u8"Buchstabe", TokenType::BUCHSTABE},
 		{u8"Zahlen", TokenType::ZAHLEN},
 		{u8"Kommazahlen", TokenType::KOMMAZAHLEN},
 		{u8"Booleans", TokenType::BOOLEANS},
-		{u8"Zeichenketten", TokenType::ZEICHENKETTEN},
+		{u8"Texte", TokenType::TEXTE},
+		{u8"Buchstaben", TokenType::BUCHSTABEN},
 		{u8"an", TokenType::AN},
 		{u8"Stelle", TokenType::STELLE},
 		{u8"Stück", TokenType::STUECK},

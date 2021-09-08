@@ -890,15 +890,17 @@ void Compiler::varDeclaration()
 	{
 	case TokenType::DER:
 	{
-		if (!match(TokenType::BOOLEAN))
+		if (!match(TokenType::BOOLEAN) && !match(TokenType::BUCHSTABE) && !match(TokenType::TEXT))
 		{
 			error(u8"Falscher Artikel!", currIt);
 			return;
 		}
-		varType = ValueType::Bool;
+		varType = preIt->type == TokenType::BOOLEAN ? ValueType::Bool : ValueType::None;
+		varType = preIt->type == TokenType::BUCHSTABE ? ValueType::Char : varType;
+		varType = preIt->type == TokenType::TEXT ? ValueType::String : varType;
 		break;
 	}
-	case TokenType::DAS:
+	/*case TokenType::DAS:
 	{
 		if (!match(TokenType::ZEICHEN))
 		{
@@ -907,23 +909,22 @@ void Compiler::varDeclaration()
 		}
 		varType = ValueType::Char;
 		break;
-	}
+	}*/
 	case TokenType::DIE:
 	{
-		if (!match(TokenType::ZAHL) && !match(TokenType::ZEICHENKETTE) && !match(TokenType::KOMMAZAHL) &&
-			!match(TokenType::ZAHLEN) && !match(TokenType::KOMMAZAHLEN) && !match(TokenType::ZEICHEN) && !match(TokenType::ZEICHENKETTEN) && !match(TokenType::BOOLEANS))
+		if (!match(TokenType::ZAHL) && !match(TokenType::KOMMAZAHL) &&
+			!match(TokenType::ZAHLEN) && !match(TokenType::KOMMAZAHLEN) && !match(TokenType::BUCHSTABEN) && !match(TokenType::TEXTE) && !match(TokenType::BOOLEANS))
 		{
 			error(u8"Falscher Artikel!", currIt);
 			return;
 		}
 		varType = preIt->type == TokenType::ZAHL ? ValueType::Int : ValueType::None;
 		varType = preIt->type == TokenType::KOMMAZAHL ? ValueType::Double : varType;
-		varType = preIt->type == TokenType::ZEICHENKETTE ? ValueType::String : varType;
 		varType = preIt->type == TokenType::ZAHLEN ? ValueType::IntArr : varType;
 		varType = preIt->type == TokenType::KOMMAZAHLEN ? ValueType::DoubleArr : varType;
 		varType = preIt->type == TokenType::BOOLEANS ? ValueType::BoolArr : varType;
-		varType = preIt->type == TokenType::ZEICHEN ? ValueType::CharArr : varType;
-		varType = preIt->type == TokenType::ZEICHENKETTEN ? ValueType::StringArr : varType;
+		varType = preIt->type == TokenType::BUCHSTABEN ? ValueType::CharArr : varType;
+		varType = preIt->type == TokenType::TEXTE ? ValueType::StringArr : varType;
 		break;
 	}
 	}
@@ -988,12 +989,13 @@ ValueType Compiler::tokenToValueType(TokenType type)
 	case TokenType::ZAHL: return ValueType::Int;
 	case TokenType::KOMMAZAHL: return ValueType::Double;
 	case TokenType::BOOLEAN: return ValueType::Bool;
-	case TokenType::ZEICHEN: return ValueType::Char;
-	case TokenType::ZEICHENKETTE: return ValueType::String;
+	case TokenType::BUCHSTABE: return ValueType::Char;
+	case TokenType::TEXT: return ValueType::String;
 	case TokenType::ZAHLEN: return ValueType::IntArr;
 	case TokenType::KOMMAZAHLEN: return ValueType::DoubleArr;
 	case TokenType::BOOLEANS: return ValueType::BoolArr;
-	case TokenType::ZEICHENKETTEN: return ValueType::StringArr;
+	case TokenType::BUCHSTABEN: return ValueType::CharArr;
+	case TokenType::TEXTE: return ValueType::StringArr;
 	}
 	return ValueType::None;
 }
@@ -1017,7 +1019,7 @@ void Compiler::funDeclaration()
 			if (currentScopeUnit->enclosingFunction->args.size() > 254) error(u8"Eine Funktion darf maximal 255 Parameter enthalten!");
 			advance();
 			TokenType parameterType = preIt->type;
-			if (!(parameterType >= TokenType::ZAHL && parameterType <= TokenType::ZEICHENKETTEN))
+			if (!(parameterType >= TokenType::ZAHL && parameterType <= TokenType::TEXTE))
 				error(u8"Es wurde ein Typ spezifizierer erwartet!");
 			ValueType argType = tokenToValueType(parameterType);
 			consume(TokenType::IDENTIFIER, u8"Es wurde ein Parameter-Name erwartet!");
