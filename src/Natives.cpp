@@ -4,6 +4,8 @@
 #include <sstream>
 #include <ctime>
 #include <thread>
+#include <fstream>
+#include <streambuf>
 
 #pragma warning (disable : 26812)
 
@@ -58,6 +60,50 @@ namespace Natives
 		return Value(line);
 	}
 
+	Value leseDateiNative(std::vector<Value> args)
+	{
+		std::string path = *args.at(0).String();
+
+		std::ifstream ifs;
+		ifs.open(path);
+		if (!ifs.is_open()) throw runtime_error("Die Datei '" + path + "' konnte nicht geöffnet werden!");
+
+		std::string file = std::string((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+
+		ifs.close();
+
+		return Value(file);
+	}
+
+	Value schreibeDateiNative(std::vector<Value> args)
+	{
+		std::string path = *args.at(0).String();
+
+		std::ofstream ofs(path);
+		if (!ofs.is_open()) throw runtime_error("Die Datei '" + path + "' konnte nicht geöffnet werden!");
+
+		args.at(1).print(ofs);
+
+		ofs.close();
+
+		return Value();
+	}
+
+	Value bearbeiteDateiNative(std::vector<Value> args)
+	{
+		std::string path = *args.at(0).String();
+
+		std::ofstream ofs;
+		ofs.open(path, std::ofstream::app);
+		if (!ofs.is_open()) throw runtime_error("Die Datei '" + path + "' konnte nicht geöffnet werden!");
+
+		args.at(1).print(ofs);
+
+		ofs.close();
+
+		return Value();
+	}
+
 	Value clockNative(std::vector<Value> args)
 	{
 		return Value((double)clock() / (double)CLOCKS_PER_SEC);
@@ -81,11 +127,6 @@ namespace Natives
 			case ValueType::Bool: return Value(args.at(0).Bool() ? 1 : 0);
 			case ValueType::Char: return Value((int)args.at(0).Char());
 			case ValueType::String: return Value(std::stoi(*args.at(0).String()));
-			case ValueType::IntArr: return Value((int)args.at(0).IntArr()->size());
-			case ValueType::DoubleArr: return Value((int)args.at(0).DoubleArr()->size());
-			case ValueType::BoolArr: return Value((int)args.at(0).BoolArr()->size());
-			case ValueType::CharArr: return Value((int)args.at(0).CharArr()->size());
-			case ValueType::StringArr: return Value((int)args.at(0).StringArr()->size());
 			}
 		}
 		catch (std::exception&)
@@ -111,11 +152,6 @@ namespace Natives
 				std::replace(str.begin(), str.end(), ',', '.');
 				return Value(std::stod(str));
 			}
-			case ValueType::IntArr: return Value((double)args.at(0).IntArr()->size());
-			case ValueType::DoubleArr: return Value((double)args.at(0).DoubleArr()->size());
-			case ValueType::BoolArr: return Value((double)args.at(0).BoolArr()->size());
-			case ValueType::CharArr: return Value((double)args.at(0).CharArr()->size());
-			case ValueType::StringArr: return Value((double)args.at(0).StringArr()->size());
 			}
 		}
 		catch (std::exception&)
@@ -152,8 +188,8 @@ namespace Natives
 	{
 		switch (args.at(0).Type())
 		{
-		case ValueType::Int: return Value((short)((char)args.at(0).Int()));
-		case ValueType::Double: return Value((short)((char)args.at(0).Double()));
+		case ValueType::Int: return Value((short)args.at(0).Int());
+		case ValueType::Double: return Value((short)args.at(0).Double());
 		case ValueType::Bool: return Value(args.at(0).Bool() ? (short)'w' : (short)'f');
 		case ValueType::Char: return args.at(0).Char();
 		case ValueType::String:

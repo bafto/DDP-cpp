@@ -83,11 +83,15 @@ void Compiler::makeNatives()
 	addNative("lese", ValueType::Char, {}, &Natives::leseNative);
 	addNative("leseZeile", ValueType::String, {}, &Natives::leseZeileNative);
 
+	addNative("leseDatei", ValueType::String, { ty::String }, &Natives::leseDateiNative);
+	addNative("schreibeDatei", ValueType::None, { ty::String, ty::Any }, &Natives::schreibeDateiNative);
+	addNative("bearbeiteDatei", ValueType::None, { ty::String, ty::Any }, &Natives::bearbeiteDateiNative);
+
 	addNative("clock", ValueType::Double, {}, &Natives::clockNative);
 	addNative("warte", ValueType::None, { ty::Double }, &Natives::warteNative);
 
-	addNative("zuZahl", ValueType::Int, { ty::Any }, &Natives::zuZahlNative);
-	addNative("zuKommazahl", ValueType::Double, { ty::Any }, &Natives::zuKommazahlNative);
+	addNative("zuZahl", ValueType::Int, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuZahlNative);
+	addNative("zuKommazahl", ValueType::Double, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuKommazahlNative);
 	addNative("zuBoolean", ValueType::Bool, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBooleanNative);
 	addNative("zuBuchstabe", ValueType::Char, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBuchstabeNative);
 	addNative("zuText", ValueType::String, { ty::Any }, &Natives::zuTextNative);

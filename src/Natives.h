@@ -33,6 +33,10 @@ namespace Natives
 	Value leseNative(std::vector<Value> args);
 	Value leseZeileNative(std::vector<Value> args);
 
+	Value leseDateiNative(std::vector<Value> args);
+	Value schreibeDateiNative(std::vector<Value> args);
+	Value bearbeiteDateiNative(std::vector<Value> args);
+
 	Value clockNative(std::vector<Value> args);
 	Value warteNative(std::vector<Value> args);
 
