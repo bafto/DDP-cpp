@@ -91,7 +91,7 @@ std::pair<std::vector<Token>, bool> Scanner::scanTokens()
 			consume(TokenType::DOT, u8"Es wurde ein '.' nach dem einbinden einer weiteren Datei erwartet!", it, tokens);
 			auto after = tokens.erase(it - 3, it + 1);
 			auto before = tokens.insert(after, otherFile.begin(), otherFile.end() - 1);
-			it = before + otherFile.size() - 1;
+			it = before + otherFile.size() - 2;
 			break;
 		}
 		case TokenType::BETRAG:
