@@ -15,10 +15,10 @@ void pauseIfWindowOwner()
 		system("pause");
 }
 
-int runFile(std::string file, std::vector<std::string> sysArgs)
+int runFile(std::string file, bool graphics, std::vector<std::string> sysArgs)
 {
 	VirtualMachine vm(file, sysArgs);
-	InterpretResult result = vm.run();
+	InterpretResult result = vm.run(graphics);
 	switch (result)
 	{
 	case InterpretResult::OK: return 0;
@@ -52,9 +52,16 @@ int main(int argc, char* argv[])
 
 	switch (argc)
 	{
-	case 1: std::cout << u8"Usage: ddp++ <filename.ddp>\n"; break;
-	case 2: return runFile(argv[1], {});
-	default: return runFile(argv[1], std::vector<std::string>(argv + 2, argv + argc));
+	case 1: std::cout << u8"Usage: ddp++ <filename.ddp>\n"; pauseIfWindowOwner(); break;
+	case 2: return runFile(argv[1], false, {});
+	default:
+	{
+		if (std::string(argv[1]) == "-g")
+		{
+			return runFile(argv[2], true, std::vector<std::string>(argv + 3, argv + argc));
+		}
+		return runFile(argv[1], false, std::vector<std::string>(argv + 2, argv + argc));
+	}
 	}
 
 	return 0;

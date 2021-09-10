@@ -10,11 +10,11 @@ private:
 public:
 	Compiler(const std::string& filePath, std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions);
 
-	bool compile(); //returns true on success, fills globals with declarations and functions with definitions
+	bool compile(bool graphics); //returns true on success, fills globals with declarations and functions with definitions
 private:
 	void finishCompilation();
 
-	void makeNatives();
+	void makeNatives(bool graphics);
 	void addNative(std::string name, ValueType returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native);
 private:
 	Function* currentFunction() { return currentScopeUnit->enclosingFunction; }; //the function that is currently being compiled (most often the nameless main function)

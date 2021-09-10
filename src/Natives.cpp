@@ -6,6 +6,7 @@
 #include <thread>
 #include <fstream>
 #include <streambuf>
+#include "Function.h"
 #include <filesystem>
 
 #pragma warning (disable : 26812)
@@ -528,6 +529,28 @@ namespace Natives
 	Value Boden(std::vector<Value> args)
 	{
 		return Value(std::floor(args.at(0).Double()));
+	}
+
+	Value SchliesseFenster(std::vector<Value> args)
+	{
+		Function::wnd->close();
+		return Value();
+	}
+
+	Value MalePixel(std::vector<Value> args)
+	{
+		std::vector<int> pos = *args.at(0).IntArr();
+		if (pos.size() != 2) throw runtime_error("Ein Array der einen Vector darstellt muss aus genau 2 Zahlen bestehen!");
+		std::vector<int> color = *args.at(1).IntArr();
+		if (color.size() != 3) throw runtime_error("Eine Farbe muss aus genau 3 Zahlen bestehen!");
+
+		if (pos[0] > Function::wndSize.x || pos[0] < 0 ||
+			pos[1] > Function::wndSize.y || pos[1] < 0)
+			throw runtime_error("Du darfst keine Pixel außerhalb des Fensters malen!");
+
+		Function::pixels[Function::wndSize.x * pos[1] + pos[0]].color = sf::Color(color[0], color[1], color[2]);
+
+		return Value();
 	}
 
 }
