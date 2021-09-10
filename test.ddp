@@ -1,5 +1,7 @@
-der Buchstabe b ist 'h'.
+die Funktion Update() macht:
+    schreibeZeile("Update").
 
-solange b ungleich '.' ist, mache:
-	b ist lese().
-	schreibe(b).
+die Funktion Male() macht:
+    für jede Zahl x von 20 bis 50, mache:
+        für jede Zahl y von 20 bis 50, mache:
+            MalePixel([x; y], [255; 0; 0]).

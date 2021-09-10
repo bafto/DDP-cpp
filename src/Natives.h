@@ -66,4 +66,8 @@ namespace Natives
 	Value Rund(std::vector<Value> args);
 	Value Decke(std::vector<Value> args);
 	Value Boden(std::vector<Value> args);
+
+	//graphics stuff
+	Value SchliesseFenster(std::vector<Value> args);
+	Value MalePixel(std::vector<Value> args);
 }

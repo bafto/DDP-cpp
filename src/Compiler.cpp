@@ -17,7 +17,7 @@ Compiler::Compiler(const std::string& filePath,
 	lastEmittedType(ValueType::None)
 {}
 
-bool Compiler::compile()
+bool Compiler::compile(bool graphics)
 {
 	{
 		Scanner scanner(filePath);
@@ -31,7 +31,7 @@ bool Compiler::compile()
 	{
 		globals.insert(std::make_pair(pair.first, pair.second.Type()));
 	}
-	makeNatives();
+	makeNatives(graphics);
 
 	Function mainFunction;
 
@@ -74,7 +74,7 @@ void Compiler::finishCompilation()
 	}
 }
 
-void Compiler::makeNatives()
+void Compiler::makeNatives(bool graphics)
 {
 	using ty = Natives::CombineableValueType;
 
@@ -113,6 +113,12 @@ void Compiler::makeNatives()
 	addNative("Rund", ValueType::Double, { ty::Double }, &Natives::Rund);
 	addNative("Decke", ValueType::Double, { ty::Double }, &Natives::Decke);
 	addNative("Boden", ValueType::Double, { ty::Double }, &Natives::Boden);
+
+	if (graphics)
+	{
+		addNative(u8"SchließeFenster", ValueType::None, {}, &Natives::SchliesseFenster);
+		addNative("MalePixel", ValueType::None, { ty::IntArr, ty::IntArr }, &Natives::MalePixel);
+	}
 }
 
 void Compiler::addNative(std::string name, ValueType returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native)

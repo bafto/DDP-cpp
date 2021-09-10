@@ -5,6 +5,10 @@
 #include <unordered_map>
 #include <array>
 
+#include "SFML/System.hpp"
+#include "SFML/Window.hpp"
+#include "SFML/Graphics.hpp"
+
 class Function
 {
 public:
@@ -57,5 +61,10 @@ private:
 
 	std::unordered_map<std::string, Value>* globals; //pointer to the global variables map
 	std::unordered_map<std::string, Function>* functions; //pointer to the map of functions
+
+public: //graphics stuff
+	static inline sf::RenderWindow* wnd = nullptr;
+	static inline sf::VertexArray pixels;
+	static inline sf::Vector2i wndSize;
 };
 
