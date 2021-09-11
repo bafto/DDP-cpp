@@ -6,6 +6,7 @@
 #include <thread>
 #include <fstream>
 #include <streambuf>
+#include <filesystem>
 
 #pragma warning (disable : 26812)
 
@@ -60,6 +61,16 @@ namespace Natives
 		return Value(line);
 	}
 
+	Value existiertDateiNative(std::vector<Value> args)
+	{
+		std::string path = *args.at(0).String();
+		std::ifstream ifs;
+		ifs.open(path);
+		Value ret = ifs.is_open();
+		ifs.close();
+		return ret;
+	}
+
 	Value leseDateiNative(std::vector<Value> args)
 	{
 		std::string path = *args.at(0).String();
@@ -93,11 +104,75 @@ namespace Natives
 	{
 		std::string path = *args.at(0).String();
 
+		if (!std::filesystem::exists(path)) throw runtime_error("Die Datie '" + path + "' existiert nicht und kann somit nicht bearbeitet werden!");
+
 		std::ofstream ofs;
 		ofs.open(path, std::ofstream::app);
 		if (!ofs.is_open()) throw runtime_error("Die Datei '" + path + "' konnte nicht geöffnet werden!");
 
 		args.at(1).print(ofs);
+
+		ofs.close();
+
+		return Value();
+	}
+
+	Value leseBytesNative(std::vector<Value> args)
+	{
+		std::string path = *args.at(0).String();
+
+		std::ifstream ifs;
+		ifs.open(path, std::ios::binary);
+		if (!ifs.is_open()) throw runtime_error("Die Datei '" + path + "' konnte nicht geöffnet werden!");
+		ifs.unsetf(std::ios::skipws);
+
+		ifs.seekg(0, std::ios::end);
+		std::streampos fileSize = ifs.tellg();
+		ifs.seekg(0, std::ios::beg);
+
+		std::vector<uint8_t> file;
+		file.reserve(fileSize);
+
+		file.insert(file.begin(), std::istream_iterator<uint8_t>(ifs), std::istream_iterator<uint8_t>());
+
+		ifs.close();
+
+		std::vector<int> ints;
+		ints.resize(file.size());
+		std::copy(file.begin(), file.end(), ints.begin());
+
+		return Value(ints);
+	}
+
+	Value schreibeBytesNative(std::vector<Value> args)
+	{
+		std::string path = *args.at(0).String();
+
+		std::ofstream ofs(path, std::ios::binary);
+		if (!ofs.is_open()) throw runtime_error("Die Datei '" + path + "' konnte nicht geöffnet werden!");
+
+		std::vector<int> ints = *args.at(1).IntArr();
+		for (auto& i : ints)
+			ofs << (uint8_t)i;
+
+		ofs.close();
+
+		return Value();
+	}
+
+	Value bearbeiteBytesNative(std::vector<Value> args)
+	{
+		std::string path = *args.at(0).String();
+
+		if (!std::filesystem::exists(path)) throw runtime_error("Die Datie '" + path + "' existiert nicht und kann somit nicht bearbeitet werden!");
+
+		std::ofstream ofs;
+		ofs.open(path, std::ofstream::app | std::ios::binary);
+		if (!ofs.is_open()) throw runtime_error("Die Datei '" + path + "' konnte nicht geöffnet werden!");
+
+		std::vector<int> ints = *args.at(1).IntArr();
+		for (auto& i : ints)
+			ofs << (uint8_t)i;
 
 		ofs.close();
 

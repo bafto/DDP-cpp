@@ -83,9 +83,14 @@ void Compiler::makeNatives()
 	addNative("lese", ValueType::Char, {}, &Natives::leseNative);
 	addNative("leseZeile", ValueType::String, {}, &Natives::leseZeileNative);
 
+	addNative("existiertDatei", ValueType::Bool, { ty::String }, &Natives::existiertDateiNative);
 	addNative("leseDatei", ValueType::String, { ty::String }, &Natives::leseDateiNative);
 	addNative("schreibeDatei", ValueType::None, { ty::String, ty::Any }, &Natives::schreibeDateiNative);
 	addNative("bearbeiteDatei", ValueType::None, { ty::String, ty::Any }, &Natives::bearbeiteDateiNative);
+
+	addNative("leseBytes", ValueType::String, { ty::String }, &Natives::leseBytesNative);
+	addNative("schreibeBytes", ValueType::None, { ty::String, ty::IntArr }, &Natives::schreibeBytesNative);
+	addNative("bearbeiteBytes", ValueType::None, { ty::String, ty::IntArr }, &Natives::bearbeiteBytesNative);
 
 	addNative("clock", ValueType::Double, {}, &Natives::clockNative);
 	addNative("warte", ValueType::None, { ty::Double }, &Natives::warteNative);
