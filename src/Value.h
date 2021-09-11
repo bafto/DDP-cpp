@@ -126,12 +126,12 @@ public:
 				ostr << u8"[]";
 				return;
 			}
-			ostr << u8"[";
+			ostr << u8"['";
 			for (int i = 0; i < (int)vec->size() - 1; i++)
 			{
-				ostr << U8CharToString(vec->at(i)) << u8"; ";
+				ostr << U8CharToString(vec->at(i)) << u8"'; '";
 			}
-			ostr << U8CharToString(vec->at(vec->size() - 1)) << u8"]";
+			ostr << U8CharToString(vec->at(vec->size() - 1)) << u8"']";
 			break;
 		}
 		case ValueType::StringArr:

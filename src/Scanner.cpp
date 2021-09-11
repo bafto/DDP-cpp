@@ -77,7 +77,7 @@ std::pair<std::vector<Token>, bool> Scanner::scanTokens()
 		{
 		case TokenType::BINDE:
 		{
-			consume(TokenType::STRING, u8"Es wurde ein Zeichenketten Literal nach 'binde' erwartet!", it, tokens);
+			consume(TokenType::STRING, u8"Es wurde ein Text Literal nach 'binde' erwartet!", it, tokens);
 			std::string path(it->literal.begin() + 1, it->literal.end() - 1);
 			std::vector<Token> otherFile;
 			{
@@ -300,11 +300,34 @@ Token Scanner::identifier()
 Token Scanner::string()
 {
 	while (peek() != '"' && !isAtEnd()) {
+		if (peek() == '\\')
+		{
+			switch (peekNext())
+			{
+			case '\\':
+				source.replace(current, current + 2, "\\");
+				break;
+			case '\"':
+				source.replace(current, current + 2, "\"");
+				break;
+			case 'n':
+				source.replace(current, current + 2, "\n");
+				break;
+			case 't':
+				source.replace(current, current + 2, "\t");
+				break;
+			case 'r':
+				source.replace(current, current + 2, "\r");
+				break;
+			default:
+				return errorToken(u8"Unfertige Escape-Sequenz!");
+				break;
+			}
+		}
 		if (peek() == '\n') line++;
 		advance();
 	}
-
-	if (isAtEnd()) return errorToken(u8"Unfertige Zeichenkette");
+	if (isAtEnd()) return errorToken(u8"Unfertiger Text!");
 
 	advance();
 	return makeToken(TokenType::STRING);
@@ -312,17 +335,38 @@ Token Scanner::string()
 
 Token Scanner::character()
 {
-	if (!isAtEnd() && peekNext() != '\'')
-	{
+	while (peek() != '\'' && !isAtEnd()) {
+		if (peek() == '\\')
+		{
+			switch (peekNext())
+			{
+			case '\\':
+				source.replace(current, current + 2, "\\");
+				break;
+			case '\'':
+				source.replace(current, current + 2, "\'");
+				break;
+			case 'n':
+				source.replace(current, current + 2, "\n");
+				break;
+			case 't':
+				source.replace(current, current + 2, "\t");
+				break;
+			case 'r':
+				source.replace(current, current + 2, "\r");
+				break;
+			default:
+				return errorToken(u8"Unfertige Escape-Sequenz!");
+				break;
+			}
+		}
 		if (peek() == '\n') line++;
-		if (peek() >= 32 && peek() <= 126 || peek() == '\n' || peek() == '\t' || peek() == '\r') return errorToken(u8"Zu viele Zeichen in einem Zeichen Literal!");
 		advance();
-		if (!isAtEnd() && peekNext() != '\'') return errorToken(u8"Unfertiger Buchstabe!");
 	}
-	if (peek() == '\n') line++;
 	advance();
-	advance();
-	return makeToken(TokenType::CHARACTER);
+	Token tok = makeToken(TokenType::CHARACTER);
+	if (tok.literal.length() > 4 || (tok.literal.length() == 4 && tok.literal[1] != (char)0xc3)) return errorToken("Zu langes Buchstaben Literal!");
+	return tok;
 }
 
 Token Scanner::number()

@@ -88,7 +88,7 @@ void Compiler::makeNatives()
 	addNative("schreibeDatei", ValueType::None, { ty::String, ty::Any }, &Natives::schreibeDateiNative);
 	addNative("bearbeiteDatei", ValueType::None, { ty::String, ty::Any }, &Natives::bearbeiteDateiNative);
 
-	addNative("leseBytes", ValueType::String, { ty::String }, &Natives::leseBytesNative);
+	addNative("leseBytes", ValueType::IntArr, { ty::String }, &Natives::leseBytesNative);
 	addNative("schreibeBytes", ValueType::None, { ty::String, ty::IntArr }, &Natives::schreibeBytesNative);
 	addNative("bearbeiteBytes", ValueType::None, { ty::String, ty::IntArr }, &Natives::bearbeiteBytesNative);
 
@@ -284,7 +284,7 @@ ValueType Compiler::character(bool canAssign)
 		emitConstant(Value((short)((((short)a) << 8) | (0x00ff & b))));
 	}
 	else
-		error("Zu langes Zeichen literal");
+		error("Zu langes Buchstaben literal");
 	return ValueType::Char;
 }
 
@@ -299,7 +299,10 @@ ValueType Compiler::arrLiteral(bool canAssign)
 		consume(TokenType::SEMICOLON, u8"Unfertiges Array Literal!");
 		ValueType rhs = expression();
 		if (rhs != arrType)
+		{
 			error(u8"Die Typen innerhalb des Array Literals stimmen nicht überein!");
+			break;
+		}
 		i++;
 	}
 	emitBytes(op::ARRAY, makeConstant(Value(i)));

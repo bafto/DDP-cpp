@@ -1,5 +1,1 @@
-der Buchstabe b ist 'h'.
-
-solange b ungleich '.' ist, mache:
-	b ist lese().
-	schreibe(b).
+schreibeZeile(['\t'; '\\'; '\n'; '\\'; '\'']).
