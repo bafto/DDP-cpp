@@ -18,6 +18,15 @@ enum class OpCode
 	ROOT, //square root
 	LN, //ln
 	BETRAG, //abs
+	SIN,
+	COS,
+	TAN,
+	ASIN,
+	ACOS,
+	ATAN,
+	SINH,
+	COSH,
+	TANH,
 	BITWISENOT, // ~
 	BITWISEAND, // &
 	BITWISEOR, // |

@@ -25,20 +25,16 @@ InterpretResult VirtualMachine::run(bool graphics)
 		functions.at("").run(&globals, &functions);
 		if (graphics)
 		{
+			functions.erase("ErstelleFenster");
 			Function::wnd = new sf::RenderWindow;
-			Function::wnd->create(sf::VideoMode(800, 600), "Die Deutsche Programmiersprache");
+			Function::wnd->create(sf::VideoMode(Function::wndSize.x, Function::wndSize.y), Function::wndTitle, sf::Style::Titlebar | sf::Style::Close);
 			Function::wnd->setFramerateLimit(60);
+			Function::pixels.create(Function::wndSize.x, Function::wndSize.y);
 
-			Function::pixels.resize(800 * 600);
-			Function::wndSize = sf::Vector2i(800, 600);
-
-			for (unsigned int x = 0; x < Function::wndSize.x; x++)
-			{
-				for (unsigned int y = 0; y < Function::wndSize.y; y++)
-				{
-					Function::pixels[Function::wndSize.x * y + x].position = sf::Vector2f(x, y);
-				}
-			}
+			sf::Texture tex;
+			tex.create(Function::wndSize.x, Function::wndSize.y);
+			sf::Sprite sprite;
+			sprite.setTexture(tex);
 
 			while (Function::wnd->isOpen())
 			{
@@ -51,9 +47,12 @@ InterpretResult VirtualMachine::run(bool graphics)
 					}
 				}
 
-				for (unsigned int i = 0; i < Function::pixels.getVertexCount(); i++)
+				for (int x = 0; x < Function::wndSize.x; x++)
 				{
-					Function::pixels[i].color = sf::Color::White;
+					for (int y = 0; y < Function::wndSize.y; y++)
+					{
+						Function::pixels.setPixel(x, y, sf::Color::White);
+					}
 				}
 
 				functions.at("Update").run(&globals, &functions);
@@ -61,7 +60,8 @@ InterpretResult VirtualMachine::run(bool graphics)
 
 				Function::wnd->clear();
 
-				Function::wnd->draw(Function::pixels);
+				tex.loadFromImage(Function::pixels);
+				Function::wnd->draw(sprite);
 
 				Function::wnd->display();
 			}

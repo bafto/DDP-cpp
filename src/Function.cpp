@@ -241,6 +241,15 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			}
 			break;
 		}
+		case op::SIN: push(Value(std::sin(pop().Double()))); break;
+		case op::COS: push(Value(std::cos(pop().Double()))); break;
+		case op::TAN: push(Value(std::tan(pop().Double()))); break;
+		case op::ASIN: push(Value(std::asin(pop().Double()))); break;
+		case op::ACOS: push(Value(std::acos(pop().Double()))); break;
+		case op::ATAN: push(Value(std::atan(pop().Double()))); break;
+		case op::SINH: push(Value(std::sinh(pop().Double()))); break;
+		case op::COSH: push(Value(std::cosh(pop().Double()))); break;
+		case op::TANH: push(Value(std::tanh(pop().Double()))); break;
 		case op::BITWISENOT: push(Value(~pop().Int())); break;
 		case op::BITWISEAND:
 		{
@@ -613,8 +622,16 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		}
 		case op::CALL:
 		{
-			Function func = functions->at(*readConstant().String());
-
+			std::string funcName = *readConstant().String();
+			Function func;
+			try
+			{
+				func = functions->at(funcName);
+			}
+			catch (std::exception)
+			{
+				throw runtime_error("Die Funktion '" + funcName + "' ist nicht definiert!");
+			}
 			if (func.native != nullptr)
 			{
 				std::vector<Value> args;

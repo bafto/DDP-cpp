@@ -99,6 +99,44 @@ std::pair<std::vector<Token>, bool> Scanner::scanTokens()
 			consumeErase(TokenType::VON, u8"Nach 'Betrag' muss 'von' stehen!", it, tokens);
 			break;
 		}
+		case TokenType::SIN:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Sinus' muss 'von' stehen!", it, tokens);
+			break;
+		}
+		case TokenType::COS:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Kosinus' muss 'von' stehen!", it, tokens);
+			break;
+		}case TokenType::TAN:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Tangens' muss 'von' stehen!", it, tokens);
+			break;
+		}case TokenType::ASIN:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Arkussinus' muss 'von' stehen!", it, tokens);
+			break;
+		}case TokenType::ACOS:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Arkuskosinus' muss 'von' stehen!", it, tokens);
+			break;
+		}case TokenType::ATAN:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Arkustangens' muss 'von' stehen!", it, tokens);
+			break;
+		}case TokenType::SINH:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Hyperbelsinus' muss 'von' stehen!", it, tokens);
+			break;
+		}case TokenType::COSH:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Hyperbelcosinus' muss 'von' stehen!", it, tokens);
+			break;
+		}case TokenType::TANH:
+		{
+			consumeErase(TokenType::VON, u8"Nach 'Hyperbeltangens' muss 'von' stehen!", it, tokens);
+			break;
+		}
 		case TokenType::LOGISCH:
 		{
 			if (check(TokenType::NICHT, it, tokens))

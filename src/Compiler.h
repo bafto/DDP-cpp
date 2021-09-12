@@ -233,7 +233,15 @@ private:
 		{ TokenType::SIND,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::DER,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::DIE,			ParseRule{nullptr,			nullptr,			Precedence::None}},
-		//{ TokenType::DAS,			ParseRule{nullptr,			nullptr,			Precedence::None}},
+		{ TokenType::SIN,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::COS,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::TAN,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::ASIN,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::ACOS,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::ATAN,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::SINH,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::COSH,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::TANH,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
 		{ TokenType::ERROR,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::END,			ParseRule{nullptr,			nullptr,			Precedence::None}}
 #ifdef _MDEBUG_

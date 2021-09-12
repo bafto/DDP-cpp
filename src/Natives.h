@@ -72,6 +72,8 @@ namespace Natives
 	Value Boden(std::vector<Value> args);
 
 	//graphics stuff
+	Value ErstelleFenster(std::vector<Value> args);
 	Value SchliesseFenster(std::vector<Value> args);
 	Value MalePixel(std::vector<Value> args);
+	Value MaleRechteck(std::vector<Value> args);
 }

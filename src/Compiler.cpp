@@ -121,8 +121,10 @@ void Compiler::makeNatives(bool graphics)
 
 	if (graphics)
 	{
+		addNative(u8"ErstelleFenster", ValueType::None, { ty::String, ty::IntArr }, &Natives::ErstelleFenster);
 		addNative(u8"SchließeFenster", ValueType::None, {}, &Natives::SchliesseFenster);
 		addNative("MalePixel", ValueType::None, { ty::IntArr, ty::IntArr }, &Natives::MalePixel);
+		addNative("MaleRechteck", ValueType::None, { ty::IntArr, ty::IntArr, ty::IntArr }, &Natives::MaleRechteck);
 	}
 }
 
@@ -367,6 +369,51 @@ ValueType Compiler::unary(bool canAssign)
 		if (expr != ValueType::Int && expr != ValueType::Double)
 			error(u8"Man kann nur den Betrag von Zahlen berechnen!");
 		emitByte(op::BETRAG);
+		return expr;
+	case TokenType::SIN:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Sinus von Kommazahlen berechnen!");
+		emitByte(op::SIN);
+		return expr;
+	case TokenType::COS:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Kosinus von Kommazahlen berechnen!");
+		emitByte(op::COS);
+		return expr;
+	case TokenType::TAN:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Tangens von Kommazahlen berechnen!");
+		emitByte(op::TAN);
+		return expr;
+	case TokenType::ASIN:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Arkussinus von Kommazahlen berechnen!");
+		emitByte(op::ASIN);
+		return expr;
+	case TokenType::ACOS:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Arkuskosinus von Kommazahlen berechnen!");
+		emitByte(op::ACOS);
+		return expr;
+	case TokenType::ATAN:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Arkustangens von Kommazahlen berechnen!");
+		emitByte(op::ATAN);
+		return expr;
+	case TokenType::SINH:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Hyperbelsinus von Kommazahlen berechnen!");
+		emitByte(op::SINH);
+		return expr;
+	case TokenType::COSH:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Hyperbelkosinus von Kommazahlen berechnen!");
+		emitByte(op::COSH);
+		return expr;
+	case TokenType::TANH:
+		if (expr != ValueType::Double)
+			error(u8"Man kann nur den Hyperbeltangens von Kommazahlen berechnen!");
+		emitByte(op::TANH);
 		return expr;
 	case TokenType::LOGISCHNICHT:
 		if (expr != ValueType::Int)
@@ -679,6 +726,7 @@ ValueType Compiler::variable(bool canAssign)
 		if (!(type >= ValueType::IntArr && type <= ValueType::StringArr))
 			error(u8"Es können nur Arrays indexiert werden!");
 		index(canAssign, varName, type, local);
+		type = lastEmittedType;
 	}
 	else
 	{

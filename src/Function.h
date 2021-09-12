@@ -64,7 +64,9 @@ private:
 
 public: //graphics stuff
 	static inline sf::RenderWindow* wnd = nullptr;
-	static inline sf::VertexArray pixels;
+	//static inline sf::VertexArray pixels;
+	static inline sf::Image pixels;
 	static inline sf::Vector2i wndSize;
+	static inline std::string wndTitle = "";
 };
 

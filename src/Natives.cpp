@@ -531,6 +531,17 @@ namespace Natives
 		return Value(std::floor(args.at(0).Double()));
 	}
 
+	Value ErstelleFenster(std::vector<Value> args)
+	{
+		Function::wndTitle = *args.at(0).String();
+
+		std::vector<int> size = *args.at(1).IntArr();
+
+		Function::wndSize = sf::Vector2i(size.at(0), size.at(1));
+
+		return Value();
+	}
+
 	Value SchliesseFenster(std::vector<Value> args)
 	{
 		Function::wnd->close();
@@ -544,11 +555,29 @@ namespace Natives
 		std::vector<int> color = *args.at(1).IntArr();
 		if (color.size() != 3) throw runtime_error("Eine Farbe muss aus genau 3 Zahlen bestehen!");
 
-		if (pos[0] > Function::wndSize.x || pos[0] < 0 ||
-			pos[1] > Function::wndSize.y || pos[1] < 0)
-			throw runtime_error("Du darfst keine Pixel außerhalb des Fensters malen!");
+		if (pos[0] >= 0 && pos[0] <= Function::wndSize.x - 1 &&
+			pos[1] >= 0 && pos[1] <= Function::wndSize.y - 1)
+			Function::pixels.setPixel(pos[0], pos[1], sf::Color(color[0], color[1], color[2]));
 
-		Function::pixels[Function::wndSize.x * pos[1] + pos[0]].color = sf::Color(color[0], color[1], color[2]);
+
+		return Value();
+	}
+
+	Value MaleRechteck(std::vector<Value> args)
+	{
+		std::vector<int> pos = *args.at(0).IntArr();
+		std::vector<int> size = *args.at(1).IntArr();
+		std::vector<int> color = *args.at(2).IntArr();
+
+		for (int x = pos[0]; x < pos[0] + size[0]; x++)
+		{
+			for (int y = pos[1]; y < pos[1] + size[1]; y++)
+			{
+				if (x >= 0 && x <= Function::wndSize.x - 1 &&
+					y >= 0 && y <= Function::wndSize.y - 1)
+					Function::pixels.setPixel(x, y, sf::Color(color[0], color[1], color[2]));
+			}
+		}
 
 		return Value();
 	}

@@ -14,6 +14,7 @@ enum class TokenType
 	NEGATEMINUS,
 	PLUS, MINUS, MAL, DURCH, MODULO, HOCH, WURZEL, LN, BETRAG,
 	PI, E, TAU, PHI,
+	SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH,
 	//boolsche operatoren
 	UND, ODER, NICHT,
 	KLEINER, GROESSER, ALS, KLEINERODER, GROESSERODER, UNGLEICH, GLEICH,
@@ -150,7 +151,6 @@ private:
 		{u8"sind", TokenType::SIND},
 		{u8"der", TokenType::DER},
 		{u8"die", TokenType::DIE},
-		//{u8"das", TokenType::DAS},
 		{u8"Zahl", TokenType::ZAHL},
 		{u8"Kommazahl", TokenType::KOMMAZAHL},
 		{u8"Boolean", TokenType::BOOLEAN},
@@ -169,7 +169,16 @@ private:
 		{u8"gib", TokenType::GIB},
 		{u8"zurück", TokenType::ZURUECK},
 		{u8"binde", TokenType::BINDE},
-		{u8"ein", TokenType::EIN}
+		{u8"ein", TokenType::EIN},
+		{u8"Sinus", TokenType::SIN},
+		{u8"Kosinus", TokenType::COS},
+		{u8"Tangens", TokenType::TAN},
+		{u8"Arkussinus", TokenType::ASIN},
+		{u8"Arkuskosinus", TokenType::ACOS},
+		{u8"Arkustangens", TokenType::ATAN},
+		{u8"Hyperbelsinus", TokenType::SINH},
+		{u8"Hyperbelkosinus", TokenType::COSH},
+		{u8"Hyperbeltangens", TokenType::TANH},
 	};
 
 	std::string::iterator start; //start of the current token
