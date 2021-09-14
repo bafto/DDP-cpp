@@ -544,7 +544,8 @@ namespace Natives
 
 	Value SchliesseFenster(std::vector<Value> args)
 	{
-		Function::wnd->close();
+		if (Function::wnd != nullptr)
+			Function::wnd->close();
 		return Value();
 	}
 
@@ -580,6 +581,16 @@ namespace Natives
 		}
 
 		return Value();
+	}
+
+	Value TasteGedrueckt(std::vector<Value> args)
+	{
+		std::string Taste = *args.at(0).String();
+
+		if (Function::keyMap.count(Taste) == 0)
+			return Value(false);
+
+		return Value(sf::Keyboard::isKeyPressed(Function::keyMap.at(Taste)));
 	}
 
 }

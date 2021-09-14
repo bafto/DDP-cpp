@@ -76,4 +76,5 @@ namespace Natives
 	Value SchliesseFenster(std::vector<Value> args);
 	Value MalePixel(std::vector<Value> args);
 	Value MaleRechteck(std::vector<Value> args);
+	Value TasteGedrueckt(std::vector<Value> args);
 }

@@ -125,6 +125,7 @@ void Compiler::makeNatives(bool graphics)
 		addNative(u8"SchließeFenster", ValueType::None, {}, &Natives::SchliesseFenster);
 		addNative("MalePixel", ValueType::None, { ty::IntArr, ty::IntArr }, &Natives::MalePixel);
 		addNative("MaleRechteck", ValueType::None, { ty::IntArr, ty::IntArr, ty::IntArr }, &Natives::MaleRechteck);
+		addNative(u8"TasteGedrückt", ValueType::Bool, { ty::String }, &Natives::TasteGedrueckt);
 	}
 }
 
