@@ -45,3 +45,5 @@ lese(). // damit sich die Konsole nicht sofort schließt
 Die Version in diesem Repositorium ist geschrieben in c++.
 Sie kompiliert das DDP Programm erst zu byte-code, welcher dann in Funktionen verpackt von einer Virtual Machine interpretiert wird.
 Dadurch ist diese Version, je nach Benchmark merklich schneller als ihr Gegenstück in c#.
+
+Diese Implementation verwendet [SFML](https://github.com/SFML/SFML) um grafische Programmierung zu ermöglichen (nicht in allen Releases vorhanden). Die SFML Lizenz liegt im ordner sfml/license.md.
