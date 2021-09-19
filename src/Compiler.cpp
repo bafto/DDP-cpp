@@ -17,7 +17,7 @@ Compiler::Compiler(const std::string& filePath,
 	lastEmittedType(ValueType::None)
 {}
 
-bool Compiler::compile(bool graphics)
+bool Compiler::compile()
 {
 	{
 		Scanner scanner(filePath);
@@ -31,7 +31,7 @@ bool Compiler::compile(bool graphics)
 	{
 		globals.insert(std::make_pair(pair.first, pair.second.Type()));
 	}
-	makeNatives(graphics);
+	makeNatives();
 
 	Function mainFunction;
 
@@ -74,7 +74,7 @@ void Compiler::finishCompilation()
 	}
 }
 
-void Compiler::makeNatives(bool graphics)
+void Compiler::makeNatives()
 {
 	using ty = Natives::CombineableValueType;
 
@@ -118,15 +118,6 @@ void Compiler::makeNatives(bool graphics)
 	addNative("Rund", ValueType::Double, { ty::Double }, &Natives::Rund);
 	addNative("Decke", ValueType::Double, { ty::Double }, &Natives::Decke);
 	addNative("Boden", ValueType::Double, { ty::Double }, &Natives::Boden);
-
-	if (graphics)
-	{
-		addNative(u8"ErstelleFenster", ValueType::None, { ty::String, ty::IntArr }, &Natives::ErstelleFenster);
-		addNative(u8"SchließeFenster", ValueType::None, {}, &Natives::SchliesseFenster);
-		addNative("MalePixel", ValueType::None, { ty::IntArr, ty::IntArr }, &Natives::MalePixel);
-		addNative("MaleRechteck", ValueType::None, { ty::IntArr, ty::IntArr, ty::IntArr }, &Natives::MaleRechteck);
-		addNative(u8"TasteGedrückt", ValueType::Bool, { ty::String }, &Natives::TasteGedrueckt);
-	}
 }
 
 void Compiler::addNative(std::string name, ValueType returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native)

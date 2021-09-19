@@ -15,7 +15,7 @@ class VirtualMachine
 public:
 	VirtualMachine(const std::string& filePath, const std::vector<std::string>& sysArgs);
 
-	InterpretResult run(bool graphics);
+	InterpretResult run();
 private:
 	const std::string filePath;
 
