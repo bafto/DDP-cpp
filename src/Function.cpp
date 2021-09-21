@@ -38,6 +38,20 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 		switch ((OpCode)readByte())
 		{
 		case op::CONSTANT: push(readConstant()); break;
+		case op::DEFINE_STRUCT:
+		{
+			std::string structType = *readConstant().String();
+			int n = readConstant().Int();
+
+			for (int i = 0; i < n; i++)
+			{
+				Value field = pop();
+				std::string fieldName = *pop().String();
+				(*structs)[structType].fields[fieldName] = field;
+			}
+
+			break;
+		}
 		case op::STRUCT:
 		{
 			std::string structType = *readConstant().String();

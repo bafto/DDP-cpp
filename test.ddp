@@ -1,13 +1,10 @@
 die Struktur Test beschreibt:
-    die Zahl z,
-    der Text t,
-    der Boolean b
+    Zahl z ist 7,
+    Text t ist "hu",
+    Boolean b ist wahr
 
 die Struktur Test2 beschreibt:
-    die Zahl z,
-    die Test Struktur t
+    Zahl z ist 69,
+    Test Struktur t ist Test{}
 
-die Funktion foo(Test Struktur t) vom Typ Test2 Strukturen macht:
-    gib [Test2{z: 69; t: t}; Test2{z: 420}] zurück.
-
-schreibeZeile(foo(Test{z: 1})).
+schreibeZeile(Test2{}).

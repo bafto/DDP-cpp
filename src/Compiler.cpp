@@ -77,8 +77,8 @@ Value Compiler::GetDefaultValue(ValueType type)
 {
 	switch (type.type)
 	{
-	case Type::Int: return Value(1);
-	case Type::Double: return Value(1.0);
+	case Type::Int: return Value(0);
+	case Type::Double: return Value(0.0);
 	case Type::Bool: return Value(false);
 	case Type::Char: return Value((short)0);
 	case Type::String: return Value("");
@@ -355,10 +355,7 @@ ValueType Compiler::structLiteral(bool canAssign)
 		consume(TokenType::COLON, "Es wurde ein ':' erwartet!");
 		ValueType rhs = expression();
 		if (structs.at(calledFuncName).count(fieldName) == 0)
-		{
 			error(u8"Die Struktur '" + calledFuncName + u8"' enthält kein Feld mit dem Namen '" + fieldName + u8"'!");
-			continue;
-		}
 		if (rhs != structs.at(calledFuncName).at(fieldName))
 			error(u8"Der Typ stimmt nicht mit dem Typ des Feldes überein!");
 		if (match(TokenType::RIGHT_CURLY))
@@ -1224,13 +1221,9 @@ void Compiler::structDeclaration()
 	consume(TokenType::BESCHREIBT, u8"Es wurde 'beschreibt' erwartet!");
 	consume(TokenType::COLON, u8"Es wurde ':' nach 'beschreibt' erwartet!");
 
+	int i = 0;
 	do
 	{
-		if (!(match(TokenType::DIE) || match(TokenType::DER)))
-		{
-			error(u8"Es wurde ein Artikel erwartet!");
-			continue;
-		}
 		TokenType fieldToken = currIt->type;
 		std::string structType = "";
 		if (fieldToken == TokenType::IDENTIFIER)
@@ -1247,15 +1240,26 @@ void Compiler::structDeclaration()
 		if (!(fieldToken >= TokenType::ZAHL && fieldToken <= TokenType::STRUKTUREN))
 			error(u8"Es wurde ein Typ spezifizierer erwartet!");
 		ValueType fieldType = tokenToValueType(fieldToken);
+		fieldType.structIdentifier = structType;
 		advance();
 		consume(TokenType::IDENTIFIER, u8"Es wurde ein Parameter-Name erwartet!");
 		if (stru.count(preIt->literal) != 0)
 			error("Die Struktur '" + structName + "' hat bereits ein Feld mit diesem Namen!");
-		stru.insert(std::make_pair(preIt->literal, ValueType( structType, fieldType.type )));
+		stru.insert(std::make_pair(preIt->literal, fieldType));
+		emitConstant(Value(preIt->literal));
+		if (!isArr(fieldType.type)) consume(TokenType::IST, "Es wurde 'ist' erwartet!");
+		else if (isArr(fieldType.type)) consume(TokenType::SIND, "Es wurde 'sind' erwartet!");
+		ValueType expr = expression();
+		if (expr != fieldType)
+			error(u8"Der Standard Wert stimmt nicht mit dem Typ des Feldes überein!");
+		i++;
 	} while (match(TokenType::COMMA));
 
 	if (stru.empty())
 		error(u8"Du darfst keine leeren Strukturen definieren!");
+
+	emitBytes(op::DEFINE_STRUCT, makeConstant(structName));
+	emitByte(makeConstant(i));
 
 	structs.insert(std::make_pair(structName, stru));
 }
