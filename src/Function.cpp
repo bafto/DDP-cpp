@@ -8,7 +8,7 @@
 
 Function::Function()
 	:
-	returnType(ValueType::None),
+	returnType(ValueType(Type::None)),
 	args(),
 	functions(nullptr),
 	globals(nullptr),
@@ -37,10 +37,10 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		case op::ARRAY:
 		{
 			int size = readConstant().Int();
-			ValueType type = (ValueType)readByte();
+			Type type = (Type)readByte();
 			switch (type)
 			{
-			case ValueType::IntArr:
+			case Type::IntArr:
 			{
 				std::vector<int> vec;
 				vec.reserve(size);
@@ -52,7 +52,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 				push(Value(std::move(vec)));
 				break;
 			}
-			case ValueType::DoubleArr:
+			case Type::DoubleArr:
 			{
 				std::vector<double> vec;
 				vec.reserve(size);
@@ -64,7 +64,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 				push(Value(std::move(vec)));
 				break;
 			}
-			case ValueType::BoolArr:
+			case Type::BoolArr:
 			{
 				std::vector<bool> vec;
 				vec.reserve(size);
@@ -76,7 +76,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 				push(Value(std::move(vec)));
 				break;
 			}
-			case ValueType::CharArr:
+			case Type::CharArr:
 			{
 				std::vector<short> vec;
 				vec.reserve(size);
@@ -88,7 +88,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 				push(Value(std::move(vec)));
 				break;
 			}
-			case ValueType::StringArr:
+			case Type::StringArr:
 			{
 				std::vector<std::string> vec;
 				vec.reserve(size);
@@ -107,10 +107,10 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		case op::NEGATE:
 		{
 			Value val = pop();
-			switch (val.Type())
+			switch (val.type())
 			{
-			case ValueType::Int: push(-val.Int()); break;
-			case ValueType::Double: push(-val.Double()); break;
+			case Type::Int: push(-val.Int()); break;
+			case Type::Double: push(-val.Double()); break;
 			}
 			break;
 		}
@@ -119,20 +119,20 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
-				switch (b.Type())
+			case Type::Int:
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Int() * b.Int())); break;
-				case ValueType::Double: push(Value((double)(a.Int() * b.Double()))); break;
+				case Type::Int: push(Value(a.Int() * b.Int())); break;
+				case Type::Double: push(Value((double)(a.Int() * b.Double()))); break;
 				}
 				break;
-			case ValueType::Double:
-				switch (b.Type())
+			case Type::Double:
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value((double)(a.Double() * b.Int()))); break;
-				case ValueType::Double: push(Value(a.Double() * b.Double())); break;
+				case Type::Int: push(Value((double)(a.Double() * b.Int()))); break;
+				case Type::Double: push(Value(a.Double() * b.Double())); break;
 				}
 				break;
 			}
@@ -142,20 +142,20 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
-				switch (b.Type())
+			case Type::Int:
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Int() / b.Int())); break;
-				case ValueType::Double: push(Value((double)(a.Int() / b.Double()))); break;
+				case Type::Int: push(Value(a.Int() / b.Int())); break;
+				case Type::Double: push(Value((double)(a.Int() / b.Double()))); break;
 				}
 				break;
-			case ValueType::Double:
-				switch (b.Type())
+			case Type::Double:
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value((double)(a.Double() / b.Int()))); break;
-				case ValueType::Double: push(Value(a.Double() / b.Double())); break;
+				case Type::Int: push(Value((double)(a.Double() / b.Int()))); break;
+				case Type::Double: push(Value(a.Double() / b.Double())); break;
 				}
 				break;
 			}
@@ -172,20 +172,20 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
-				switch (b.Type())
+			case Type::Int:
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Int() - b.Int())); break;
-				case ValueType::Double: push(Value((double)(a.Int() - b.Double()))); break;
+				case Type::Int: push(Value(a.Int() - b.Int())); break;
+				case Type::Double: push(Value((double)(a.Int() - b.Double()))); break;
 				}
 				break;
-			case ValueType::Double:
-				switch (b.Type())
+			case Type::Double:
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value((double)(a.Double() - b.Int()))); break;
-				case ValueType::Double: push(Value(a.Double() - b.Double())); break;
+				case Type::Int: push(Value((double)(a.Double() - b.Int()))); break;
+				case Type::Double: push(Value(a.Double() - b.Double())); break;
 				}
 				break;
 			}
@@ -195,20 +195,20 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
-				switch (b.Type())
+			case Type::Int:
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value((int)pow(a.Int(), b.Int()))); break;
-				case ValueType::Double: push(Value((double)pow(a.Int(), b.Double()))); break;
+				case Type::Int: push(Value((int)pow(a.Int(), b.Int()))); break;
+				case Type::Double: push(Value((double)pow(a.Int(), b.Double()))); break;
 				}
 				break;
-			case ValueType::Double:
-				switch (b.Type())
+			case Type::Double:
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value((double)pow(a.Double(), b.Int()))); break;
-				case ValueType::Double: push(Value(pow(a.Double(), b.Double()))); break;
+				case Type::Int: push(Value((double)pow(a.Double(), b.Int()))); break;
+				case Type::Double: push(Value(pow(a.Double(), b.Double()))); break;
 				}
 				break;
 			}
@@ -224,20 +224,20 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		case op::LN:
 		{
 			Value val = pop();
-			switch (val.Type())
+			switch (val.type())
 			{
-			case ValueType::Int: push(Value((double)log(val.Int()))); break;
-			case ValueType::Double: push(Value(log(val.Double()))); break;
+			case Type::Int: push(Value((double)log(val.Int()))); break;
+			case Type::Double: push(Value(log(val.Double()))); break;
 			}
 			break;
 		}
 		case op::BETRAG:
 		{
 			Value val = pop();
-			switch (val.Type())
+			switch (val.type())
 			{
-			case ValueType::Int: push(Value(abs(val.Int()))); break;
-			case ValueType::Double: push(Value(abs(val.Double()))); break;
+			case Type::Int: push(Value(abs(val.Int()))); break;
+			case Type::Double: push(Value(abs(val.Double()))); break;
 			}
 			break;
 		}
@@ -290,29 +290,29 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
+			case Type::Int:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Int() == b.Int())); break;
-				case ValueType::Double: push(Value((double)a.Int() == b.Double())); break;
+				case Type::Int: push(Value(a.Int() == b.Int())); break;
+				case Type::Double: push(Value((double)a.Int() == b.Double())); break;
 				}
 				break;
 			}
-			case ValueType::Double:
+			case Type::Double:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Double() == (double)b.Int())); break;
-				case ValueType::Double: push(Value(a.Double() == b.Double())); break;
+				case Type::Int: push(Value(a.Double() == (double)b.Int())); break;
+				case Type::Double: push(Value(a.Double() == b.Double())); break;
 				}
 				break;
 			}
-			case ValueType::Bool: push(Value(a.Bool() == b.Bool())); break;
-			case ValueType::Char: push(Value(a.Char() == b.Char())); break;
-			case ValueType::String: push(Value(*a.String() == *b.String())); break;
+			case Type::Bool: push(Value(a.Bool() == b.Bool())); break;
+			case Type::Char: push(Value(a.Char() == b.Char())); break;
+			case Type::String: push(Value(*a.String() == *b.String())); break;
 			}
 			break;
 		}
@@ -320,29 +320,29 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
+			case Type::Int:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Int() != b.Int())); break;
-				case ValueType::Double: push(Value((double)a.Int() != b.Double())); break;
+				case Type::Int: push(Value(a.Int() != b.Int())); break;
+				case Type::Double: push(Value((double)a.Int() != b.Double())); break;
 				}
 				break;
 			}
-			case ValueType::Double:
+			case Type::Double:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Double() != (double)b.Int())); break;
-				case ValueType::Double: push(Value(a.Double() != b.Double())); break;
+				case Type::Int: push(Value(a.Double() != (double)b.Int())); break;
+				case Type::Double: push(Value(a.Double() != b.Double())); break;
 				}
 				break;
 			}
-			case ValueType::Bool: push(Value(a.Bool() != b.Bool())); break;
-			case ValueType::Char: push(Value(a.Char() != b.Char())); break;
-			case ValueType::String: push(Value(*a.String() != *b.String())); break;
+			case Type::Bool: push(Value(a.Bool() != b.Bool())); break;
+			case Type::Char: push(Value(a.Char() != b.Char())); break;
+			case Type::String: push(Value(*a.String() != *b.String())); break;
 			}
 			break;
 		}
@@ -350,13 +350,13 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
+			case Type::Int:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int:
+				case Type::Int:
 				{
 					if (forPrep)
 					{
@@ -369,16 +369,16 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 					push(Value(a.Int() > b.Int()));
 					break;
 				}
-				case ValueType::Double: push(Value((double)a.Int() > b.Double())); break;
+				case Type::Double: push(Value((double)a.Int() > b.Double())); break;
 				}
 				break;
 			}
-			case ValueType::Double:
+			case Type::Double:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Double() > (double)b.Int())); break;
-				case ValueType::Double: push(Value(a.Double() > b.Double())); break;
+				case Type::Int: push(Value(a.Double() > (double)b.Int())); break;
+				case Type::Double: push(Value(a.Double() > b.Double())); break;
 				}
 				break;
 			}
@@ -389,23 +389,23 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
+			case Type::Int:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Int() >= b.Int())); break;
-				case ValueType::Double: push(Value((double)a.Int() >= b.Double())); break;
+				case Type::Int: push(Value(a.Int() >= b.Int())); break;
+				case Type::Double: push(Value((double)a.Int() >= b.Double())); break;
 				}
 				break;
 			}
-			case ValueType::Double:
+			case Type::Double:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Double() >= (double)b.Int())); break;
-				case ValueType::Double: push(Value(a.Double() >= b.Double())); break;
+				case Type::Int: push(Value(a.Double() >= (double)b.Int())); break;
+				case Type::Double: push(Value(a.Double() >= b.Double())); break;
 				}
 				break;
 			}
@@ -416,23 +416,23 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
+			case Type::Int:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Int() < b.Int())); break;
-				case ValueType::Double: push(Value((double)a.Int() < b.Double())); break;
+				case Type::Int: push(Value(a.Int() < b.Int())); break;
+				case Type::Double: push(Value((double)a.Int() < b.Double())); break;
 				}
 				break;
 			}
-			case ValueType::Double:
+			case Type::Double:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Double() < (double)b.Int())); break;
-				case ValueType::Double: push(Value(a.Double() < b.Double())); break;
+				case Type::Int: push(Value(a.Double() < (double)b.Int())); break;
+				case Type::Double: push(Value(a.Double() < b.Double())); break;
 				}
 				break;
 			}
@@ -443,23 +443,23 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			Value b = pop();
 			Value a = pop();
-			switch (a.Type())
+			switch (a.type())
 			{
-			case ValueType::Int:
+			case Type::Int:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Int() <= b.Int())); break;
-				case ValueType::Double: push(Value((double)a.Int() <= b.Double())); break;
+				case Type::Int: push(Value(a.Int() <= b.Int())); break;
+				case Type::Double: push(Value((double)a.Int() <= b.Double())); break;
 				}
 				break;
 			}
-			case ValueType::Double:
+			case Type::Double:
 			{
-				switch (b.Type())
+				switch (b.type())
 				{
-				case ValueType::Int: push(Value(a.Double() <= (double)b.Int())); break;
-				case ValueType::Double: push(Value(a.Double() <= b.Double())); break;
+				case Type::Int: push(Value(a.Double() <= (double)b.Int())); break;
+				case Type::Double: push(Value(a.Double() <= b.Double())); break;
 				}
 				break;
 			}
@@ -470,16 +470,16 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			std::string varName = *readConstant().String();
 			Value val = pop();
-			ValueType varType = globals->at(varName).Type();
-			if ((int)varType >= (int)ValueType::IntArr && (int)varType <= (int)ValueType::StringArr && val.Type() == ValueType::Int)
+			Type varType = globals->at(varName).type();
+			if ((int)varType >= (int)Type::IntArr && (int)varType <= (int)Type::StringArr && val.type() == Type::Int)
 			{
 				switch (varType)
 				{
-				case ValueType::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
-				case ValueType::DoubleArr: val = Value(std::vector<double>(val.Int(), 0.0)); break;
-				case ValueType::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
-				case ValueType::CharArr: val = Value(std::vector<short>(val.Int(), (short)0)); break;
-				case ValueType::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
+				case Type::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
+				case Type::DoubleArr: val = Value(std::vector<double>(val.Int(), 0.0)); break;
+				case Type::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
+				case Type::CharArr: val = Value(std::vector<short>(val.Int(), (short)0)); break;
+				case Type::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
 				}
 			}
 
@@ -491,16 +491,16 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			std::string varName = *readConstant().String();
 			int unit = readConstant().Int();
 			Value val = pop();
-			ValueType varType = locals.at(unit).at(varName).Type();
-			if ((int)varType >= (int)ValueType::IntArr && (int)varType <= (int)ValueType::StringArr && val.Type() == ValueType::Int)
+			Type varType = locals.at(unit).at(varName).type();
+			if ((int)varType >= (int)Type::IntArr && (int)varType <= (int)Type::StringArr && val.type() == Type::Int)
 			{
 				switch (varType)
 				{
-				case ValueType::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
-				case ValueType::DoubleArr: val = Value(std::vector<double>(val.Int(), 0.0)); break;
-				case ValueType::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
-				case ValueType::CharArr: val = Value(std::vector<short>(val.Int(), (short)0)); break;
-				case ValueType::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
+				case Type::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
+				case Type::DoubleArr: val = Value(std::vector<double>(val.Int(), 0.0)); break;
+				case Type::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
+				case Type::CharArr: val = Value(std::vector<short>(val.Int(), (short)0)); break;
+				case Type::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
 				}
 			}
 
@@ -524,13 +524,13 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		{
 			std::string arrName = *readConstant().String();
 			int index = pop().Int();
-			switch (globals->at(arrName).Type())
+			switch (globals->at(arrName).type())
 			{
-			case ValueType::IntArr: validateArray(globals->at(arrName).IntArr(), index); push(Value(globals->at(arrName).IntArr()->at(index))); break;
-			case ValueType::DoubleArr: validateArray(globals->at(arrName).DoubleArr(), index); push(Value(globals->at(arrName).DoubleArr()->at(index))); break;
-			case ValueType::BoolArr: validateArray(globals->at(arrName).BoolArr(), index); push(Value(globals->at(arrName).BoolArr()->at(index))); break;
-			case ValueType::CharArr: validateArray(globals->at(arrName).CharArr(), index); push(Value(globals->at(arrName).CharArr()->at(index))); break;
-			case ValueType::StringArr: validateArray(globals->at(arrName).StringArr(), index); push(Value(globals->at(arrName).StringArr()->at(index))); break;
+			case Type::IntArr: validateArray(globals->at(arrName).IntArr(), index); push(Value(globals->at(arrName).IntArr()->at(index))); break;
+			case Type::DoubleArr: validateArray(globals->at(arrName).DoubleArr(), index); push(Value(globals->at(arrName).DoubleArr()->at(index))); break;
+			case Type::BoolArr: validateArray(globals->at(arrName).BoolArr(), index); push(Value(globals->at(arrName).BoolArr()->at(index))); break;
+			case Type::CharArr: validateArray(globals->at(arrName).CharArr(), index); push(Value(globals->at(arrName).CharArr()->at(index))); break;
+			case Type::StringArr: validateArray(globals->at(arrName).StringArr(), index); push(Value(globals->at(arrName).StringArr()->at(index))); break;
 			default: throw runtime_error("Tried to index non-Array!");
 			}
 			break;
@@ -540,13 +540,13 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			std::string arrName = *readConstant().String();
 			int unit = readConstant().Int();
 			int index = pop().Int();
-			switch (locals.at(unit).at(arrName).Type())
+			switch (locals.at(unit).at(arrName).type())
 			{
-			case ValueType::IntArr: validateArray(locals.at(unit).at(arrName).IntArr(), index); push(Value(locals.at(unit).at(arrName).IntArr()->at(index))); break;
-			case ValueType::DoubleArr: validateArray(locals.at(unit).at(arrName).DoubleArr(), index); push(Value(locals.at(unit).at(arrName).DoubleArr()->at(index))); break;
-			case ValueType::BoolArr: validateArray(locals.at(unit).at(arrName).BoolArr(), index); push(Value(locals.at(unit).at(arrName).BoolArr()->at(index))); break;
-			case ValueType::CharArr: validateArray(locals.at(unit).at(arrName).CharArr(), index); push(Value(locals.at(unit).at(arrName).CharArr()->at(index))); break;
-			case ValueType::StringArr: validateArray(locals.at(unit).at(arrName).StringArr(), index); push(Value(locals.at(unit).at(arrName).StringArr()->at(index))); break;
+			case Type::IntArr: validateArray(locals.at(unit).at(arrName).IntArr(), index); push(Value(locals.at(unit).at(arrName).IntArr()->at(index))); break;
+			case Type::DoubleArr: validateArray(locals.at(unit).at(arrName).DoubleArr(), index); push(Value(locals.at(unit).at(arrName).DoubleArr()->at(index))); break;
+			case Type::BoolArr: validateArray(locals.at(unit).at(arrName).BoolArr(), index); push(Value(locals.at(unit).at(arrName).BoolArr()->at(index))); break;
+			case Type::CharArr: validateArray(locals.at(unit).at(arrName).CharArr(), index); push(Value(locals.at(unit).at(arrName).CharArr()->at(index))); break;
+			case Type::StringArr: validateArray(locals.at(unit).at(arrName).StringArr(), index); push(Value(locals.at(unit).at(arrName).StringArr()->at(index))); break;
 			default: throw runtime_error("Tried to index non-Array!");
 			}
 			break;
@@ -569,13 +569,13 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			std::string arrName = *readConstant().String();
 			Value val = std::move(pop());
 			int index = peek(0).Int();
-			switch (globals->at(arrName).Type())
+			switch (globals->at(arrName).type())
 			{
-			case ValueType::IntArr: validateArray(globals->at(arrName).IntArr(), index); (*(globals->at(arrName).IntArr()))[index] = val.Int(); break;
-			case ValueType::DoubleArr: validateArray(globals->at(arrName).DoubleArr(), index); (*(globals->at(arrName).DoubleArr()))[index] = val.Double(); break;
-			case ValueType::BoolArr: validateArray(globals->at(arrName).BoolArr(), index); (*(globals->at(arrName).BoolArr()))[index] = val.Bool(); break;
-			case ValueType::CharArr: validateArray(globals->at(arrName).CharArr(), index); (*(globals->at(arrName).CharArr()))[index] = val.Char(); break;
-			case ValueType::StringArr: validateArray(globals->at(arrName).StringArr(), index); (*(globals->at(arrName).StringArr()))[index] = *val.String(); break;
+			case Type::IntArr: validateArray(globals->at(arrName).IntArr(), index); (*(globals->at(arrName).IntArr()))[index] = val.Int(); break;
+			case Type::DoubleArr: validateArray(globals->at(arrName).DoubleArr(), index); (*(globals->at(arrName).DoubleArr()))[index] = val.Double(); break;
+			case Type::BoolArr: validateArray(globals->at(arrName).BoolArr(), index); (*(globals->at(arrName).BoolArr()))[index] = val.Bool(); break;
+			case Type::CharArr: validateArray(globals->at(arrName).CharArr(), index); (*(globals->at(arrName).CharArr()))[index] = val.Char(); break;
+			case Type::StringArr: validateArray(globals->at(arrName).StringArr(), index); (*(globals->at(arrName).StringArr()))[index] = *val.String(); break;
 			default: throw runtime_error("Tried to index non-Array!");
 			}
 			break;
@@ -586,13 +586,13 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			int unit = readConstant().Int();
 			Value val = std::move(pop());
 			int index = peek(0).Int();
-			switch (locals.at(unit).at(arrName).Type())
+			switch (locals.at(unit).at(arrName).type())
 			{
-			case ValueType::IntArr: validateArray(locals.at(unit).at(arrName).IntArr(), index); (*(locals.at(unit).at(arrName).IntArr()))[index] = val.Int(); break;
-			case ValueType::DoubleArr: validateArray(locals.at(unit).at(arrName).DoubleArr(), index); (*(locals.at(unit).at(arrName).DoubleArr()))[index] = val.Double(); break;
-			case ValueType::BoolArr: validateArray(locals.at(unit).at(arrName).BoolArr(), index); (*(locals.at(unit).at(arrName).BoolArr()))[index] = val.Bool(); break;
-			case ValueType::CharArr: validateArray(locals.at(unit).at(arrName).CharArr(), index); (*(locals.at(unit).at(arrName).CharArr()))[index] = val.Char(); break;
-			case ValueType::StringArr: validateArray(locals.at(unit).at(arrName).StringArr(), index); (*(locals.at(unit).at(arrName).StringArr()))[index] = *val.String(); break;
+			case Type::IntArr: validateArray(locals.at(unit).at(arrName).IntArr(), index); (*(locals.at(unit).at(arrName).IntArr()))[index] = val.Int(); break;
+			case Type::DoubleArr: validateArray(locals.at(unit).at(arrName).DoubleArr(), index); (*(locals.at(unit).at(arrName).DoubleArr()))[index] = val.Double(); break;
+			case Type::BoolArr: validateArray(locals.at(unit).at(arrName).BoolArr(), index); (*(locals.at(unit).at(arrName).BoolArr()))[index] = val.Bool(); break;
+			case Type::CharArr: validateArray(locals.at(unit).at(arrName).CharArr(), index); (*(locals.at(unit).at(arrName).CharArr()))[index] = val.Char(); break;
+			case Type::StringArr: validateArray(locals.at(unit).at(arrName).StringArr(), index); (*(locals.at(unit).at(arrName).StringArr()))[index] = *val.String(); break;
 			default: throw runtime_error("Tried to index non-Array!");
 			}
 			break;
@@ -617,7 +617,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		}
 		case op::RETURN:
 		{
-			if (returnType != ValueType::None) return pop();
+			if (returnType.type != Type::None) return pop();
 			return Value();
 		}
 		case op::CALL:
@@ -677,7 +677,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		}
 	}
 
-	if (returnType != ValueType::None) return pop();
+	if (returnType.type != Type::None) return pop();
 	return Value();
 }
 
@@ -728,94 +728,94 @@ Value Function::readConstant()
 void Function::addition()
 {
 	Value b = pop();
-	ValueType bType = b.Type();
+	Type bType = b.type();
 	Value a = pop();
-	ValueType aType = a.Type();
+	Type aType = a.type();
 
 	switch (aType)
 	{
-	case ValueType::Int:
+	case Type::Int:
 		switch (bType)
 		{
-		case ValueType::Int:
+		case Type::Int:
 			push(Value(a.Int() + b.Int()));
 			return;
-		case ValueType::Double:
+		case Type::Double:
 			push(Value((double)(a.Int() + b.Double())));
 			return;
-		case ValueType::Char:
+		case Type::Char:
 			push(Value((a.Int() + b.Char())));
 			return;
-		case ValueType::String:
+		case Type::String:
 			push(Value(std::string(std::to_string(a.Int()) + *b.String())));
 			return;
 		}
-	case ValueType::Double:
+	case Type::Double:
 		switch (bType)
 		{
-		case ValueType::Int:
+		case Type::Int:
 			push(Value((double)(a.Double() + b.Int())));
 			return;
-		case ValueType::Double:
+		case Type::Double:
 			push(Value(a.Double() + b.Double()));
 			return;
-		case ValueType::Char:
+		case Type::Char:
 			push(Value(((int)a.Double() + (int)b.Char())));
 			return;
-		case ValueType::String:
+		case Type::String:
 			std::string astr(std::to_string(a.Double()));
 			astr.replace(astr.begin(), astr.end(), '.', ',');
 			push(Value(astr + *b.String()));
 			return;
 		}
-	case ValueType::Char:
+	case Type::Char:
 		switch (bType)
 		{
-		case ValueType::Int:
+		case Type::Int:
 			push(Value((a.Char() + b.Int())));
 			return;
-		case ValueType::Double:
+		case Type::Double:
 			push(Value((a.Char() + (int)b.Double())));
 			return;
-		case ValueType::Char:
+		case Type::Char:
 			push(Value(Value::U8CharToString(a.Char()) + Value::U8CharToString(b.Char())));
 			return;
-		case ValueType::String:
+		case Type::String:
 			push(Value(Value::U8CharToString(a.Char()) + *b.String()));
 			return;
 		}
-	case ValueType::String:
+	case Type::String:
 		switch (bType)
 		{
-		case ValueType::Int:
+		case Type::Int:
 			push(Value(*a.String() + std::to_string(b.Int())));
 			return;
-		case ValueType::Double:
+		case Type::Double:
 		{
 			std::string str(std::to_string(b.Double()));
 			std::replace(str.begin(), str.end(), '.', ',');
 			push(Value(*a.String() + str));
 			return;
 		}
-		case ValueType::Char:
+		case Type::Char:
 			push(Value(*a.String() + Value::U8CharToString(b.Char())));
 			return;
-		case ValueType::String:
+		case Type::String:
 			push(Value(*a.String() + *b.String()));
 			return;
 		default:
 			return;
 		}
-	case ValueType::IntArr:
+	case Type::IntArr:
 	{
 		std::vector<int> vec = *a.IntArr();
 		switch (bType)
 		{
-		case ValueType::Int:
+		case Type::Int:
 			vec.push_back(b.Int());
 			push(Value(vec));
 			return;
-		case ValueType::IntArr:
+		case Type::IntArr:
 		{
 			std::vector<int> bvec = *b.IntArr();
 			vec.insert(vec.end(), bvec.begin(), bvec.end());
@@ -826,16 +826,16 @@ void Function::addition()
 			return;
 		}
 	}
-	case ValueType::DoubleArr:
+	case Type::DoubleArr:
 	{
 		std::vector<double> vec = *a.DoubleArr();
 		switch (bType)
 		{
-		case ValueType::Double:
+		case Type::Double:
 			vec.push_back(b.Int());
 			push(Value(vec));
 			return;
-		case ValueType::DoubleArr:
+		case Type::DoubleArr:
 		{
 			std::vector<double> bvec = *b.DoubleArr();
 			vec.insert(vec.end(), bvec.begin(), bvec.end());
@@ -846,16 +846,16 @@ void Function::addition()
 			return;
 		}
 	}
-	case ValueType::BoolArr:
+	case Type::BoolArr:
 	{
 		std::vector<bool> vec = *a.BoolArr();
 		switch (bType)
 		{
-		case ValueType::Bool:
+		case Type::Bool:
 			vec.push_back(b.Bool());
 			push(Value(vec));
 			return;
-		case ValueType::BoolArr:
+		case Type::BoolArr:
 		{
 			std::vector<bool> bvec = *b.BoolArr();
 			vec.insert(vec.end(), bvec.begin(), bvec.end());
@@ -866,16 +866,16 @@ void Function::addition()
 			return;
 		}
 	}
-	case ValueType::CharArr:
+	case Type::CharArr:
 	{
 		std::vector<short> vec = *a.CharArr();
 		switch (bType)
 		{
-		case ValueType::Char:
+		case Type::Char:
 			vec.push_back(b.Char());
 			push(Value(vec));
 			return;
-		case ValueType::CharArr:
+		case Type::CharArr:
 		{
 			std::vector<short> bvec = *b.CharArr();
 			vec.insert(vec.end(), bvec.begin(), bvec.end());
@@ -886,16 +886,16 @@ void Function::addition()
 			return;
 		}
 	}
-	case ValueType::StringArr:
+	case Type::StringArr:
 	{
 		std::vector<std::string> vec = *a.StringArr();
 		switch (bType)
 		{
-		case ValueType::String:
+		case Type::String:
 			vec.push_back(*b.String());
 			push(Value(vec));
 			return;
-		case ValueType::StringArr:
+		case Type::StringArr:
 		{
 			std::vector<std::string> bvec = *b.StringArr();
 			vec.insert(vec.end(), bvec.begin(), bvec.end());

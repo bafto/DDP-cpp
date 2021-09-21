@@ -1,5 +1,15 @@
 #include "Value.h"
 
+bool isArr(Type t)
+{
+	return t >= Type::IntArr && t <= Type::StructArr;
+}
+
+bool isArr(ValueType t)
+{
+	return isArr(t.type);
+}
+
 Value::Value()
 	:
 	_val(std::monostate())
@@ -9,14 +19,14 @@ Value::Value(const Value& other)
 {
 	switch (Type())
 	{
-	case ValueType::String: delete String(); break;
-	case ValueType::IntArr: delete IntArr(); break;
-	case ValueType::DoubleArr: delete DoubleArr(); break;
-	case ValueType::BoolArr: delete BoolArr(); break;
-	case ValueType::CharArr: delete CharArr(); break;
-	case ValueType::StringArr: delete StringArr(); break;
-	case ValueType::Struct: delete VStruct(); break;
-	case ValueType::StructArr: delete StructArr(); break;
+	case Type::String: delete String(); break;
+	case Type::IntArr: delete IntArr(); break;
+	case Type::DoubleArr: delete DoubleArr(); break;
+	case Type::BoolArr: delete BoolArr(); break;
+	case Type::CharArr: delete CharArr(); break;
+	case Type::StringArr: delete StringArr(); break;
+	case Type::Struct: delete VStruct(); break;
+	case Type::StructArr: delete StructArr(); break;
 	default: break;
 	}
 
@@ -24,14 +34,14 @@ Value::Value(const Value& other)
 
 	switch (Type())
 	{
-	case ValueType::String: _val = new std::string(*String()); break;
-	case ValueType::IntArr: _val = new std::vector<int>(*IntArr()); break;
-	case ValueType::DoubleArr: _val = new std::vector<double>(*DoubleArr()); break;
-	case ValueType::BoolArr: _val = new std::vector<bool>(*BoolArr()); break;
-	case ValueType::CharArr: _val = new std::vector<short>(*CharArr()); break;
-	case ValueType::StringArr: _val = new std::vector<std::string>(*StringArr()); break;
-	case ValueType::Struct: _val = new Struct(*VStruct()); break;
-	case ValueType::StructArr: _val = new std::vector<Struct>(*StructArr()); break;
+	case Type::String: _val = new std::string(*String()); break;
+	case Type::IntArr: _val = new std::vector<int>(*IntArr()); break;
+	case Type::DoubleArr: _val = new std::vector<double>(*DoubleArr()); break;
+	case Type::BoolArr: _val = new std::vector<bool>(*BoolArr()); break;
+	case Type::CharArr: _val = new std::vector<short>(*CharArr()); break;
+	case Type::StringArr: _val = new std::vector<std::string>(*StringArr()); break;
+	case Type::Struct: _val = new Struct(*VStruct()); break;
+	case Type::StructArr: _val = new std::vector<Struct>(*StructArr()); break;
 	default: break;
 	}
 }
@@ -40,14 +50,14 @@ Value::Value(Value&& other) noexcept
 {
 	switch (Type())
 	{
-	case ValueType::String: delete String(); break;
-	case ValueType::IntArr: delete IntArr(); break;
-	case ValueType::DoubleArr: delete DoubleArr(); break;
-	case ValueType::BoolArr: delete BoolArr(); break;
-	case ValueType::CharArr: delete CharArr(); break;
-	case ValueType::StringArr: delete StringArr(); break;
-	case ValueType::Struct: delete VStruct(); break;
-	case ValueType::StructArr: delete StructArr(); break;
+	case Type::String: delete String(); break;
+	case Type::IntArr: delete IntArr(); break;
+	case Type::DoubleArr: delete DoubleArr(); break;
+	case Type::BoolArr: delete BoolArr(); break;
+	case Type::CharArr: delete CharArr(); break;
+	case Type::StringArr: delete StringArr(); break;
+	case Type::Struct: delete VStruct(); break;
+	case Type::StructArr: delete StructArr(); break;
 	default: break;
 	}
 
@@ -55,14 +65,14 @@ Value::Value(Value&& other) noexcept
 
 	switch (Type())
 	{
-	case ValueType::String: other.String() = nullptr; break;
-	case ValueType::IntArr: other.IntArr() = nullptr; break;
-	case ValueType::DoubleArr: other.DoubleArr() = nullptr; break;
-	case ValueType::BoolArr: other.BoolArr() = nullptr; break;
-	case ValueType::CharArr: other.CharArr() = nullptr; break;
-	case ValueType::StringArr: other.StringArr() = nullptr; break;
-	case ValueType::Struct: other.VStruct() = nullptr; break;
-	case ValueType::StructArr: other.StructArr() = nullptr; break;
+	case Type::String: other.String() = nullptr; break;
+	case Type::IntArr: other.IntArr() = nullptr; break;
+	case Type::DoubleArr: other.DoubleArr() = nullptr; break;
+	case Type::BoolArr: other.BoolArr() = nullptr; break;
+	case Type::CharArr: other.CharArr() = nullptr; break;
+	case Type::StringArr: other.StringArr() = nullptr; break;
+	case Type::Struct: other.VStruct() = nullptr; break;
+	case Type::StructArr: other.StructArr() = nullptr; break;
 	default: break;
 	}
 }
@@ -71,14 +81,14 @@ Value& Value::operator=(const Value& other)
 {
 	switch (Type())
 	{
-	case ValueType::String: delete String(); break;
-	case ValueType::IntArr: delete IntArr(); break;
-	case ValueType::DoubleArr: delete DoubleArr(); break;
-	case ValueType::BoolArr: delete BoolArr(); break;
-	case ValueType::CharArr: delete CharArr(); break;
-	case ValueType::StringArr: delete StringArr(); break;
-	case ValueType::Struct: delete VStruct(); break;
-	case ValueType::StructArr: delete StructArr(); break;
+	case Type::String: delete String(); break;
+	case Type::IntArr: delete IntArr(); break;
+	case Type::DoubleArr: delete DoubleArr(); break;
+	case Type::BoolArr: delete BoolArr(); break;
+	case Type::CharArr: delete CharArr(); break;
+	case Type::StringArr: delete StringArr(); break;
+	case Type::Struct: delete VStruct(); break;
+	case Type::StructArr: delete StructArr(); break;
 	default: break;
 	}
 
@@ -86,14 +96,14 @@ Value& Value::operator=(const Value& other)
 
 	switch (Type())
 	{
-	case ValueType::String: _val = new std::string(*String()); break;
-	case ValueType::IntArr: _val = new std::vector<int>(*IntArr()); break;
-	case ValueType::DoubleArr: _val = new std::vector<double>(*DoubleArr()); break;
-	case ValueType::BoolArr: _val = new std::vector<bool>(*BoolArr()); break;
-	case ValueType::CharArr: _val = new std::vector<short>(*CharArr()); break;
-	case ValueType::StringArr: _val = new std::vector<std::string>(*StringArr()); break;
-	case ValueType::Struct: _val = new Struct(*VStruct()); break;
-	case ValueType::StructArr: _val = new std::vector<Struct>(*StructArr()); break;
+	case Type::String: _val = new std::string(*String()); break;
+	case Type::IntArr: _val = new std::vector<int>(*IntArr()); break;
+	case Type::DoubleArr: _val = new std::vector<double>(*DoubleArr()); break;
+	case Type::BoolArr: _val = new std::vector<bool>(*BoolArr()); break;
+	case Type::CharArr: _val = new std::vector<short>(*CharArr()); break;
+	case Type::StringArr: _val = new std::vector<std::string>(*StringArr()); break;
+	case Type::Struct: _val = new Struct(*VStruct()); break;
+	case Type::StructArr: _val = new std::vector<Struct>(*StructArr()); break;
 	default: break;
 	}
 	
@@ -104,14 +114,14 @@ Value& Value::operator=(Value&& other) noexcept
 {
 	switch (Type())
 	{
-	case ValueType::String: delete String(); break;
-	case ValueType::IntArr: delete IntArr(); break;
-	case ValueType::DoubleArr: delete DoubleArr(); break;
-	case ValueType::BoolArr: delete BoolArr(); break;
-	case ValueType::CharArr: delete CharArr(); break;
-	case ValueType::StringArr: delete StringArr(); break;
-	case ValueType::Struct: delete VStruct(); break;
-	case ValueType::StructArr: delete StructArr(); break;
+	case Type::String: delete String(); break;
+	case Type::IntArr: delete IntArr(); break;
+	case Type::DoubleArr: delete DoubleArr(); break;
+	case Type::BoolArr: delete BoolArr(); break;
+	case Type::CharArr: delete CharArr(); break;
+	case Type::StringArr: delete StringArr(); break;
+	case Type::Struct: delete VStruct(); break;
+	case Type::StructArr: delete StructArr(); break;
 	default: break;
 	}
 
@@ -119,14 +129,14 @@ Value& Value::operator=(Value&& other) noexcept
 
 	switch (Type())
 	{
-	case ValueType::String: other.String() = nullptr; break;
-	case ValueType::IntArr: other.IntArr() = nullptr; break;
-	case ValueType::DoubleArr: other.DoubleArr() = nullptr; break;
-	case ValueType::BoolArr: other.BoolArr() = nullptr; break;
-	case ValueType::CharArr: other.CharArr() = nullptr; break;
-	case ValueType::StringArr: other.StringArr() = nullptr; break;
-	case ValueType::Struct: other.VStruct() = nullptr; break;
-	case ValueType::StructArr: other.StructArr() = nullptr; break;
+	case Type::String: other.String() = nullptr; break;
+	case Type::IntArr: other.IntArr() = nullptr; break;
+	case Type::DoubleArr: other.DoubleArr() = nullptr; break;
+	case Type::BoolArr: other.BoolArr() = nullptr; break;
+	case Type::CharArr: other.CharArr() = nullptr; break;
+	case Type::StringArr: other.StringArr() = nullptr; break;
+	case Type::Struct: other.VStruct() = nullptr; break;
+	case Type::StructArr: other.StructArr() = nullptr; break;
 	default: break;
 	}
 
@@ -137,14 +147,14 @@ Value::~Value()
 {
 	switch (Type())
 	{
-	case ValueType::String: delete String(); break;
-	case ValueType::IntArr: delete IntArr(); break;
-	case ValueType::DoubleArr: delete DoubleArr(); break;
-	case ValueType::BoolArr: delete BoolArr(); break;
-	case ValueType::CharArr: delete CharArr(); break;
-	case ValueType::StringArr: delete StringArr(); break;
-	case ValueType::Struct: delete VStruct(); break;
-	case ValueType::StructArr: delete StructArr(); break;
+	case Type::String: delete String(); break;
+	case Type::IntArr: delete IntArr(); break;
+	case Type::DoubleArr: delete DoubleArr(); break;
+	case Type::BoolArr: delete BoolArr(); break;
+	case Type::CharArr: delete CharArr(); break;
+	case Type::StringArr: delete StringArr(); break;
+	case Type::Struct: delete VStruct(); break;
+	case Type::StructArr: delete StructArr(); break;
 	default: break;
 	}
 }
@@ -215,9 +225,9 @@ Value::Value(std::vector<Struct> v)
 	_val(new std::vector<Struct>(std::move(v)))
 {}
 
-ValueType Value::Type() const
+Type Value::type() const
 {
-	return (ValueType)_val.index();
+	return (Type)_val.index();
 }
 
 std::string Value::U8CharToString(short ch)

@@ -1,9 +1,30 @@
-die Struktur Test beschreibt:
-    die Zahl x,
-    der Text z,
-    der Boolean b
+der Text pfad ist "test.txt".
+der Boolean existiert ist wahr wenn existiertDatei(pfad).
+schreibeZeile(existiert).
 
-die Struktur Test2 beschreibt:
-    die Zahl x,
-    die Test Strukturen t,
-    der Text z
+der Text inhalt ist leseDatei(pfad).
+schreibeZeile(inhalt).
+
+die Zahlen inhaltbytes sind leseBytes(pfad).
+schreibeZeile(inhaltbytes).
+
+schreibeDatei(pfad, "Tschüss Welt!").
+schreibeZeile(leseDatei(pfad)).
+
+schreibeBytes(pfad, [300; 256; -6]).
+schreibeZeile(leseBytes(pfad)).
+
+// reset
+schreibeDatei(pfad, "Hallo Welt!").
+
+bearbeiteDatei(pfad, " OK BYE!!").
+schreibeZeile(leseDatei(pfad)).
+
+// reset
+schreibeBytes(pfad, [1; 2; 3]).
+
+bearbeiteBytes(pfad, [4; 5; 6]).
+schreibeZeile(leseBytes(pfad)).
+
+// reset
+schreibeDatei(pfad, "Hallo Welt!").

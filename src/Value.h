@@ -9,7 +9,7 @@
 //#pragma warning (disable : 4244)
 
 //aligns with _val's template parameters in Value
-enum class ValueType
+enum class Type
 {
 	None,
 	Int,
@@ -17,16 +17,48 @@ enum class ValueType
 	Bool,
 	Char,
 	String,
+	Struct,
 	IntArr,
 	DoubleArr,
 	BoolArr,
 	CharArr,
 	StringArr,
-	Struct,
 	StructArr,
 	Any, //not inside Value, only used for native functions that take any or multiple types as Arguments
 	Function, //not inside Value, but used in the compiler to indicate wether a variable is a function
 };
+
+//encapsulates ValueType and the name of the struct if type is Struct or StructArr
+struct ValueType
+{
+	ValueType(Type t)
+		:
+		structIdentifier(""),
+		type(t)
+	{}
+
+	ValueType(std::string i, Type t)
+		:
+		structIdentifier(i),
+		type(t)
+	{}
+
+	bool operator==(ValueType& rhs)
+	{
+		return type == rhs.type && structIdentifier == rhs.structIdentifier;
+	}
+
+	bool operator!=(ValueType& rhs)
+	{
+		return !(*this == rhs);
+	}
+
+	std::string structIdentifier;
+	Type type;
+};
+
+bool isArr(Type t);
+bool isArr(ValueType t);
 
 class Value
 {
@@ -61,27 +93,27 @@ public:
 	Value(Struct v);
 	Value(std::vector<Struct> v);
 
-	ValueType Type() const; //return the current type of the variant
+	Type type() const; //return the current type of the variant
 
 	static std::string U8CharToString(short ch);
 
 	template<class stream>
 	void print(stream& ostr)
 	{
-		switch (this->Type())
+		switch (this->type())
 		{
-		case ValueType::Int: ostr << this->Int(); break;
-		case ValueType::Double:
+		case Type::Int: ostr << this->Int(); break;
+		case Type::Double:
 		{
 			std::string str = std::to_string(this->Double());
 			std::replace(str.begin(), str.end(), '.', ',');
 			ostr << str;
 			break;
 		}
-		case ValueType::Bool: ostr << (this->Bool() ? u8"wahr" : u8"falsch"); break;
-		case ValueType::Char: ostr << U8CharToString(this->Char()); break;
-		case ValueType::String: ostr << *this->String(); break;
-		case ValueType::IntArr:
+		case Type::Bool: ostr << (this->Bool() ? u8"wahr" : u8"falsch"); break;
+		case Type::Char: ostr << U8CharToString(this->Char()); break;
+		case Type::String: ostr << *this->String(); break;
+		case Type::IntArr:
 		{
 			std::vector<int>*& vec = this->IntArr();
 			if (vec->empty())
@@ -97,7 +129,7 @@ public:
 			ostr << vec->at(vec->size() - 1) << u8"]";
 			break;
 		}
-		case ValueType::DoubleArr:
+		case Type::DoubleArr:
 		{
 			std::vector<double>*& vec = this->DoubleArr();
 			if (vec->empty())
@@ -113,7 +145,7 @@ public:
 			ostr << vec->at(vec->size() - 1) << u8"]";
 			break;
 		}
-		case ValueType::BoolArr:
+		case Type::BoolArr:
 		{
 			std::vector<bool>*& vec = this->BoolArr();
 			if (vec->empty())
@@ -129,7 +161,7 @@ public:
 			ostr << (vec->at(vec->size() - 1) ? u8"wahr" : u8"falsch") << u8"]";
 			break;
 		}
-		case ValueType::CharArr:
+		case Type::CharArr:
 		{
 			std::vector<short>*& vec = this->CharArr();
 			if (vec->empty())
@@ -145,7 +177,7 @@ public:
 			ostr << U8CharToString(vec->at(vec->size() - 1)) << u8"']";
 			break;
 		}
-		case ValueType::StringArr:
+		case Type::StringArr:
 		{
 			std::vector<std::string>*& vec = this->StringArr();
 			if (vec->empty())
@@ -161,7 +193,7 @@ public:
 			ostr << vec->at(vec->size() - 1) << u8"\"]";
 			break;
 		}
-		case ValueType::Struct:
+		case Type::Struct:
 		{
 			Struct*& s = this->VStruct();
 			if (s->fields.empty())
@@ -187,7 +219,7 @@ public:
 			ostr << u8"}";
 			break;
 		}
-		case ValueType::StructArr:
+		case Type::StructArr:
 		{
 			std::vector<Struct>*& sarr = this->StructArr();
 			if (sarr->empty())
@@ -215,12 +247,12 @@ public:
 	bool& Bool();
 	short& Char();
 	std::string*& String();
+	Struct*& VStruct();
 	std::vector<int>*& IntArr();
 	std::vector<double>*& DoubleArr();
 	std::vector<bool>*& BoolArr();
 	std::vector<short>*& CharArr();
 	std::vector<std::string>*& StringArr();
-	Struct*& VStruct();
 	std::vector<Struct>*& StructArr();
 private:
 	std::variant<
@@ -230,12 +262,12 @@ private:
 		bool,
 		short,
 		std::string*,
+		Struct*,
 		std::vector<int>*,
 		std::vector<double>*,
 		std::vector<bool>*,
 		std::vector<short>*,
 		std::vector<std::string>*,
-		Struct*,
 		std::vector<Struct>*
 	> _val;
 };

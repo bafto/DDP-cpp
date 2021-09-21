@@ -18,21 +18,21 @@ namespace Natives
 		if ((toCheck & CombineableValueType::Any))
 			return true;
 
-		switch (type)
+		switch (type.type)
 		{
-		case ValueType::None: return false;
-		case ValueType::Int: return (toCheck & CombineableValueType::Int);
-		case ValueType::Double: return (toCheck & CombineableValueType::Double);
-		case ValueType::Bool: return (toCheck & CombineableValueType::Bool);
-		case ValueType::Char: return (toCheck & CombineableValueType::Char);
-		case ValueType::String: return (toCheck & CombineableValueType::String);
-		case ValueType::IntArr: return (toCheck & CombineableValueType::IntArr);
-		case ValueType::DoubleArr: return (toCheck & CombineableValueType::DoubleArr);
-		case ValueType::BoolArr: return (toCheck & CombineableValueType::BoolArr);
-		case ValueType::CharArr: return (toCheck & CombineableValueType::CharArr);
-		case ValueType::StringArr: return (toCheck & CombineableValueType::StringArr);
-		case ValueType::Any: return (toCheck & CombineableValueType::Any);
-		case ValueType::Function: return false;
+		case Type::None: return false;
+		case Type::Int: return (toCheck & CombineableValueType::Int);
+		case Type::Double: return (toCheck & CombineableValueType::Double);
+		case Type::Bool: return (toCheck & CombineableValueType::Bool);
+		case Type::Char: return (toCheck & CombineableValueType::Char);
+		case Type::String: return (toCheck & CombineableValueType::String);
+		case Type::IntArr: return (toCheck & CombineableValueType::IntArr);
+		case Type::DoubleArr: return (toCheck & CombineableValueType::DoubleArr);
+		case Type::BoolArr: return (toCheck & CombineableValueType::BoolArr);
+		case Type::CharArr: return (toCheck & CombineableValueType::CharArr);
+		case Type::StringArr: return (toCheck & CombineableValueType::StringArr);
+		case Type::Any: return (toCheck & CombineableValueType::Any);
+		case Type::Function: return false;
 		}
 		return false;
 	}
@@ -196,13 +196,13 @@ namespace Natives
 	{
 		try
 		{
-			switch (args.at(0).Type())
+			switch (args.at(0).type())
 			{
-			case ValueType::Int: return args.at(0);
-			case ValueType::Double: return Value((int)args.at(0).Double());
-			case ValueType::Bool: return Value(args.at(0).Bool() ? 1 : 0);
-			case ValueType::Char: return Value((int)args.at(0).Char());
-			case ValueType::String: return Value(std::stoi(*args.at(0).String()));
+			case Type::Int: return args.at(0);
+			case Type::Double: return Value((int)args.at(0).Double());
+			case Type::Bool: return Value(args.at(0).Bool() ? 1 : 0);
+			case Type::Char: return Value((int)args.at(0).Char());
+			case Type::String: return Value(std::stoi(*args.at(0).String()));
 			}
 		}
 		catch (std::exception&)
@@ -216,13 +216,13 @@ namespace Natives
 	{
 		try
 		{
-			switch (args.at(0).Type())
+			switch (args.at(0).type())
 			{
-			case ValueType::Int: return Value((double)args.at(0).Int());
-			case ValueType::Double: return args.at(0);
-			case ValueType::Bool: return Value(args.at(0).Bool() ? 1.0 : 0.0);
-			case ValueType::Char: return Value((double)args.at(0).Char());
-			case ValueType::String:
+			case Type::Int: return Value((double)args.at(0).Int());
+			case Type::Double: return args.at(0);
+			case Type::Bool: return Value(args.at(0).Bool() ? 1.0 : 0.0);
+			case Type::Char: return Value((double)args.at(0).Char());
+			case Type::String:
 			{
 				std::string str = *args.at(0).String();
 				std::replace(str.begin(), str.end(), ',', '.');
@@ -239,17 +239,17 @@ namespace Natives
 
 	Value zuBooleanNative(std::vector<Value> args)
 	{
-		switch (args.at(0).Type())
+		switch (args.at(0).type())
 		{
-		case ValueType::Int: return Value((bool)args.at(0).Int());
-		case ValueType::Double: return Value(args.at(0).Double() == 0.0);
-		case ValueType::Bool: return args.at(0);
-		case ValueType::Char:
+		case Type::Int: return Value((bool)args.at(0).Int());
+		case Type::Double: return Value(args.at(0).Double() == 0.0);
+		case Type::Bool: return args.at(0);
+		case Type::Char:
 		{
 			if (args.at(0).Char() == (short)'w') return Value(true);
 			else return Value(false);
 		}
-		case ValueType::String:
+		case Type::String:
 		{
 			std::string str = *args.at(0).String();
 			if (str == "wahr") return Value(true);
@@ -262,13 +262,13 @@ namespace Natives
 
 	Value zuBuchstabeNative(std::vector<Value> args)
 	{
-		switch (args.at(0).Type())
+		switch (args.at(0).type())
 		{
-		case ValueType::Int: return Value((short)args.at(0).Int());
-		case ValueType::Double: return Value((short)args.at(0).Double());
-		case ValueType::Bool: return Value(args.at(0).Bool() ? (short)'w' : (short)'f');
-		case ValueType::Char: return args.at(0).Char();
-		case ValueType::String:
+		case Type::Int: return Value((short)args.at(0).Int());
+		case Type::Double: return Value((short)args.at(0).Double());
+		case Type::Bool: return Value(args.at(0).Bool() ? (short)'w' : (short)'f');
+		case Type::Char: return args.at(0).Char();
+		case Type::String:
 		{
 			char a = args.at(0).String()->at(0);
 			char b = args.at(0).String()->length() > 1 ? args.at(0).String()->at(1) : 0;
@@ -290,14 +290,14 @@ namespace Natives
 
 	Value LaengeNative(std::vector<Value> args)
 	{
-		switch (args.at(0).Type())
+		switch (args.at(0).type())
 		{
-		case ValueType::String: return Value((int)(*args.at(0).String()).length());
-		case ValueType::IntArr: return Value((int)args.at(0).IntArr()->size());
-		case ValueType::DoubleArr: return Value((int)args.at(0).DoubleArr()->size());
-		case ValueType::BoolArr: return Value((int)args.at(0).BoolArr()->size());
-		case ValueType::CharArr: return Value((int)args.at(0).CharArr()->size());
-		case ValueType::StringArr: return Value((int)args.at(0).StringArr()->size());
+		case Type::String: return Value((int)(*args.at(0).String()).length());
+		case Type::IntArr: return Value((int)args.at(0).IntArr()->size());
+		case Type::DoubleArr: return Value((int)args.at(0).DoubleArr()->size());
+		case Type::BoolArr: return Value((int)args.at(0).BoolArr()->size());
+		case Type::CharArr: return Value((int)args.at(0).CharArr()->size());
+		case Type::StringArr: return Value((int)args.at(0).StringArr()->size());
 		}
 		return Value(-1);
 	}
@@ -315,10 +315,10 @@ namespace Natives
 	{
 		std::string str = *args.at(0).String();
 		std::string delimiter;
-		switch (args.at(1).Type())
+		switch (args.at(1).type())
 		{
-		case ValueType::Char: delimiter = Value::U8CharToString(args.at(1).Char()); break;
-		case ValueType::String: delimiter = *args.at(1).String(); break;
+		case Type::Char: delimiter = Value::U8CharToString(args.at(1).Char()); break;
+		case Type::String: delimiter = *args.at(1).String(); break;
 		}
 		size_t pos = 0;
 		std::vector<std::string> tokens;
@@ -336,15 +336,15 @@ namespace Natives
 		std::string str = *args.at(0).String();
 		std::string from;
 		std::string to;
-		switch (args.at(1).Type())
+		switch (args.at(1).type())
 		{
-		case ValueType::Char: from = Value::U8CharToString(args.at(1).Char()); break;
-		case ValueType::String: from = *args.at(1).String(); break;
+		case Type::Char: from = Value::U8CharToString(args.at(1).Char()); break;
+		case Type::String: from = *args.at(1).String(); break;
 		}
-		switch (args.at(2).Type())
+		switch (args.at(2).type())
 		{
-		case ValueType::Char: to = Value::U8CharToString(args.at(2).Char()); break;
-		case ValueType::String: to = *args.at(2).String(); break;
+		case Type::Char: to = Value::U8CharToString(args.at(2).Char()); break;
+		case Type::String: to = *args.at(2).String(); break;
 		}
 
 		if (from.empty())
@@ -391,10 +391,10 @@ namespace Natives
 	{
 		std::string str = *args.at(0).String();
 		std::string x;
-		switch (args.at(1).Type())
+		switch (args.at(1).type())
 		{
-		case ValueType::Char: x = Value::U8CharToString(args.at(1).Char()); break;
-		case ValueType::String: x = *args.at(1).String(); break;
+		case Type::Char: x = Value::U8CharToString(args.at(1).Char()); break;
+		case Type::String: x = *args.at(1).String(); break;
 		}
 		return Value(str.find(x) != std::string::npos);
 	}
@@ -413,22 +413,22 @@ namespace Natives
 
 	Value Max(std::vector<Value> args)
 	{
-		switch (args.at(0).Type())
+		switch (args.at(0).type())
 		{
-		case ValueType::Int:
+		case Type::Int:
 		{
-			switch (args.at(1).Type())
+			switch (args.at(1).type())
 			{
-			case ValueType::Int: return Value(std::max((double)args.at(0).Int(), (double)args.at(1).Int()));
-			case ValueType::Double: return Value(std::max((double)args.at(0).Int(), args.at(1).Double()));
+			case Type::Int: return Value(std::max((double)args.at(0).Int(), (double)args.at(1).Int()));
+			case Type::Double: return Value(std::max((double)args.at(0).Int(), args.at(1).Double()));
 			}
 		}
-		case ValueType::Double:
+		case Type::Double:
 		{
-			switch (args.at(1).Type())
+			switch (args.at(1).type())
 			{
-			case ValueType::Int: return Value(std::max(args.at(0).Double(), (double)args.at(1).Int()));
-			case ValueType::Double: return Value(std::max(args.at(0).Double(), args.at(1).Double()));
+			case Type::Int: return Value(std::max(args.at(0).Double(), (double)args.at(1).Int()));
+			case Type::Double: return Value(std::max(args.at(0).Double(), args.at(1).Double()));
 			}
 		}
 		}
@@ -437,22 +437,22 @@ namespace Natives
 
 	Value Min(std::vector<Value> args)
 	{
-		switch (args.at(0).Type())
+		switch (args.at(0).type())
 		{
-		case ValueType::Int:
+		case Type::Int:
 		{
-			switch (args.at(1).Type())
+			switch (args.at(1).type())
 			{
-			case ValueType::Int: return Value(std::min((double)args.at(0).Int(), (double)args.at(1).Int()));
-			case ValueType::Double: return Value(std::min((double)args.at(0).Int(), args.at(1).Double()));
+			case Type::Int: return Value(std::min((double)args.at(0).Int(), (double)args.at(1).Int()));
+			case Type::Double: return Value(std::min((double)args.at(0).Int(), args.at(1).Double()));
 			}
 		}
-		case ValueType::Double:
+		case Type::Double:
 		{
-			switch (args.at(1).Type())
+			switch (args.at(1).type())
 			{
-			case ValueType::Int: return Value(std::min(args.at(0).Double(), (double)args.at(1).Int()));
-			case ValueType::Double: return Value(std::min(args.at(0).Double(), args.at(1).Double()));
+			case Type::Int: return Value(std::min(args.at(0).Double(), (double)args.at(1).Int()));
+			case Type::Double: return Value(std::min(args.at(0).Double(), args.at(1).Double()));
 			}
 		}
 		}
@@ -461,48 +461,48 @@ namespace Natives
 
 	Value Clamp(std::vector<Value> args)
 	{
-		switch (args.at(0).Type())
+		switch (args.at(0).type())
 		{
-		case ValueType::Int:
+		case Type::Int:
 		{
-			switch (args.at(1).Type())
+			switch (args.at(1).type())
 			{
-			case ValueType::Int:
+			case Type::Int:
 			{
-				switch (args.at(2).Type())
+				switch (args.at(2).type())
 				{
-				case ValueType::Int: return Value((double)(std::clamp(args.at(0).Int(), args.at(1).Int(), args.at(2).Int())));
-				case ValueType::Double: return Value(std::clamp((double)args.at(0).Int(), (double)args.at(1).Int(), args.at(2).Double()));
+				case Type::Int: return Value((double)(std::clamp(args.at(0).Int(), args.at(1).Int(), args.at(2).Int())));
+				case Type::Double: return Value(std::clamp((double)args.at(0).Int(), (double)args.at(1).Int(), args.at(2).Double()));
 				}
 			}
-			case ValueType::Double:
+			case Type::Double:
 			{
-				switch (args.at(2).Type())
+				switch (args.at(2).type())
 				{
-				case ValueType::Int: return Value(std::clamp((double)args.at(0).Int(), args.at(1).Double(), (double)args.at(2).Int()));
-				case ValueType::Double: return Value(std::clamp((double)args.at(0).Int(), args.at(1).Double(), args.at(2).Double()));
+				case Type::Int: return Value(std::clamp((double)args.at(0).Int(), args.at(1).Double(), (double)args.at(2).Int()));
+				case Type::Double: return Value(std::clamp((double)args.at(0).Int(), args.at(1).Double(), args.at(2).Double()));
 				}
 			}
 			}
 		}
-		case ValueType::Double:
+		case Type::Double:
 		{
-			switch (args.at(1).Type())
+			switch (args.at(1).type())
 			{
-			case ValueType::Int:
+			case Type::Int:
 			{
-				switch (args.at(2).Type())
+				switch (args.at(2).type())
 				{
-				case ValueType::Int: return Value(std::clamp(args.at(0).Double(), (double)args.at(1).Int(), (double)args.at(2).Int()));
-				case ValueType::Double: return Value(std::clamp(args.at(0).Double(), (double)args.at(1).Int(), args.at(2).Double()));
+				case Type::Int: return Value(std::clamp(args.at(0).Double(), (double)args.at(1).Int(), (double)args.at(2).Int()));
+				case Type::Double: return Value(std::clamp(args.at(0).Double(), (double)args.at(1).Int(), args.at(2).Double()));
 				}
 			}
-			case ValueType::Double:
+			case Type::Double:
 			{
-				switch (args.at(2).Type())
+				switch (args.at(2).type())
 				{
-				case ValueType::Int: return Value(std::clamp(args.at(0).Double(), args.at(1).Double(), (double)args.at(2).Int()));
-				case ValueType::Double: return Value(std::clamp(args.at(0).Double(), args.at(1).Double(), args.at(2).Double()));
+				case Type::Int: return Value(std::clamp(args.at(0).Double(), args.at(1).Double(), (double)args.at(2).Int()));
+				case Type::Double: return Value(std::clamp(args.at(0).Double(), args.at(1).Double(), args.at(2).Double()));
 				}
 			}
 			}

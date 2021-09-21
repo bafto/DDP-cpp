@@ -14,7 +14,7 @@ Compiler::Compiler(const std::string& filePath,
 	hadError(false),
 	panicMode(false),
 	currentScopeUnit(nullptr),
-	lastEmittedType(ValueType::None)
+	lastEmittedType(ValueType(Type::None))
 {}
 
 bool Compiler::compile()
@@ -29,7 +29,7 @@ bool Compiler::compile()
 
 	for (auto& pair : *runtimeGlobals)
 	{
-		globals.insert(std::make_pair(pair.first, pair.second.Type()));
+		globals.insert(std::make_pair(pair.first, ValueType(pair.second.type())));
 	}
 	makeNatives();
 
@@ -56,21 +56,28 @@ void Compiler::finishCompilation()
 	for (auto it = globals.begin(), end = globals.end(); it != end; it++)
 	{
 		Value val;
-		switch (it->second)
-		{
-		case ValueType::Int: val = Value(1); break;
-		case ValueType::Double: val = Value(1.0); break;
-		case ValueType::Bool: val = Value(false); break;
-		case ValueType::Char: val = Value((short)0); break;
-		case ValueType::String: val = Value(""); break;
-		case ValueType::IntArr: val = Value(std::vector<int>()); break;
-		case ValueType::DoubleArr: val = Value(std::vector<double>()); break;
-		case ValueType::BoolArr: val = Value(std::vector<bool>()); break;
-		case ValueType::CharArr: val = Value(std::vector<short>()); break;
-		case ValueType::StringArr: val = Value(std::vector<std::string>()); break;
-		}
+		val = GetDefaultValue(it->second);
 
 		runtimeGlobals->insert(std::make_pair(it->first, std::move(val)));
+	}
+}
+
+Value Compiler::GetDefaultValue(ValueType type)
+{
+	switch (type.type)
+	{
+	case Type::Int: return Value(1);
+	case Type::Double: return Value(1.0);
+	case Type::Bool: return Value(false);
+	case Type::Char: return Value((short)0);
+	case Type::String: return Value("");
+	case Type::Struct: return Value(Value::Struct{ std::unordered_map<std::string, Value>(), type.structIdentifier });
+	case Type::IntArr: return Value(std::vector<int>());
+	case Type::DoubleArr: return Value(std::vector<double>());
+	case Type::BoolArr: return Value(std::vector<bool>());
+	case Type::CharArr: return Value(std::vector<short>());
+	case Type::StringArr: return Value(std::vector<std::string>());
+	case Type::StructArr: return Value(std::vector<Value::Struct>());
 	}
 }
 
@@ -78,55 +85,55 @@ void Compiler::makeNatives()
 {
 	using ty = Natives::CombineableValueType;
 
-	addNative("schreibe", ValueType::None, { ty::Any }, &Natives::schreibeNative);
-	addNative("schreibeZeile", ValueType::None, { ty::Any }, &Natives::schreibeZeileNative);
-	addNative("lese", ValueType::Char, {}, &Natives::leseNative);
-	addNative("leseZeile", ValueType::String, {}, &Natives::leseZeileNative);
+	addNative("schreibe", Type::None, { ty::Any }, &Natives::schreibeNative);
+	addNative("schreibeZeile", Type::None, { ty::Any }, &Natives::schreibeZeileNative);
+	addNative("lese", Type::Char, {}, &Natives::leseNative);
+	addNative("leseZeile", Type::String, {}, &Natives::leseZeileNative);
 
-	addNative("existiertDatei", ValueType::Bool, { ty::String }, &Natives::existiertDateiNative);
-	addNative("leseDatei", ValueType::String, { ty::String }, &Natives::leseDateiNative);
-	addNative("schreibeDatei", ValueType::None, { ty::String, ty::Any }, &Natives::schreibeDateiNative);
-	addNative("bearbeiteDatei", ValueType::None, { ty::String, ty::Any }, &Natives::bearbeiteDateiNative);
+	addNative("existiertDatei", Type::Bool, { ty::String }, &Natives::existiertDateiNative);
+	addNative("leseDatei", Type::String, { ty::String }, &Natives::leseDateiNative);
+	addNative("schreibeDatei", Type::None, { ty::String, ty::Any }, &Natives::schreibeDateiNative);
+	addNative("bearbeiteDatei", Type::None, { ty::String, ty::Any }, &Natives::bearbeiteDateiNative);
 
-	addNative("leseBytes", ValueType::IntArr, { ty::String }, &Natives::leseBytesNative);
-	addNative("schreibeBytes", ValueType::None, { ty::String, ty::IntArr }, &Natives::schreibeBytesNative);
-	addNative("bearbeiteBytes", ValueType::None, { ty::String, ty::IntArr }, &Natives::bearbeiteBytesNative);
+	addNative("leseBytes", Type::IntArr, { ty::String }, &Natives::leseBytesNative);
+	addNative("schreibeBytes", Type::None, { ty::String, ty::IntArr }, &Natives::schreibeBytesNative);
+	addNative("bearbeiteBytes", Type::None, { ty::String, ty::IntArr }, &Natives::bearbeiteBytesNative);
 
-	addNative("clock", ValueType::Double, {}, &Natives::clockNative);
-	addNative("warte", ValueType::None, { ty::Double }, &Natives::warteNative);
+	addNative("clock", Type::Double, {}, &Natives::clockNative);
+	addNative("warte", Type::None, { ty::Double }, &Natives::warteNative);
 
-	addNative("zuZahl", ValueType::Int, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuZahlNative);
-	addNative("zuKommazahl", ValueType::Double, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuKommazahlNative);
-	addNative("zuBoolean", ValueType::Bool, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBooleanNative);
-	addNative("zuBuchstabe", ValueType::Char, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBuchstabeNative);
-	addNative("zuText", ValueType::String, { ty::Any }, &Natives::zuTextNative);
+	addNative("zuZahl", Type::Int, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuZahlNative);
+	addNative("zuKommazahl", Type::Double, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuKommazahlNative);
+	addNative("zuBoolean", Type::Bool, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBooleanNative);
+	addNative("zuBuchstabe", Type::Char, { (ty)(ty::Int | ty::Double | ty::Bool | ty::Char | ty::String) }, &Natives::zuBuchstabeNative);
+	addNative("zuText", Type::String, { ty::Any }, &Natives::zuTextNative);
 
-	addNative(u8"Länge", ValueType::Int, { (ty)(ty::String | ty::IntArr | ty::DoubleArr | ty::BoolArr | ty::CharArr | ty::StringArr) }, &Natives::LaengeNative);
+	addNative(u8"Länge", Type::Int, { (ty)(ty::String | ty::IntArr | ty::DoubleArr | ty::BoolArr | ty::CharArr | ty::StringArr) }, &Natives::LaengeNative);
 
-	addNative("Zuschneiden", ValueType::String, { ty::String, ty::Int, ty::Int }, &Natives::ZuschneidenNative);
-	addNative("Spalten", ValueType::StringArr, { ty::String, (ty)(ty::String | ty::Char) }, &Natives::SpaltenNative);
-	addNative("Ersetzen", ValueType::String, { ty::String, (ty)(ty::String | ty::Char), (ty)(ty::String | ty::Char) }, &Natives::ErsetzenNative);
-	addNative("Entfernen", ValueType::String, { ty::String, ty::Int, ty::Int }, &Natives::EntfernenNative);
-	addNative(u8"Einfügen", ValueType::String, { ty::String, ty::Int, ty::String }, &Natives::EinfügenNative);
-	addNative(u8"Enthält", ValueType::Bool, { ty::String, (ty)(ty::String | ty::Char) }, &Natives::EnthältNative);
-	addNative("Beschneiden", ValueType::String, { ty::String }, &Natives::BeschneidenNative);
+	addNative("Zuschneiden", Type::String, { ty::String, ty::Int, ty::Int }, &Natives::ZuschneidenNative);
+	addNative("Spalten", Type::StringArr, { ty::String, (ty)(ty::String | ty::Char) }, &Natives::SpaltenNative);
+	addNative("Ersetzen", Type::String, { ty::String, (ty)(ty::String | ty::Char), (ty)(ty::String | ty::Char) }, &Natives::ErsetzenNative);
+	addNative("Entfernen", Type::String, { ty::String, ty::Int, ty::Int }, &Natives::EntfernenNative);
+	addNative(u8"Einfügen", Type::String, { ty::String, ty::Int, ty::String }, &Natives::EinfügenNative);
+	addNative(u8"Enthält", Type::Bool, { ty::String, (ty)(ty::String | ty::Char) }, &Natives::EnthältNative);
+	addNative("Beschneiden", Type::String, { ty::String }, &Natives::BeschneidenNative);
 
-	addNative("Max", ValueType::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Max);
-	addNative("Min", ValueType::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Min);
-	addNative("Clamp", ValueType::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Clamp);
-	addNative("Trunkiert", ValueType::Double, { ty::Double }, &Natives::Trunkiert);
-	addNative("Rund", ValueType::Double, { ty::Double }, &Natives::Rund);
-	addNative("Decke", ValueType::Double, { ty::Double }, &Natives::Decke);
-	addNative("Boden", ValueType::Double, { ty::Double }, &Natives::Boden);
+	addNative("Max", Type::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Max);
+	addNative("Min", Type::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Min);
+	addNative("Clamp", Type::Double, { (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int), (ty)(ty::Double | ty::Int) }, &Natives::Clamp);
+	addNative("Trunkiert", Type::Double, { ty::Double }, &Natives::Trunkiert);
+	addNative("Rund", Type::Double, { ty::Double }, &Natives::Rund);
+	addNative("Decke", Type::Double, { ty::Double }, &Natives::Decke);
+	addNative("Boden", Type::Double, { ty::Double }, &Natives::Boden);
 }
 
-void Compiler::addNative(std::string name, ValueType returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native)
+void Compiler::addNative(std::string name, Type returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native)
 {
 	Function func;
-	func.returnType = returnType;
+	func.returnType = ValueType(returnType);
 	func.native = native;
 	for (int i = 0; i < args.size(); i++)
-		func.args.push_back(std::make_pair("", ValueType::None));
+		func.args.push_back(std::make_pair("", ValueType(Type::None)));
 	func.nativeArgs = std::move(args);
 
 	functions->insert(std::make_pair(name, std::move(func)));
@@ -134,7 +141,7 @@ void Compiler::addNative(std::string name, ValueType returnType, std::vector<Nat
 
 uint8_t Compiler::makeConstant(Value value)
 {
-	lastEmittedType = value.Type();
+	lastEmittedType = ValueType(value.type());
 	size_t constant = currentChunk()->addConstant(std::move(value));
 	if (constant > UINT8_MAX) {
 		error(u8"Zu viele Konstanten in diesem Chunk!");
@@ -222,7 +229,7 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 	if (prefix == nullptr)
 	{
 		error(u8"Das Token '" + preIt->literal + "' ist kein prefix Operator!");
-		return ValueType::None;
+		return ValueType(Type::None);
 	}
 
 	bool canAssign = precedence <= Precedence::Assignement;
@@ -235,12 +242,12 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 		if (infix == nullptr)
 		{
 			error(u8"Das Token '" + preIt->literal + "' ist kein infix Operator!");
-			return ValueType::None;
+			return ValueType(Type::None);
 		}
-		if (infix == parseRules.at(TokenType::LEFT_PAREN).infix && expr != ValueType::Function)
+		if (infix == parseRules.at(TokenType::LEFT_PAREN).infix && expr.type != Type::Function)
 		{
 			error(u8"Du kannst nur Funktionen aufrufen!");
-			return ValueType::None;
+			return ValueType(Type::None);
 		}
 		expr = (this->*infix)(false);
 		lastEmittedType = expr;
@@ -258,19 +265,19 @@ ValueType Compiler::dnumber(bool canAssign)
 	std::replace(str.begin(), str.end(), ',', '.');
 	double value = std::stod(str);
 	emitConstant(Value(value));
-	return ValueType::Double;
+	return ValueType(Type::Double);
 }
 
 ValueType Compiler::inumber(bool canAssign)
 {
 	emitConstant(Value(std::stoi(preIt->literal)));
-	return ValueType::Int;
+	return ValueType(Type::Int);
 }
 
 ValueType Compiler::string(bool canAssign)
 {
 	emitConstant(Value(std::string(preIt->literal.begin() + 1, preIt->literal.end() - 1))); //remove the leading and trailing "
-	return ValueType::String;
+	return ValueType(Type::String);
 }
 
 ValueType Compiler::character(bool canAssign)
@@ -285,7 +292,7 @@ ValueType Compiler::character(bool canAssign)
 	}
 	else
 		error("Zu langes Buchstaben literal");
-	return ValueType::Char;
+	return ValueType(Type::Char);
 }
 
 ValueType Compiler::arrLiteral(bool canAssign)
@@ -306,8 +313,8 @@ ValueType Compiler::arrLiteral(bool canAssign)
 		i++;
 	}
 	emitBytes(op::ARRAY, makeConstant(Value(i)));
-	lastEmittedType = ValueType((int)arrType + 5);
-	emitByte((uint8_t)lastEmittedType);
+	lastEmittedType = ValueType((Type)((int)arrType.type + 6));
+	emitByte((uint8_t)lastEmittedType.type);
 	return lastEmittedType;
 }
 
@@ -315,16 +322,16 @@ ValueType Compiler::Literal(bool canAssign)
 {
 	switch (preIt->type)
 	{
-	case TokenType::WAHR: emitConstant(Value(true)); return ValueType::Bool;
-	case TokenType::FALSCH: emitConstant(Value(false)); return ValueType::Bool;
-	case TokenType::E: emitConstant(Value(2.71828182845904523536)); return ValueType::Double;
-	case TokenType::PI: emitConstant(Value(3.14159265358979323846)); return ValueType::Double;
-	case TokenType::PHI: emitConstant(Value(1.61803)); return ValueType::Double;
-	case TokenType::TAU: emitConstant(Value(6.283185307179586)); return ValueType::Double;
+	case TokenType::WAHR: emitConstant(Value(true)); return Type::Bool;
+	case TokenType::FALSCH: emitConstant(Value(false)); return Type::Bool;
+	case TokenType::E: emitConstant(Value(2.71828182845904523536)); return Type::Double;
+	case TokenType::PI: emitConstant(Value(3.14159265358979323846)); return Type::Double;
+	case TokenType::PHI: emitConstant(Value(1.61803)); return Type::Double;
+	case TokenType::TAU: emitConstant(Value(6.283185307179586)); return Type::Double;
 	default: break;
 	}
 
-	return ValueType::None;
+	return Type::None;
 }
 
 ValueType Compiler::grouping(bool canAssign)
@@ -343,72 +350,72 @@ ValueType Compiler::unary(bool canAssign)
 	switch (operatorType)
 	{
 	case TokenType::NEGATEMINUS:
-		if (expr != ValueType::Int && expr != ValueType::Double)
+		if (expr.type != Type::Int && expr.type != Type::Double)
 			error(u8"Man kann nur Zahlen negieren!");
 		emitByte(op::NEGATE);
 		return expr;
 	case TokenType::NICHT:
-		if (expr != ValueType::Bool)
+		if (expr.type != Type::Bool)
 			error(u8"Man kann nur Booleans mit 'nicht' negieren!");
 		emitByte(op::NOT);
 		return expr;
 	case TokenType::LN:
-		if (expr != ValueType::Int && expr != ValueType::Double)
+		if (expr.type != Type::Int && expr.type != Type::Double)
 			error(u8"Man kann nur aus Zahlen den ln berechnen!");
 		emitByte(op::LN);
 		return expr;
 	case TokenType::BETRAG:
-		if (expr != ValueType::Int && expr != ValueType::Double)
+		if (expr.type != Type::Int && expr.type != Type::Double)
 			error(u8"Man kann nur den Betrag von Zahlen berechnen!");
 		emitByte(op::BETRAG);
 		return expr;
 	case TokenType::SIN:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Sinus von Kommazahlen berechnen!");
 		emitByte(op::SIN);
 		return expr;
 	case TokenType::COS:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Kosinus von Kommazahlen berechnen!");
 		emitByte(op::COS);
 		return expr;
 	case TokenType::TAN:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Tangens von Kommazahlen berechnen!");
 		emitByte(op::TAN);
 		return expr;
 	case TokenType::ASIN:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Arkussinus von Kommazahlen berechnen!");
 		emitByte(op::ASIN);
 		return expr;
 	case TokenType::ACOS:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Arkuskosinus von Kommazahlen berechnen!");
 		emitByte(op::ACOS);
 		return expr;
 	case TokenType::ATAN:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Arkustangens von Kommazahlen berechnen!");
 		emitByte(op::ATAN);
 		return expr;
 	case TokenType::SINH:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Hyperbelsinus von Kommazahlen berechnen!");
 		emitByte(op::SINH);
 		return expr;
 	case TokenType::COSH:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Hyperbelkosinus von Kommazahlen berechnen!");
 		emitByte(op::COSH);
 		return expr;
 	case TokenType::TANH:
-		if (expr != ValueType::Double)
+		if (expr.type != Type::Double)
 			error(u8"Man kann nur den Hyperbeltangens von Kommazahlen berechnen!");
 		emitByte(op::TANH);
 		return expr;
 	case TokenType::LOGISCHNICHT:
-		if (expr != ValueType::Int)
+		if (expr.type != Type::Int)
 			error(u8"Man kann nur Zahlen logisch negieren!");
 		emitByte(op::BITWISENOT);
 		return expr;
@@ -427,9 +434,9 @@ ValueType Compiler::binary(bool canAssign)
 	{
 	case TokenType::PLUS:
 	{
-		if (lhs >= ValueType::IntArr && lhs <= ValueType::StringArr)
+		if (isArr(lhs))
 		{
-			ValueType elementType = (ValueType)((int)lhs - 5);
+			ValueType elementType = (Type)((int)lhs.type - 6);
 			if (expr != elementType && expr != lhs)
 				error(u8"Du kannst Arrays nur elemente oder andere Arrays desselben Typs hinzufügen!");
 
@@ -437,39 +444,39 @@ ValueType Compiler::binary(bool canAssign)
 			return lhs;
 		}
 
-		if (lhs == ValueType::Bool || expr == ValueType::Bool)
+		if (lhs.type == Type::Bool || expr.type == Type::Bool)
 			error(u8"Ein Boolean kann kein Operand in einer addition sein");
 		emitByte(op::ADD);
-		switch (lhs)
+		switch (lhs.type)
 		{
-		case ValueType::Int:
-			switch (expr)
+		case Type::Int:
+			switch (expr.type)
 			{
-			case ValueType::Int: return ValueType::Int;
-			case ValueType::Double: return ValueType::Double;
-			case ValueType::Char: return ValueType::Int;
-			case ValueType::String: return ValueType::String;
+			case Type::Int: return Type::Int;
+			case Type::Double: return Type::Double;
+			case Type::Char: return Type::Int;
+			case Type::String: return Type::String;
 			}
 			break;
-		case ValueType::Double:
-			switch (expr)
+		case Type::Double:
+			switch (expr.type)
 			{
-			case ValueType::Int: return ValueType::Double;
-			case ValueType::Double: return ValueType::Double;
-			case ValueType::Char: return ValueType::Int;
-			case ValueType::String: return ValueType::String;
+			case Type::Int: return Type::Double;
+			case Type::Double: return Type::Double;
+			case Type::Char: return Type::Int;
+			case Type::String: return Type::String;
 			}
 			break;
-		case ValueType::Char:
-			switch (expr)
+		case Type::Char:
+			switch (expr.type)
 			{
-			case ValueType::Int: return ValueType::Int;
-			case ValueType::Double: return ValueType::Int;
-			case ValueType::Char: return ValueType::String;
-			case ValueType::String: return ValueType::String;
+			case Type::Int: return Type::Int;
+			case Type::Double: return Type::Int;
+			case Type::Char: return Type::String;
+			case Type::String: return Type::String;
 			}
 			break;
-		case ValueType::String: return ValueType::String;
+		case Type::String: return Type::String;
 		default:
 			break;
 		}
@@ -477,116 +484,116 @@ ValueType Compiler::binary(bool canAssign)
 	}
 	case TokenType::MINUS:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) || (expr != ValueType::Int && expr != ValueType::Double))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) || (expr.type != Type::Int && expr.type != Type::Double))
 			error(u8"Es können nur Zahlen von einander subtrahiert werden!");
 		emitByte(op::SUBTRACT);
-		if (lhs == ValueType::Int && expr == ValueType::Int) return ValueType::Int;
-		else return ValueType::Double;
+		if (lhs.type == Type::Int && expr.type == Type::Int) return Type::Int;
+		else return Type::Double;
 	}
 	case TokenType::MAL:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) || (expr != ValueType::Int && expr != ValueType::Double))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) || (expr.type != Type::Int && expr.type != Type::Double))
 			error(u8"Es können nur Zahlen miteinander multipliziert werden!");
 		emitByte(op::MULTIPLY);
-		if (lhs == ValueType::Int && expr == ValueType::Int) return ValueType::Int;
-		else return ValueType::Double;
+		if (lhs.type == Type::Int && expr.type == Type::Int) return Type::Int;
+		else return Type::Double;
 	}
 	case TokenType::DURCH:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) || (expr != ValueType::Int && expr != ValueType::Double))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) || (expr.type != Type::Int && expr.type != Type::Double))
 			error(u8"Es können nur Zahlen durcheinander dividiert werden!");
 		emitByte(op::DIVIDE);
-		if (lhs == ValueType::Int && expr == ValueType::Int) return ValueType::Int;
-		else return ValueType::Double;
+		if (lhs.type == Type::Int && expr.type == Type::Int) return Type::Int;
+		else return Type::Double;
 		break;
 	}
 	case TokenType::MODULO:
 	{
-		if (lhs != ValueType::Int || expr != ValueType::Int) error(u8"Es kann nur der Modulo aus zwei Zahlen berechnet werden!");
+		if (lhs.type != Type::Int || expr.type != Type::Int) error(u8"Es kann nur der Modulo aus zwei Zahlen berechnet werden!");
 		emitByte(op::MODULO);
-		return ValueType::Int;
+		return Type::Int;
 	}
 	case TokenType::HOCH:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) || (expr != ValueType::Int && expr != ValueType::Double))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) || (expr.type != Type::Int && expr.type != Type::Double))
 			error(u8"Es kann nur der Exponent aus Zahlen berechnet werden!");
 		emitByte(op::EXPONENT);
-		if (lhs == ValueType::Int && expr == ValueType::Int) return ValueType::Int;
-		else return ValueType::Double;
+		if (lhs.type == Type::Int && expr.type == Type::Int) return Type::Int;
+		else return Type::Double;
 	}
 	case TokenType::WURZEL:
 	{
-		if (lhs != ValueType::Int || expr != ValueType::Int)
+		if (lhs.type != Type::Int || expr.type != Type::Int)
 			error(u8"Es kann nur die Wurzel aus ganzen Zahlen berechnet werden!");
 		emitByte(op::ROOT);
-		return ValueType::Double;
+		return Type::Double;
 	}
 	case TokenType::UM:
 	{
-		if (lhs != ValueType::Int || expr != ValueType::Int) error(u8"Es können nur die bits von Zahlen verschoben werden!");
+		if (lhs.type != Type::Int || expr.type != Type::Int) error(u8"Es können nur die bits von Zahlen verschoben werden!");
 		consume(TokenType::BIT, u8"Es fehlt 'bit' nach 'um'!");
 		consume(TokenType::NACH, u8"Es fehlt 'nach' nach 'bit'!");
 		if (match(TokenType::RECHTS)) emitByte(op::RIGHTBITSHIFT);
 		else if (match(TokenType::LINKS)) emitByte(op::LEFTBITSHIFT);
 		else error(u8"Es muss entweder 'links' oder 'rechts' nach beim Verschieben von Bits angegeben sein!");
 		consume(TokenType::VERSCHOBEN, u8"Es wurde 'verschoben' erwartet!");
-		return ValueType::Int;
+		return Type::Int;
 	}
 	case TokenType::GROESSER:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) || (expr != ValueType::Int && expr != ValueType::Double))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) || (expr.type != Type::Int && expr.type != Type::Double))
 			error(u8"Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::GREATER);
 		consume(TokenType::IST, u8"Nach 'größer als' fehlt 'ist'!");
-		return ValueType::Bool;
+		return Type::Bool;
 	}
 	case TokenType::GROESSERODER:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) || (expr != ValueType::Int && expr != ValueType::Double))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) || (expr.type != Type::Int && expr.type != Type::Double))
 			error(u8"Es können nur Zahlen mit dem Operator 'größer als, oder' verglichen werden!");
 		emitByte(op::GREATEREQUAL);
 		consume(TokenType::IST, u8"Nach 'gr��er als, oder' fehlt 'ist'!");
-		return ValueType::Bool;
+		return Type::Bool;
 	}
 	case TokenType::KLEINER:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) || (expr != ValueType::Int && expr != ValueType::Double))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) || (expr.type != Type::Int && expr.type != Type::Double))
 			error(u8"Es können nur Zahlen mit dem Operator 'kleiner als' verglichen werden!");
 		emitByte(op::LESS);
 		consume(TokenType::IST, u8"Nach 'kleiner als' fehlt 'ist'!");
-		return ValueType::Bool;
+		return Type::Bool;
 	}
 	case TokenType::KLEINERODER:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) || (expr != ValueType::Int && expr != ValueType::Double))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) || (expr.type != Type::Int && expr.type != Type::Double))
 			error(u8"Es können nur Zahlen mit dem Operator 'kleiner als, oder' verglichen werden!");
 		emitByte(op::LESSEQUAL);
 		consume(TokenType::IST, u8"Nach 'kleiner als, oder' fehlt 'ist'!");
-		return ValueType::Bool;
+		return Type::Bool;
 	}
 	case TokenType::GLEICH:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) && (expr == ValueType::Int || expr == ValueType::Double) ||
-			(expr != ValueType::Int && expr != ValueType::Double) && (lhs == ValueType::Int || lhs == ValueType::Double) ||
-			(lhs == ValueType::Char && expr != ValueType::Char) ||
-			(lhs == ValueType::Bool && expr != ValueType::Bool) ||
-			(lhs == ValueType::String && expr != ValueType::String))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) && (expr.type == Type::Int || expr.type == Type::Double) ||
+			(expr.type != Type::Int && expr.type != Type::Double) && (lhs.type == Type::Int || lhs.type == Type::Double) ||
+			(lhs.type == Type::Char && expr.type != Type::Char) ||
+			(lhs.type == Type::Bool && expr.type != Type::Bool) ||
+			(lhs.type == Type::String && expr.type != Type::String))
 			error(u8"Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::EQUAL);
 		consume(TokenType::IST, u8"Nach 'gleich' fehlt 'ist'!");
-		return ValueType::Bool;
+		return Type::Bool;
 	}
 	case TokenType::UNGLEICH:
 	{
-		if ((lhs != ValueType::Int && lhs != ValueType::Double) && (expr == ValueType::Int || expr == ValueType::Double) ||
-			(expr != ValueType::Int && expr != ValueType::Double) && (lhs == ValueType::Int || lhs == ValueType::Double) ||
-			(lhs == ValueType::Char && expr != ValueType::Char) ||
-			(lhs == ValueType::Bool && expr != ValueType::Bool) ||
-			(lhs == ValueType::String && expr != ValueType::String))
+		if ((lhs.type != Type::Int && lhs.type != Type::Double) && (expr.type == Type::Int || expr.type == Type::Double) ||
+			(expr.type != Type::Int && expr.type != Type::Double) && (lhs.type == Type::Int || lhs.type == Type::Double) ||
+			(lhs.type == Type::Char && expr.type != Type::Char) ||
+			(lhs.type == Type::Bool && expr.type != Type::Bool) ||
+			(lhs.type == Type::String && expr.type != Type::String))
 			error(u8"Es können nur Zahlen mit dem Operator 'größer als' verglichen werden!");
 		emitByte(op::UNEQUAL);
 		consume(TokenType::IST, u8"Nach 'ungleich' fehlt 'ist'!");
-		return ValueType::Bool;
+		return Type::Bool;
 	}
 	default:
 		break;
@@ -599,13 +606,13 @@ ValueType Compiler::bitwise(bool canAssign)
 {
 	//advance(); //skip the logisch
 	ValueType lhs = parsePrecedence(Precedence::Bitwise); //evaluate the lhs expression
-	if (lhs != ValueType::Int)
+	if (lhs.type != Type::Int)
 		error(u8"Operanden für logische Operatoren müssen Zahlen sein!");
 
 	TokenType operatorType = currIt->type;
 	advance();
 	ValueType rhs = parsePrecedence(Precedence::Bitwise);
-	if (rhs != ValueType::Int)
+	if (rhs.type != Type::Int)
 		error(u8"Operanden für logische Operatoren müssen Zahlen sein!");
 
 	switch (operatorType)
@@ -618,7 +625,7 @@ ValueType Compiler::bitwise(bool canAssign)
 		break;
 	}
 
-	return ValueType::Int;
+	return Type::Int;
 }
 
 ValueType Compiler::and_(bool canAssign)
@@ -627,7 +634,7 @@ ValueType Compiler::and_(bool canAssign)
 	emitByte(op::POP);
 
 	ValueType expr = parsePrecedence(Precedence::And);
-	if (expr != ValueType::Bool) error(u8"Die Operanden eines 'und' Ausdrucks müssen Booleans sein!");
+	if (expr.type != Type::Bool) error(u8"Die Operanden eines 'und' Ausdrucks müssen Booleans sein!");
 
 	patchJump(endJump);
 	return expr;
@@ -642,7 +649,7 @@ ValueType Compiler::or_(bool canAssign)
 	emitByte(op::POP);
 
 	ValueType expr = parsePrecedence(Precedence::Or);
-	if (expr != ValueType::Bool) error(u8"Die Operanden eines 'oder' Ausdrucks müssen Booleans sein!");
+	if (expr.type != Type::Bool) error(u8"Die Operanden eines 'oder' Ausdrucks müssen Booleans sein!");
 	patchJump(endJump);
 
 	return expr;
@@ -655,7 +662,7 @@ std::pair<int, ValueType> Compiler::getLocal(std::string name)
 		if (unit->locals.count(name) != 0)
 			return std::make_pair(unit->identifier, unit->locals.at(name));
 	}
-	return std::make_pair(-1, ValueType::None);
+	return std::make_pair(-1, Type::None);
 }
 
 ValueType Compiler::variable(bool canAssign)
@@ -664,7 +671,7 @@ ValueType Compiler::variable(bool canAssign)
 	if (functions->count(varName) == 1)
 	{
 		calledFuncName = varName;
-		return ValueType::Function;
+		return Type::Function;
 	}
 	auto pair = getLocal(varName); //pair of unit and type
 	int local = pair.first;
@@ -680,7 +687,7 @@ ValueType Compiler::variable(bool canAssign)
 		if (globals.count(varName) == 0)
 		{
 			error(u8"Die globale Variable '" + varName + u8"' wurde noch nicht definiert!");
-			return ValueType::None;
+			return Type::None;
 		}
 		getOp = op::GET_GLOBAL;
 		setOp = op::SET_GLOBAL;
@@ -689,10 +696,10 @@ ValueType Compiler::variable(bool canAssign)
 
 	if (canAssign && match(TokenType::IST))
 	{
-		ValueType expr = ValueType::None;
-		if (type >= ValueType::IntArr && type <= ValueType::StringArr)
+		ValueType expr = Type::None;
+		if (isArr(type))
 			error(u8"Bei einer Array Zuweisung muss 'sind' anstatt 'ist' stehen!");
-		if (type == ValueType::Bool)
+		if (type.type == Type::Bool)
 			expr = boolAssignement();
 		else
 			expr = expression();
@@ -704,7 +711,7 @@ ValueType Compiler::variable(bool canAssign)
 	}
 	else if (canAssign && match(TokenType::SIND))
 	{
-		if (!(type >= ValueType::IntArr && type <= ValueType::StringArr))
+		if (!isArr(type))
 			error(u8"Bei einer Variablen zuweisung muss 'ist' anstatt 'sind' stehen!");
 		ValueType expr = expression();
 		if (expr != type)
@@ -715,7 +722,7 @@ ValueType Compiler::variable(bool canAssign)
 	}
 	else if (match(TokenType::AN))
 	{
-		if (!(type >= ValueType::IntArr && type <= ValueType::StringArr))
+		if (!isArr(type))
 			error(u8"Es können nur Arrays indexiert werden!");
 		index(canAssign, varName, type, local);
 		type = lastEmittedType;
@@ -735,16 +742,16 @@ void Compiler::index(bool canAssign, std::string arrName, ValueType type, int lo
 	OpCode getOp = local == -1 ? op::GET_ARRAY_ELEMENT : op::GET_ARRAY_ELEMENT_LOCAL;
 	OpCode setOp = local == -1 ? op::SET_ARRAY_ELEMENT : op::SET_ARRAY_ELEMENT_LOCAL;
 
-	ValueType elementType = (ValueType)((int)type - 5);
+	ValueType elementType = (Type)((int)type.type - 6);
 
 	ValueType rhs = parsePrecedence(Precedence::Indexing);
-	if (rhs != ValueType::Int)
+	if (rhs.type != Type::Int)
 		error(u8"Du kannst nur ganze Zahlen zum indexieren benutzen!");
 
 	if (match(TokenType::IST))
 	{
-		ValueType expr = ValueType::None;
-		if (elementType == ValueType::Bool)
+		ValueType expr = Type::None;
+		if (elementType.type == Type::Bool)
 			expr = boolAssignement();
 		else
 			expr = expression();
@@ -940,12 +947,13 @@ ValueType Compiler::boolAssignement()
 	}
 	else
 		error("Ein Boolean muss als wahr oder falsch definiert werden!");
-	return ValueType::Bool;
+	return Type::Bool;
 }
 
 void Compiler::varDeclaration()
 {
-	ValueType varType = ValueType::None;
+	ValueType varType = Type::None;
+	std::string structType = "";
 	switch (preIt->type)
 	{
 	case TokenType::DER:
@@ -955,36 +963,25 @@ void Compiler::varDeclaration()
 			error(u8"Falscher Artikel!", currIt);
 			return;
 		}
-		varType = preIt->type == TokenType::BOOLEAN ? ValueType::Bool : ValueType::None;
-		varType = preIt->type == TokenType::BUCHSTABE ? ValueType::Char : varType;
-		varType = preIt->type == TokenType::TEXT ? ValueType::String : varType;
+		varType = tokenToValueType(preIt->type);
 		break;
 	}
-	/*case TokenType::DAS:
-	{
-		if (!match(TokenType::ZEICHEN))
-		{
-			error(u8"Falscher Artikel!", currIt);
-			return;
-		}
-		varType = ValueType::Char;
-		break;
-	}*/
 	case TokenType::DIE:
 	{
+		if (match(TokenType::IDENTIFIER))
+
+			structType = preIt->literal;
+
 		if (!match(TokenType::ZAHL) && !match(TokenType::KOMMAZAHL) &&
-			!match(TokenType::ZAHLEN) && !match(TokenType::KOMMAZAHLEN) && !match(TokenType::BUCHSTABEN) && !match(TokenType::TEXTE) && !match(TokenType::BOOLEANS))
+			!match(TokenType::ZAHLEN) && !match(TokenType::KOMMAZAHLEN) &&
+			!match(TokenType::BUCHSTABEN) && !match(TokenType::TEXTE) &&
+			!match(TokenType::BOOLEANS) && !match(TokenType::STRUKTUR) &&
+			!match(TokenType::STRUKTUREN))
 		{
 			error(u8"Falscher Artikel!", currIt);
 			return;
 		}
-		varType = preIt->type == TokenType::ZAHL ? ValueType::Int : ValueType::None;
-		varType = preIt->type == TokenType::KOMMAZAHL ? ValueType::Double : varType;
-		varType = preIt->type == TokenType::ZAHLEN ? ValueType::IntArr : varType;
-		varType = preIt->type == TokenType::KOMMAZAHLEN ? ValueType::DoubleArr : varType;
-		varType = preIt->type == TokenType::BOOLEANS ? ValueType::BoolArr : varType;
-		varType = preIt->type == TokenType::BUCHSTABEN ? ValueType::CharArr : varType;
-		varType = preIt->type == TokenType::TEXTE ? ValueType::StringArr : varType;
+		varType = tokenToValueType(preIt->type);
 		break;
 	}
 	}
@@ -1009,11 +1006,11 @@ void Compiler::varDeclaration()
 	if (match(TokenType::IST))
 	{
 		//if the variable is an Array you must use 'sind' instead of 'ist'
-		if (varType >= ValueType::IntArr && varType <= ValueType::StringArr)
+		if (isArr(varType))
 			error(u8"Beim definieren einer Variablen Gruppe sollte 'sind' verwendet werden!");
 
-		ValueType rhs = ValueType::None;
-		if (varType == ValueType::Bool)
+		ValueType rhs = Type::None;
+		if (varType.type == Type::Bool)
 			rhs = boolAssignement();
 		else
 			rhs = expression();
@@ -1024,13 +1021,13 @@ void Compiler::varDeclaration()
 	else if (match(TokenType::SIND))
 	{
 		//if the variable is not an Array you must use 'ist' instead of 'sind'
-		if (varType >= ValueType::Int && varType <= ValueType::String)
+		if (!isArr(varType))
 			error(u8"Beim definieren einer Variable sollte 'ist' verwendet werden!");
 
 		ValueType rhs = expression();
-		if (rhs == ValueType::Int)
+		if (rhs.type == Type::Int)
 			consume(TokenType::STUECK, u8"Beim definieren einer leeren Variablen Gruppe wurde 'Stück' erwartet!");
-		if (rhs != varType && rhs != ValueType::Int)
+		if (rhs != varType && rhs.type != Type::Int)
 			error(u8"Der Zuweisungs-Typ und der Variablen-Typ stimmen nicht überein!");
 	}
 	else
@@ -1046,20 +1043,20 @@ ValueType Compiler::tokenToValueType(TokenType type)
 {
 	switch (type)
 	{
-	case TokenType::ZAHL: return ValueType::Int;
-	case TokenType::KOMMAZAHL: return ValueType::Double;
-	case TokenType::BOOLEAN: return ValueType::Bool;
-	case TokenType::BUCHSTABE: return ValueType::Char;
-	case TokenType::TEXT: return ValueType::String;
-	case TokenType::ZAHLEN: return ValueType::IntArr;
-	case TokenType::KOMMAZAHLEN: return ValueType::DoubleArr;
-	case TokenType::BOOLEANS: return ValueType::BoolArr;
-	case TokenType::BUCHSTABEN: return ValueType::CharArr;
-	case TokenType::TEXTE: return ValueType::StringArr;
-	case TokenType::STRUKTUR: return ValueType::Struct;
-	case TokenType::STRUKTUREN: return ValueType::StructArr;
+	case TokenType::ZAHL: return Type::Int;
+	case TokenType::KOMMAZAHL: return Type::Double;
+	case TokenType::BOOLEAN: return Type::Bool;
+	case TokenType::BUCHSTABE: return Type::Char;
+	case TokenType::TEXT: return Type::String;
+	case TokenType::ZAHLEN: return Type::IntArr;
+	case TokenType::KOMMAZAHLEN: return Type::DoubleArr;
+	case TokenType::BOOLEANS: return Type::BoolArr;
+	case TokenType::BUCHSTABEN: return Type::CharArr;
+	case TokenType::TEXTE: return Type::StringArr;
+	case TokenType::STRUKTUR: return Type::Struct;
+	case TokenType::STRUKTUREN: return Type::StructArr;
 	}
-	return ValueType::None;
+	return Type::None;
 }
 
 void Compiler::funDeclaration()
@@ -1108,7 +1105,7 @@ void Compiler::funDeclaration()
 	if (!function.returned)
 	{
 		emitReturn();
-		if (function.returnType != ValueType::None)
+		if (function.returnType.type != Type::None)
 			error(u8"Es fehlt eine Rückgabe Anweisung!");
 	}
 
@@ -1125,7 +1122,7 @@ void Compiler::returnStatement()
 	{
 		emitReturn();
 		if(currentScopeUnit->scopeDepth == 1) currentFunction()->returned = true;
-		if (currentFunction()->returnType != ValueType::None) 
+		if (currentFunction()->returnType.type != Type::None) 
 			error(u8"Diese funktion sollte nichts zurückgeben!");
 	}
 	else
@@ -1147,7 +1144,7 @@ void Compiler::structDeclaration()
 	std::string structName = preIt->literal;
 	if (structs.count(structName) != 0)
 		error("Diese Struktur existiert bereits!");
-	std::unordered_map<std::string, ValueTypeOrStruct> stru;
+	std::unordered_map<std::string, ValueType> stru;
 
 	consume(TokenType::BESCHREIBT, u8"Es wurde 'beschreibt' erwartet!");
 	consume(TokenType::COLON, u8"Es wurde ':' nach 'beschreibt' erwartet!");
@@ -1171,7 +1168,7 @@ void Compiler::structDeclaration()
 		consume(TokenType::IDENTIFIER, u8"Es wurde ein Parameter-Name erwartet!");
 		if (stru.count(preIt->literal) != 0)
 			error("Die Struktur '" + structName + "' hat bereits ein Feld mit diesem Namen!");
-		stru.insert(std::make_pair(preIt->literal, ValueTypeOrStruct{ structType, fieldType }));
+		stru.insert(std::make_pair(preIt->literal, ValueType( structType, fieldType.type )));
 	} while (match(TokenType::COMMA));
 
 	structs.insert(std::make_pair(structName, stru));
@@ -1191,7 +1188,7 @@ void Compiler::patchJump(int offset)
 void Compiler::ifStatement()
 {
 	ValueType expr = expression();
-	if (expr != ValueType::Bool)
+	if (expr.type != Type::Bool)
 		error(u8"Die Bedingung einer 'wenn' Anweisung muss einen Boolschen Wert ergeben!");
 	consume(TokenType::COMMA, u8"Nach der Bedingung einer 'wenn' Anweisung wurde ein ',' erwartet!");
 	consume(TokenType::DANN, u8"Nach dem ',' einer 'wenn' Anweisung wurde ein 'dann' erwartet!");
@@ -1221,7 +1218,7 @@ void Compiler::whileStatement()
 {
 	int loopStart = static_cast<int>(currentChunk()->bytes.size());
 	ValueType expr = expression();
-	if (expr != ValueType::Bool) error(u8"Die Bedingung einer 'solange' Anweisung muss ein Boolean sein!");
+	if (expr.type != Type::Bool) error(u8"Die Bedingung einer 'solange' Anweisung muss ein Boolean sein!");
 
 	consume(TokenType::COMMA, u8"Nach der Bedingung einer 'solange' Anweisung wurde ein ',' erwartet!");
 	consume(TokenType::MACHE, u8"Nach dem ',' einer 'solange' Anweisung wurde ein 'mache' erwartet!");
@@ -1247,11 +1244,11 @@ void Compiler::forStatement()
 	std::string localName = preIt->literal;
 	int localNameConstant = makeConstant(localName);
 	uint8_t unitConstant = makeConstant(currentScopeUnit->identifier);
-	addLocal(localName, ValueType::Int);
+	addLocal(localName, Type::Int);
 	consume(TokenType::VON, u8"Es wurde ein 'von' erwartet!");
 
 	ValueType expr = expression();
-	if (expr != ValueType::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
+	if (expr.type != Type::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
 
 	emitBytes(op::SET_LOCAL, localNameConstant);
 	emitByte(unitConstant);
@@ -1266,7 +1263,7 @@ void Compiler::forStatement()
 	emitByte(unitConstant);
 
 	expr = expression();
-	if (expr != ValueType::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
+	if (expr.type != Type::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
 
 	emitBytes(op::GREATER, (uint8_t)op::NOT);
 	emitByte(op::FORDONE);
@@ -1282,7 +1279,7 @@ void Compiler::forStatement()
 	{
 		consume(TokenType::SCHRITTGROESSE, u8"Nach 'mit' in einer für Anweisung wird 'schrittgröße' erwartet!");
 		expr = expression();
-		if (expr != ValueType::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
+		if (expr.type != Type::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
 		emitBytes(op::GET_LOCAL, localNameConstant);
 		emitByte(unitConstant);
 		emitByte(op::ADD);
@@ -1327,7 +1324,7 @@ void Compiler::forStatement()
 void Compiler::printStatement()
 {
 	ValueType type = expression();
-	if (type == ValueType::None)
+	if (type.type == Type::None)
 		error(u8"Cannot print expression of type none!");
 	consume(TokenType::DOT, u8"Es wurde ein '.' nach '$' erwartet!");
 	emitByte(op::PRINT);
@@ -1354,20 +1351,7 @@ void Compiler::ScopeUnit::endUnit(ScopeUnit*& currentScopeUnit)
 	std::unordered_map<std::string, Value> temp;
 	for (auto it = locals.begin(), end = locals.end(); it != end; it++)
 	{
-		Value val;
-		switch (it->second)
-		{
-		case ValueType::Int: val = Value(1); break;
-		case ValueType::Double: val = Value(1.0); break;
-		case ValueType::Bool: val = Value(false); break;
-		case ValueType::Char: val = Value((short)0); break;
-		case ValueType::String: val = Value(""); break;
-		case ValueType::IntArr: val = Value(std::vector<int>()); break;
-		case ValueType::DoubleArr: val = Value(std::vector<double>()); break;
-		case ValueType::BoolArr: val = Value(std::vector<bool>()); break;
-		case ValueType::CharArr: val = Value(std::vector<short>()); break;
-		case ValueType::StringArr: val = Value(std::vector<std::string>()); break;
-		}
+		Value val = GetDefaultValue(it->second);
 
 		temp.insert(std::make_pair(it->first, val));
 	}

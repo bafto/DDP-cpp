@@ -13,9 +13,10 @@ public:
 	bool compile(); //returns true on success, fills globals with declarations and functions with definitions
 private:
 	void finishCompilation();
+	static Value GetDefaultValue(ValueType type);
 
 	void makeNatives();
-	void addNative(std::string name, ValueType returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native);
+	void addNative(std::string name, Type returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native);
 private:
 	Function* currentFunction() { return currentScopeUnit->enclosingFunction; }; //the function that is currently being compiled (most often the nameless main function)
 	Chunk* currentChunk() { return &currentFunction()->chunk; }; //the chunk that is currently filled
@@ -258,12 +259,7 @@ private:
 	const std::string filePath;
 
 	std::unordered_map<std::string, ValueType> globals;
-	struct ValueTypeOrStruct
-	{
-		std::string structIdentifier;
-		ValueType type;
-	};
-	std::unordered_map<std::string, std::unordered_map<std::string, ValueTypeOrStruct>> structs;
+	std::unordered_map<std::string, std::unordered_map<std::string, ValueType>> structs;
 
 	std::unordered_map<std::string, Value>* runtimeGlobals;
 	std::unordered_map<std::string, Function>* functions;
