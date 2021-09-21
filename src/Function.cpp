@@ -12,17 +12,21 @@ Function::Function()
 	args(),
 	functions(nullptr),
 	globals(nullptr),
+	structs(nullptr),
 	argUnit(0),
 	returned(false),
 	native(nullptr)
 {}
 
-Value Function::run(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions)
+Value Function::run(std::unordered_map<std::string, Value>* globals,
+	std::unordered_map<std::string, Function>* functions,
+	std::unordered_map<std::string, Value::Struct>* structs)
 {
 	using op = OpCode;
 
 	this->globals = globals;
 	this->functions = functions;
+	this->structs = structs;
 
 	stackTop = stack.begin();
 	ip = chunk.bytes.begin();
@@ -34,6 +38,22 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 		switch ((OpCode)readByte())
 		{
 		case op::CONSTANT: push(readConstant()); break;
+		case op::STRUCT:
+		{
+			std::string structType = *readConstant().String();
+			int n = readConstant().Int();
+
+			Value::Struct s = structs->at(structType);
+
+			for (int i = 0; i < n; i++)
+			{
+				Value field = pop();
+				std::string fieldName = *pop().String();
+				s.fields[fieldName] = std::move(field);
+			}
+			push(s);
+			break;
+		}
 		case op::ARRAY:
 		{
 			int size = readConstant().Int();
@@ -642,7 +662,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 				}
 				try
 				{
-					push(func.runNative(globals, functions, std::move(args)));
+					push(func.runNative(globals, functions, structs, std::move(args)));
 				}
 				catch (runtime_error& e)
 				{
@@ -659,7 +679,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 			{
 				func.locals.at(func.argUnit)[func.args.at(i).first] = pop();
 			}
-			push(func.run(globals, functions));
+			push(func.run(globals, functions, structs));
 			break;
 		}
 		case op::POP: pop(); break;
@@ -681,10 +701,14 @@ Value Function::run(std::unordered_map<std::string, Value>* globals, std::unorde
 	return Value();
 }
 
-Value Function::runNative(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions, std::vector<Value> args)
+Value Function::runNative(std::unordered_map<std::string, Value>* globals,
+	std::unordered_map<std::string, Function>* functions,
+	std::unordered_map<std::string, Value::Struct>* structs,
+	std::vector<Value> args)
 {
 	this->globals = globals;
 	this->functions = functions;
+	this->structs = structs;
 
 	return (*native)(std::move(args));
 }

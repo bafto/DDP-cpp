@@ -14,9 +14,12 @@ private:
 	friend class VirtualMachine;
 
 	//run the functions byte-code and return it's result. If the return type is ValueType::None the return Value should be discarded
-	Value run(std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions); //only the VirtualMachine should call this function
+	Value run(std::unordered_map<std::string, Value>* globals,
+		std::unordered_map<std::string, Function>* functions,
+		std::unordered_map<std::string, Value::Struct>* structs); //only the VirtualMachine should call this function
 	Value runNative(std::unordered_map<std::string, Value>* globals,
 		std::unordered_map<std::string, Function>* functions,
+		std::unordered_map<std::string, Value::Struct>* structs,
 		std::vector<Value> args);
 
 	//these functions are only needed during runtime
@@ -57,5 +60,6 @@ private:
 
 	std::unordered_map<std::string, Value>* globals; //pointer to the global variables map
 	std::unordered_map<std::string, Function>* functions; //pointer to the map of functions
+	std::unordered_map<std::string, Value::Struct>* structs; //pointer to the map of structs
 };
 

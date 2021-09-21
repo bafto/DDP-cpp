@@ -6,11 +6,13 @@
 
 Compiler::Compiler(const std::string& filePath,
 	std::unordered_map<std::string, Value>* globals,
-	std::unordered_map<std::string, Function>* functions)
+	std::unordered_map<std::string, Function>* functions, 
+	std::unordered_map<std::string, Value::Struct>* structs)
 	:
 	filePath(filePath),
 	runtimeGlobals(globals),
 	functions(functions),
+	runtimeStructs(structs),
 	hadError(false),
 	panicMode(false),
 	currentScopeUnit(nullptr),
@@ -59,6 +61,15 @@ void Compiler::finishCompilation()
 		val = GetDefaultValue(it->second);
 
 		runtimeGlobals->insert(std::make_pair(it->first, std::move(val)));
+	}
+	for (auto it = structs.begin(), end = structs.end(); it != end; it++)
+	{
+		std::unordered_map<std::string, Value> fields;
+		for (auto itt = it->second.begin(), endd = it->second.end(); itt != endd; itt++)
+		{
+			fields.insert(std::make_pair(itt->first, GetDefaultValue(itt->second)));
+		}
+		runtimeStructs->insert(std::make_pair(it->first, Value::Struct{ std::move(fields), it->first }));
 	}
 }
 
@@ -249,6 +260,11 @@ ValueType Compiler::parsePrecedence(Precedence precedence)
 			error(u8"Du kannst nur Funktionen aufrufen!");
 			return ValueType(Type::None);
 		}
+		else if (infix == parseRules.at(TokenType::LEFT_CURLY).infix && expr.type != Type::Struct)
+		{
+			error(u8"Du kannst nur den Konstruktor von Strukturen aufrufen!");
+			return ValueType(Type::None);
+		}
 		expr = (this->*infix)(false);
 		lastEmittedType = expr;
 	}
@@ -313,9 +329,47 @@ ValueType Compiler::arrLiteral(bool canAssign)
 		i++;
 	}
 	emitBytes(op::ARRAY, makeConstant(Value(i)));
-	lastEmittedType = ValueType((Type)((int)arrType.type + 6));
+	lastEmittedType = arrType;
+	lastEmittedType.type = ((Type)((int)arrType.type + 6));
 	emitByte((uint8_t)lastEmittedType.type);
 	return lastEmittedType;
+}
+
+ValueType Compiler::structLiteral(bool canAssign)
+{
+	if (match(TokenType::RIGHT_CURLY))
+	{
+		emitBytes(op::STRUCT, makeConstant(calledFuncName));
+		emitByte(makeConstant(0));
+		return ValueType(calledFuncName, Type::Struct);
+	}
+
+	int i = 1;
+	while(true)
+	{
+		consume(TokenType::IDENTIFIER, "Es wurde ein Feld-Name erwartet!");
+		std::string fieldName = preIt->literal;
+		if (fieldName == calledFuncName)
+			error(u8"Eine Struktur kann sich nicht selbst als Feld haben!");
+		emitConstant(Value(fieldName));
+		consume(TokenType::COLON, "Es wurde ein ':' erwartet!");
+		ValueType rhs = expression();
+		if (structs.at(calledFuncName).count(fieldName) == 0)
+		{
+			error(u8"Die Struktur '" + calledFuncName + u8"' enthält kein Feld mit dem Namen '" + fieldName + u8"'!");
+			continue;
+		}
+		if (rhs != structs.at(calledFuncName).at(fieldName))
+			error(u8"Der Typ stimmt nicht mit dem Typ des Feldes überein!");
+		if (match(TokenType::RIGHT_CURLY))
+			break;
+		consume(TokenType::SEMICOLON, "Unfertiges Struktur Literal!");
+		i++;
+	}
+
+	emitBytes(op::STRUCT, makeConstant(calledFuncName));
+	emitByte(makeConstant(i));
+	return ValueType(calledFuncName, Type::Struct);
 }
 
 ValueType Compiler::Literal(bool canAssign)
@@ -673,6 +727,11 @@ ValueType Compiler::variable(bool canAssign)
 		calledFuncName = varName;
 		return Type::Function;
 	}
+	else if (structs.count(varName) == 1)
+	{
+		calledFuncName = varName;
+		return Type::Struct;
+	}
 	auto pair = getLocal(varName); //pair of unit and type
 	int local = pair.first;
 	ValueType type = pair.second;
@@ -953,7 +1012,6 @@ ValueType Compiler::boolAssignement()
 void Compiler::varDeclaration()
 {
 	ValueType varType = Type::None;
-	std::string structType = "";
 	switch (preIt->type)
 	{
 	case TokenType::DER:
@@ -969,8 +1027,7 @@ void Compiler::varDeclaration()
 	case TokenType::DIE:
 	{
 		if (match(TokenType::IDENTIFIER))
-
-			structType = preIt->literal;
+			varType.structIdentifier = preIt->literal;
 
 		if (!match(TokenType::ZAHL) && !match(TokenType::KOMMAZAHL) &&
 			!match(TokenType::ZAHLEN) && !match(TokenType::KOMMAZAHLEN) &&
@@ -981,7 +1038,7 @@ void Compiler::varDeclaration()
 			error(u8"Falscher Artikel!", currIt);
 			return;
 		}
-		varType = tokenToValueType(preIt->type);
+		varType.type = tokenToValueType(preIt->type).type;
 		break;
 	}
 	}
@@ -1064,6 +1121,10 @@ void Compiler::funDeclaration()
 	if (currentScopeUnit->scopeDepth > 0) error(u8"Du kannst nur globale Funktionen definieren!");
 	consume(TokenType::IDENTIFIER, u8"Es wurde ein Funktions-Name erwartet!");
 	std::string funcName = preIt->literal;
+	if (functions->count(funcName) == 1)
+		error(u8"Eine Funktion mit diesem Namen existiert bereits!");
+	else if (structs.count(funcName) == 1)
+		error(u8"Diese Funktion würde den Konstruktor einer Struktur überschreiben!");
 	Function function;
 	ScopeUnit unit(currentScopeUnit, &function);
 	currentScopeUnit = &unit;
@@ -1078,9 +1139,17 @@ void Compiler::funDeclaration()
 			if (currentScopeUnit->enclosingFunction->args.size() > 254) error(u8"Eine Funktion darf maximal 255 Parameter enthalten!");
 			advance();
 			TokenType parameterType = preIt->type;
-			if (!(parameterType >= TokenType::ZAHL && parameterType <= TokenType::TEXTE))
+			ValueType argType = Type::None;
+			if (preIt->type == TokenType::IDENTIFIER)
+			{
+				argType.structIdentifier = preIt->literal;
+				if (!match(TokenType::STRUKTUR) && !match(TokenType::STRUKTUREN))
+					error(u8"Es wurde ein Typ spezifizierer erwartet!");
+				parameterType = preIt->type;
+			}
+			if (!(parameterType >= TokenType::ZAHL && parameterType <= TokenType::STRUKTUREN))
 				error(u8"Es wurde ein Typ spezifizierer erwartet!");
-			ValueType argType = tokenToValueType(parameterType);
+			argType.type = tokenToValueType(parameterType).type;
 			consume(TokenType::IDENTIFIER, u8"Es wurde ein Parameter-Name erwartet!");
 			addLocal(preIt->literal, argType);
 			currentFunction()->args.push_back(std::make_pair(preIt->literal, argType));
@@ -1091,7 +1160,11 @@ void Compiler::funDeclaration()
 	if (match(TokenType::VOM))
 	{
 		consume(TokenType::TYP, u8"Es wurde 'Typ' nach 'vom' erwartet!");
-		currentFunction()->returnType = tokenToValueType(currIt->type);
+		if (match(TokenType::IDENTIFIER))
+		{
+			currentFunction()->returnType.structIdentifier = preIt->literal;
+		}
+		currentFunction()->returnType.type = tokenToValueType(currIt->type).type;
 		advance();
 	}
 	consume(TokenType::MACHT, u8"Es wurde 'macht' erwartet!");
@@ -1144,6 +1217,8 @@ void Compiler::structDeclaration()
 	std::string structName = preIt->literal;
 	if (structs.count(structName) != 0)
 		error("Diese Struktur existiert bereits!");
+	else if (functions->count(structName) != 0)
+		error("Es gibt bereits eine Funktion mit dem Namen der Struktur!");
 	std::unordered_map<std::string, ValueType> stru;
 
 	consume(TokenType::BESCHREIBT, u8"Es wurde 'beschreibt' erwartet!");
@@ -1152,13 +1227,21 @@ void Compiler::structDeclaration()
 	do
 	{
 		if (!(match(TokenType::DIE) || match(TokenType::DER)))
+		{
 			error(u8"Es wurde ein Artikel erwartet!");
+			continue;
+		}
 		TokenType fieldToken = currIt->type;
 		std::string structType = "";
 		if (fieldToken == TokenType::IDENTIFIER)
 		{
 			consume(TokenType::IDENTIFIER, "");
 			structType = preIt->literal;
+			if (structType == structName)
+			{
+				error(u8"Eine Struktur kann sich nicht selbst enthalten!");
+				continue;
+			}
 			fieldToken = currIt->type;
 		}
 		if (!(fieldToken >= TokenType::ZAHL && fieldToken <= TokenType::STRUKTUREN))
@@ -1170,6 +1253,9 @@ void Compiler::structDeclaration()
 			error("Die Struktur '" + structName + "' hat bereits ein Feld mit diesem Namen!");
 		stru.insert(std::make_pair(preIt->literal, ValueType( structType, fieldType.type )));
 	} while (match(TokenType::COMMA));
+
+	if (stru.empty())
+		error(u8"Du darfst keine leeren Strukturen definieren!");
 
 	structs.insert(std::make_pair(structName, stru));
 }

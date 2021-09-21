@@ -14,10 +14,10 @@ InterpretResult VirtualMachine::run()
 	try
 	{
 		{
-			Compiler compiler(filePath, &globals, &functions);
+			Compiler compiler(filePath, &globals, &functions, &structs);
 			if (!compiler.compile()) return InterpretResult::CompileTimeError;
 		}
-		functions.at("").run(&globals, &functions);
+		functions.at("").run(&globals, &functions, &structs);
 	}
 	catch (runtime_error& err)
 	{

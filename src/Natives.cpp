@@ -26,11 +26,13 @@ namespace Natives
 		case Type::Bool: return (toCheck & CombineableValueType::Bool);
 		case Type::Char: return (toCheck & CombineableValueType::Char);
 		case Type::String: return (toCheck & CombineableValueType::String);
+		case Type::Struct: return (toCheck & CombineableValueType::Struct);
 		case Type::IntArr: return (toCheck & CombineableValueType::IntArr);
 		case Type::DoubleArr: return (toCheck & CombineableValueType::DoubleArr);
 		case Type::BoolArr: return (toCheck & CombineableValueType::BoolArr);
 		case Type::CharArr: return (toCheck & CombineableValueType::CharArr);
 		case Type::StringArr: return (toCheck & CombineableValueType::StringArr);
+		case Type::StructArr: return (toCheck & CombineableValueType::StructArr);
 		case Type::Any: return (toCheck & CombineableValueType::Any);
 		case Type::Function: return false;
 		}

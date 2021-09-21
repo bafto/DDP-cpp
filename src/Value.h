@@ -209,9 +209,9 @@ public:
 				ostr << it->first << u8": ";
 				it->second.print(ostr);
 				ostr << u8"; ";
-				if (i < 2)
+				if (i == 2)
 				{
-					itt = it;
+					itt = ++it;
 				}
 			}
 			ostr << itt->first << u8": ";

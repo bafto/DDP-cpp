@@ -8,7 +8,10 @@ class Compiler
 private:
 	using op = OpCode;
 public:
-	Compiler(const std::string& filePath, std::unordered_map<std::string, Value>* globals, std::unordered_map<std::string, Function>* functions);
+	Compiler(const std::string& filePath,
+		std::unordered_map<std::string, Value>* globals,
+		std::unordered_map<std::string, Function>* functions,
+		std::unordered_map<std::string, Value::Struct>* structs);
 
 	bool compile(); //returns true on success, fills globals with declarations and functions with definitions
 private:
@@ -133,6 +136,7 @@ private:
 	[[nodiscard]] ValueType string(bool canAssign);
 	[[nodiscard]] ValueType character(bool canAssign);
 	[[nodiscard]] ValueType arrLiteral(bool canAssign);
+	[[nodiscard]] ValueType structLiteral(bool canAssign);
 	[[nodiscard]] ValueType Literal(bool canAssign);
 	[[nodiscard]] ValueType grouping(bool canAssign);
 	[[nodiscard]] ValueType unary(bool canAssign);
@@ -155,6 +159,8 @@ private:
 	static inline const std::unordered_map<TokenType, ParseRule> parseRules = {
 		{ TokenType::LEFT_PAREN,	ParseRule{&Compiler::grouping, &Compiler::call,	Precedence::Call}},
 		{ TokenType::RIGHT_PAREN,	ParseRule{nullptr,			nullptr,			Precedence::None}},
+		{ TokenType::LEFT_CURLY,	ParseRule{nullptr,			&Compiler::structLiteral, Precedence::Call}},
+		{ TokenType::RIGHT_CURLY,	ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::COLON,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::COMMA,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::DOT,			ParseRule{nullptr,			nullptr,			Precedence::None}},
@@ -263,6 +269,7 @@ private:
 
 	std::unordered_map<std::string, Value>* runtimeGlobals;
 	std::unordered_map<std::string, Function>* functions;
+	std::unordered_map<std::string, Value::Struct>* runtimeStructs;
 
 	bool hadError; //did an error occure?
 	bool panicMode; //are we currently handling an error?

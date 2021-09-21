@@ -12,18 +12,20 @@ namespace Natives
 {
 	enum CombineableValueType
 	{
-		None		= 0b000000000001,
-		Int			= 0b000000000010,
-		Double		= 0b000000000100,
-		Bool		= 0b000000001000,
-		Char		= 0b000000010000,
-		String		= 0b000000100000,
-		IntArr		= 0b000001000000,
-		DoubleArr	= 0b000010000000,
-		BoolArr		= 0b000100000000,
-		CharArr		= 0b001000000000,
-		StringArr	= 0b010000000000,
-		Any			= 0b100000000000
+		None		= 0b00000000000001,
+		Int			= 0b00000000000010,
+		Double		= 0b00000000000100,
+		Bool		= 0b00000000001000,
+		Char		= 0b00000000010000,
+		String		= 0b00000000100000,
+		Struct		= 0b00000001000000,
+		IntArr		= 0b00000010000000,
+		DoubleArr	= 0b00000100000000,
+		BoolArr		= 0b00001000000000,
+		CharArr		= 0b00010000000000,
+		StringArr	= 0b00100000000000,
+		StructArr	= 0b01000000000000,
+		Any			= 0b10000000000000
 	};
 
 	bool ContainsType(CombineableValueType toCheck, ValueType type);
@@ -71,10 +73,4 @@ namespace Natives
 	Value Decke(std::vector<Value> args);
 	Value Boden(std::vector<Value> args);
 
-	//graphics stuff
-	Value ErstelleFenster(std::vector<Value> args);
-	Value SchliesseFenster(std::vector<Value> args);
-	Value MalePixel(std::vector<Value> args);
-	Value MaleRechteck(std::vector<Value> args);
-	Value TasteGedrueckt(std::vector<Value> args);
 }

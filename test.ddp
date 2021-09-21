@@ -1,30 +1,13 @@
-der Text pfad ist "test.txt".
-der Boolean existiert ist wahr wenn existiertDatei(pfad).
-schreibeZeile(existiert).
+die Struktur Test beschreibt:
+    die Zahl z,
+    der Text t,
+    der Boolean b
 
-der Text inhalt ist leseDatei(pfad).
-schreibeZeile(inhalt).
+die Struktur Test2 beschreibt:
+    die Zahl z,
+    die Test Struktur t
 
-die Zahlen inhaltbytes sind leseBytes(pfad).
-schreibeZeile(inhaltbytes).
+die Funktion foo(Test Struktur t) vom Typ Test2 Strukturen macht:
+    gib [Test2{z: 69; t: t}; Test2{z: 420}] zurück.
 
-schreibeDatei(pfad, "Tschüss Welt!").
-schreibeZeile(leseDatei(pfad)).
-
-schreibeBytes(pfad, [300; 256; -6]).
-schreibeZeile(leseBytes(pfad)).
-
-// reset
-schreibeDatei(pfad, "Hallo Welt!").
-
-bearbeiteDatei(pfad, " OK BYE!!").
-schreibeZeile(leseDatei(pfad)).
-
-// reset
-schreibeBytes(pfad, [1; 2; 3]).
-
-bearbeiteBytes(pfad, [4; 5; 6]).
-schreibeZeile(leseBytes(pfad)).
-
-// reset
-schreibeDatei(pfad, "Hallo Welt!").
+schreibeZeile(foo(Test{z: 1})).

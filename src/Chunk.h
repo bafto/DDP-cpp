@@ -7,6 +7,7 @@ enum class OpCode
 {
 	CONSTANT,
 	ARRAY, //define a array Literal at runtime
+	STRUCT, //define a struct Literal at runtime
 	NEGATE, //negate
 	NOT, //bool negate
 	ADD, //addition

@@ -21,5 +21,6 @@ private:
 
 	std::unordered_map<std::string, Value> globals;
 	std::unordered_map<std::string, Function> functions;
+	std::unordered_map<std::string, Value::Struct> structs;
 };
 
