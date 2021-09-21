@@ -15,6 +15,8 @@ Value::Value(const Value& other)
 	case ValueType::BoolArr: delete BoolArr(); break;
 	case ValueType::CharArr: delete CharArr(); break;
 	case ValueType::StringArr: delete StringArr(); break;
+	case ValueType::Struct: delete VStruct(); break;
+	case ValueType::StructArr: delete StructArr(); break;
 	default: break;
 	}
 
@@ -28,6 +30,8 @@ Value::Value(const Value& other)
 	case ValueType::BoolArr: _val = new std::vector<bool>(*BoolArr()); break;
 	case ValueType::CharArr: _val = new std::vector<short>(*CharArr()); break;
 	case ValueType::StringArr: _val = new std::vector<std::string>(*StringArr()); break;
+	case ValueType::Struct: _val = new Struct(*VStruct()); break;
+	case ValueType::StructArr: _val = new std::vector<Struct>(*StructArr()); break;
 	default: break;
 	}
 }
@@ -42,6 +46,8 @@ Value::Value(Value&& other) noexcept
 	case ValueType::BoolArr: delete BoolArr(); break;
 	case ValueType::CharArr: delete CharArr(); break;
 	case ValueType::StringArr: delete StringArr(); break;
+	case ValueType::Struct: delete VStruct(); break;
+	case ValueType::StructArr: delete StructArr(); break;
 	default: break;
 	}
 
@@ -55,6 +61,8 @@ Value::Value(Value&& other) noexcept
 	case ValueType::BoolArr: other.BoolArr() = nullptr; break;
 	case ValueType::CharArr: other.CharArr() = nullptr; break;
 	case ValueType::StringArr: other.StringArr() = nullptr; break;
+	case ValueType::Struct: other.VStruct() = nullptr; break;
+	case ValueType::StructArr: other.StructArr() = nullptr; break;
 	default: break;
 	}
 }
@@ -69,6 +77,8 @@ Value& Value::operator=(const Value& other)
 	case ValueType::BoolArr: delete BoolArr(); break;
 	case ValueType::CharArr: delete CharArr(); break;
 	case ValueType::StringArr: delete StringArr(); break;
+	case ValueType::Struct: delete VStruct(); break;
+	case ValueType::StructArr: delete StructArr(); break;
 	default: break;
 	}
 
@@ -82,6 +92,8 @@ Value& Value::operator=(const Value& other)
 	case ValueType::BoolArr: _val = new std::vector<bool>(*BoolArr()); break;
 	case ValueType::CharArr: _val = new std::vector<short>(*CharArr()); break;
 	case ValueType::StringArr: _val = new std::vector<std::string>(*StringArr()); break;
+	case ValueType::Struct: _val = new Struct(*VStruct()); break;
+	case ValueType::StructArr: _val = new std::vector<Struct>(*StructArr()); break;
 	default: break;
 	}
 	
@@ -98,6 +110,8 @@ Value& Value::operator=(Value&& other) noexcept
 	case ValueType::BoolArr: delete BoolArr(); break;
 	case ValueType::CharArr: delete CharArr(); break;
 	case ValueType::StringArr: delete StringArr(); break;
+	case ValueType::Struct: delete VStruct(); break;
+	case ValueType::StructArr: delete StructArr(); break;
 	default: break;
 	}
 
@@ -111,6 +125,8 @@ Value& Value::operator=(Value&& other) noexcept
 	case ValueType::BoolArr: other.BoolArr() = nullptr; break;
 	case ValueType::CharArr: other.CharArr() = nullptr; break;
 	case ValueType::StringArr: other.StringArr() = nullptr; break;
+	case ValueType::Struct: other.VStruct() = nullptr; break;
+	case ValueType::StructArr: other.StructArr() = nullptr; break;
 	default: break;
 	}
 
@@ -127,6 +143,8 @@ Value::~Value()
 	case ValueType::BoolArr: delete BoolArr(); break;
 	case ValueType::CharArr: delete CharArr(); break;
 	case ValueType::StringArr: delete StringArr(); break;
+	case ValueType::Struct: delete VStruct(); break;
+	case ValueType::StructArr: delete StructArr(); break;
 	default: break;
 	}
 }
@@ -185,6 +203,16 @@ Value::Value(std::vector<short> v)
 Value::Value(std::vector<std::string> v)
 	:
 	_val(new std::vector<std::string>(std::move(v)))
+{}
+
+Value::Value(Struct v)
+	:
+	_val(new Struct(std::move(v)))
+{}
+
+Value::Value(std::vector<Struct> v)
+	:
+	_val(new std::vector<Struct>(std::move(v)))
 {}
 
 ValueType Value::Type() const
@@ -253,4 +281,14 @@ std::vector<short>*& Value::CharArr()
 std::vector<std::string>*& Value::StringArr()
 {
 	return std::get<std::vector<std::string>*>(_val);
+}
+
+Value::Struct*& Value::VStruct()
+{
+	return std::get<Struct*>(_val);
+}
+
+std::vector<Value::Struct>*& Value::StructArr()
+{
+	return std::get<std::vector<Struct>*>(_val);
 }

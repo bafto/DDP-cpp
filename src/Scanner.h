@@ -39,7 +39,9 @@ enum class TokenType
 	//Typen
 	ZAHL, KOMMAZAHL, BOOLEAN, BUCHSTABE, TEXT,
 	//Arrays
-	ZAHLEN, KOMMAZAHLEN, BOOLEANS, BUCHSTABEN, TEXTE, AN, STELLE, STUECK, LEFT_SQAREBRACKET, RIGHT_SQAREBRACKET, SEMICOLON,
+	ZAHLEN, KOMMAZAHLEN, BOOLEANS, BUCHSTABEN, TEXTE, STRUKTUR, STRUKTUREN, AN, STELLE, STUECK, LEFT_SQAREBRACKET, RIGHT_SQAREBRACKET, SEMICOLON,
+	//structs
+	BESCHREIBT,
 	//bool literals
 	WAHR, FALSCH,
 	//return
@@ -184,6 +186,9 @@ private:
 		{u8"Hyperbelsinus", TokenType::SINH},
 		{u8"Hyperbelkosinus", TokenType::COSH},
 		{u8"Hyperbeltangens", TokenType::TANH},
+		{u8"Struktur", TokenType::STRUKTUR},
+		{u8"Strukturen", TokenType::STRUKTUREN},
+		{u8"beschreibt", TokenType::BESCHREIBT},
 	};
 
 	std::string::iterator start; //start of the current token

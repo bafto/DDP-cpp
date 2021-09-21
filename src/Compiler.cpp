@@ -813,6 +813,8 @@ void Compiler::declaration()
 	{
 		if (preIt->type == TokenType::DIE && match(TokenType::FUNKTION))
 			funDeclaration();
+		else if (preIt->type == TokenType::DIE && match(TokenType::STRUKTUR))
+			structDeclaration();
 		else
 			varDeclaration();
 	}
@@ -1054,6 +1056,8 @@ ValueType Compiler::tokenToValueType(TokenType type)
 	case TokenType::BOOLEANS: return ValueType::BoolArr;
 	case TokenType::BUCHSTABEN: return ValueType::CharArr;
 	case TokenType::TEXTE: return ValueType::StringArr;
+	case TokenType::STRUKTUR: return ValueType::Struct;
+	case TokenType::STRUKTUREN: return ValueType::StructArr;
 	}
 	return ValueType::None;
 }
@@ -1134,6 +1138,43 @@ void Compiler::returnStatement()
 		if (currentScopeUnit->scopeDepth == 1) currentFunction()->returned = true;
 	}
 	consume(TokenType::DOT, u8"Es wurde '.' erwartet!");
+}
+
+void Compiler::structDeclaration()
+{
+	if (currentScopeUnit->scopeDepth > 0) error(u8"Du kannst Strukturen nur im globalen Bereich definieren!");
+	consume(TokenType::IDENTIFIER, u8"Es wurde ein Struktur-Name erwartet!");
+	std::string structName = preIt->literal;
+	if (structs.count(structName) != 0)
+		error("Diese Struktur existiert bereits!");
+	std::unordered_map<std::string, ValueTypeOrStruct> stru;
+
+	consume(TokenType::BESCHREIBT, u8"Es wurde 'beschreibt' erwartet!");
+	consume(TokenType::COLON, u8"Es wurde ':' nach 'beschreibt' erwartet!");
+
+	do
+	{
+		if (!(match(TokenType::DIE) || match(TokenType::DER)))
+			error(u8"Es wurde ein Artikel erwartet!");
+		TokenType fieldToken = currIt->type;
+		std::string structType = "";
+		if (fieldToken == TokenType::IDENTIFIER)
+		{
+			consume(TokenType::IDENTIFIER, "");
+			structType = preIt->literal;
+			fieldToken = currIt->type;
+		}
+		if (!(fieldToken >= TokenType::ZAHL && fieldToken <= TokenType::STRUKTUREN))
+			error(u8"Es wurde ein Typ spezifizierer erwartet!");
+		ValueType fieldType = tokenToValueType(fieldToken);
+		advance();
+		consume(TokenType::IDENTIFIER, u8"Es wurde ein Parameter-Name erwartet!");
+		if (stru.count(preIt->literal) != 0)
+			error("Die Struktur '" + structName + "' hat bereits ein Feld mit diesem Namen!");
+		stru.insert(std::make_pair(preIt->literal, ValueTypeOrStruct{ structType, fieldType }));
+	} while (match(TokenType::COMMA));
+
+	structs.insert(std::make_pair(structName, stru));
 }
 
 void Compiler::patchJump(int offset)

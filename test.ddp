@@ -1,12 +1,9 @@
-ErstelleFenster("Test", [800; 600]).
+die Struktur Test beschreibt:
+    die Zahl x,
+    der Text z,
+    der Boolean b
 
-die Funktion MaleRechteck(Zahlen position, Zahlen größe, Zahlen farbe) macht:
-    für jede Zahl x von position an der Stelle 0 bis (position an der Stelle 0 plus größe an der Stelle 0), mache:
-        für jede Zahl y von (position an der Stelle 1) bis (position an der Stelle 1 plus größe an der Stelle 1), mache:
-            MalePixel([x; y], farbe).
-
-die Funktion Update() macht:
-    schreibeZeile("update").
-
-die Funktion Male() macht:
-    MaleRechteck([20; 20], [20; 20], [255; 0; 0]).
+die Struktur Test2 beschreibt:
+    die Zahl x,
+    die Test Strukturen t,
+    der Text z

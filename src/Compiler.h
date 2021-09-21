@@ -91,6 +91,7 @@ private:
 	ValueType tokenToValueType(TokenType type); //helper for funDeclaration
 	void funDeclaration();
 	void returnStatement();
+	void structDeclaration();
 
 	//statements where we need to jump over code
 	void patchJump(int offset);
@@ -242,6 +243,11 @@ private:
 		{ TokenType::SINH,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
 		{ TokenType::COSH,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
 		{ TokenType::TANH,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::STRUKTUR,		ParseRule{nullptr,			nullptr,			Precedence::None}},
+		{ TokenType::STRUKTUREN,	ParseRule{nullptr,			nullptr,			Precedence::None}},
+		{ TokenType::BESCHREIBT,	ParseRule{nullptr,			nullptr,			Precedence::None}},
+		{ TokenType::TANH,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
+		{ TokenType::TANH,			ParseRule{&Compiler::unary, nullptr,			Precedence::Unary}},
 		{ TokenType::ERROR,			ParseRule{nullptr,			nullptr,			Precedence::None}},
 		{ TokenType::END,			ParseRule{nullptr,			nullptr,			Precedence::None}}
 #ifdef _MDEBUG_
@@ -252,6 +258,12 @@ private:
 	const std::string filePath;
 
 	std::unordered_map<std::string, ValueType> globals;
+	struct ValueTypeOrStruct
+	{
+		std::string structIdentifier;
+		ValueType type;
+	};
+	std::unordered_map<std::string, std::unordered_map<std::string, ValueTypeOrStruct>> structs;
 
 	std::unordered_map<std::string, Value>* runtimeGlobals;
 	std::unordered_map<std::string, Function>* functions;

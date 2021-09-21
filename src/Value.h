@@ -4,6 +4,7 @@
 #include <vector>
 #include <variant>
 #include <algorithm>
+#include <unordered_map>
 
 //#pragma warning (disable : 4244)
 
@@ -21,12 +22,20 @@ enum class ValueType
 	BoolArr,
 	CharArr,
 	StringArr,
+	Struct,
+	StructArr,
 	Any, //not inside Value, only used for native functions that take any or multiple types as Arguments
 	Function, //not inside Value, but used in the compiler to indicate wether a variable is a function
 };
 
 class Value
 {
+public:
+	struct Struct
+	{
+		std::unordered_map<std::string, Value> fields;
+		std::string identifier;
+	};
 public:
 	Value(); //constructed with std::monostate
 	Value(const Value& other); //copy the resources and allocate a new pointer if necessary
@@ -45,10 +54,12 @@ public:
 	Value(std::string v);
 	Value(const char* v);
 	Value(std::vector<int> v);
-	Value( std::vector<double> v);
-	Value( std::vector<bool> v);
-	Value( std::vector<short> v);
-	Value( std::vector<std::string> v);
+	Value(std::vector<double> v);
+	Value(std::vector<bool> v);
+	Value(std::vector<short> v);
+	Value(std::vector<std::string> v);
+	Value(Struct v);
+	Value(std::vector<Struct> v);
 
 	ValueType Type() const; //return the current type of the variant
 
@@ -150,6 +161,50 @@ public:
 			ostr << vec->at(vec->size() - 1) << u8"\"]";
 			break;
 		}
+		case ValueType::Struct:
+		{
+			Struct*& s = this->VStruct();
+			if (s->fields.empty())
+			{
+				ostr << u8"{}";
+				return;
+			}
+			ostr << u8"{";
+			size_t i = s->fields.size();
+			auto itt = s->fields.begin();
+			for (auto it = s->fields.begin(); i > 1; it++, i--)
+			{
+				ostr << it->first << u8": ";
+				it->second.print(ostr);
+				ostr << u8"; ";
+				if (i < 2)
+				{
+					itt = it;
+				}
+			}
+			ostr << itt->first << u8": ";
+			itt->second.print(ostr);
+			ostr << u8"}";
+			break;
+		}
+		case ValueType::StructArr:
+		{
+			std::vector<Struct>*& sarr = this->StructArr();
+			if (sarr->empty())
+			{
+				ostr << u8"[]";
+				return;
+			}
+			ostr << u8"[\"";
+			for (int i = 0; i < (int)sarr->size() - 1; i++)
+			{
+				Value(sarr->at(i)).print(ostr);
+				ostr << u8"\"; \"";
+			}
+			Value(sarr->at(sarr->size() - 1)).print(ostr);
+			ostr << u8"\"]";
+			break;
+		}
 		default: ostr << "Invalid type!\n"; break;
 		}
 	}
@@ -165,6 +220,8 @@ public:
 	std::vector<bool>*& BoolArr();
 	std::vector<short>*& CharArr();
 	std::vector<std::string>*& StringArr();
+	Struct*& VStruct();
+	std::vector<Struct>*& StructArr();
 private:
 	std::variant<
 		std::monostate,
@@ -177,7 +234,9 @@ private:
 		std::vector<double>*,
 		std::vector<bool>*,
 		std::vector<short>*,
-		std::vector<std::string>*
+		std::vector<std::string>*,
+		Struct*,
+		std::vector<Struct>*
 	> _val;
 };
 
