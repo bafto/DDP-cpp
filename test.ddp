@@ -1,10 +1,1 @@
-die Struktur Test beschreibt:
-    Zahl z ist 7,
-    Text t ist "hu",
-    Boolean b ist wahr
-
-die Struktur Test2 beschreibt:
-    Zahl z ist 69,
-    Test Struktur t ist Test{}
-
-schreibeZeile(Test2{}).
+schreibeZeile(1,00001).

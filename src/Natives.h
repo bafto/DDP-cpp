@@ -73,4 +73,7 @@ namespace Natives
 	Value Decke(std::vector<Value> args);
 	Value Boden(std::vector<Value> args);
 
+	Value ZufaelligeZahlNative(std::vector<Value> args);
+	Value ZufaelligeKommazahlNative(std::vector<Value> args);
+
 }

@@ -8,6 +8,7 @@
 #include <streambuf>
 #include "Function.h"
 #include <filesystem>
+#include <random>
 
 #pragma warning (disable : 26812)
 
@@ -531,6 +532,28 @@ namespace Natives
 	Value Boden(std::vector<Value> args)
 	{
 		return Value(std::floor(args.at(0).Double()));
+	}
+
+	Value ZufaelligeZahlNative(std::vector<Value> args)
+	{
+		int v1 = args.at(0).Int();
+		int v2 = args.at(1).Int();
+
+		std::random_device dev;
+		std::mt19937 rng(dev());
+		std::uniform_int_distribution uni(v1, v2);
+		return Value(uni(rng));
+	}
+
+	Value ZufaelligeKommazahlNative(std::vector<Value> args)
+	{
+		double v1 = args.at(0).Double();
+		double v2 = args.at(1).Double();
+
+		std::random_device dev;
+		std::mt19937 rng(dev());
+		std::uniform_real_distribution<double> uni(v1, v2);
+		return Value(uni(rng));
 	}
 
 }

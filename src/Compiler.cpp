@@ -136,6 +136,11 @@ void Compiler::makeNatives()
 	addNative("Rund", Type::Double, { ty::Double }, &Natives::Rund);
 	addNative("Decke", Type::Double, { ty::Double }, &Natives::Decke);
 	addNative("Boden", Type::Double, { ty::Double }, &Natives::Boden);
+
+	addNative(u8"ZufälligeZahl", Type::Int, { ty::Int, ty::Int }, &Natives::ZufaelligeZahlNative);
+	addNative(u8"ZufaelligeZahl", Type::Int, { ty::Int, ty::Int }, &Natives::ZufaelligeZahlNative);
+	addNative(u8"ZufälligeKommazahl", Type::Double, { ty::Double, ty::Double }, &Natives::ZufaelligeKommazahlNative);
+	addNative(u8"ZufaelligeKommazahl", Type::Double, { ty::Double, ty::Double }, &Natives::ZufaelligeKommazahlNative);
 }
 
 void Compiler::addNative(std::string name, Type returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native)
@@ -1222,6 +1227,7 @@ void Compiler::structDeclaration()
 	consume(TokenType::COLON, u8"Es wurde ':' nach 'beschreibt' erwartet!");
 
 	int i = 0;
+	loopStart:
 	do
 	{
 		TokenType fieldToken = currIt->type;
@@ -1233,12 +1239,17 @@ void Compiler::structDeclaration()
 			if (structType == structName)
 			{
 				error(u8"Eine Struktur kann sich nicht selbst enthalten!");
-				continue;
+				advance();
+				goto loopStart; //nothing to see here, just an italian cooking
 			}
 			fieldToken = currIt->type;
 		}
 		if (!(fieldToken >= TokenType::ZAHL && fieldToken <= TokenType::STRUKTUREN))
-			error(u8"Es wurde ein Typ spezifizierer erwartet!");
+		{
+			error(u8"Es wurde ein Typ spezifizierer erwartet!", currIt);
+			advance();
+			goto loopStart; //nothing to see here, just an italian cooking
+		}
 		ValueType fieldType = tokenToValueType(fieldToken);
 		fieldType.structIdentifier = structType;
 		advance();
