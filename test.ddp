@@ -1,1 +1,20 @@
-schreibeZeile(1,00001).
+die Struktur Test beschreibt:
+    Zahlen x sind [6; 9]
+
+die Struktur Test2 beschreibt:
+    Zahl y ist 3,
+    Test Struktur t ist Test{}
+
+die Struktur Test3 beschreibt:
+    Zahl z ist 1,
+    Test2 Struktur t2 ist Test2{}
+
+die Test3 Struktur t3 ist Test3{ t2: Test2{ t: Test{ x: [3; 2; 7] } } }.
+
+wenn wahr, dann:
+    die Test3 Struktur t3 ist Test3{}.
+    x von t von t2 von t3 sind [4; 2; 0].
+    schreibeZeile(x von t von t2 von t3).
+
+x von t von t2 von t3 sind [2].
+schreibeZeile(x von t von t2 von t3).

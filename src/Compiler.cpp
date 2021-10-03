@@ -342,11 +342,12 @@ ValueType Compiler::arrLiteral(bool canAssign)
 
 ValueType Compiler::structLiteral(bool canAssign)
 {
+	std::string structName = calledFuncName;
 	if (match(TokenType::RIGHT_CURLY))
 	{
-		emitBytes(op::STRUCT, makeConstant(calledFuncName));
+		emitBytes(op::STRUCT, makeConstant(structName));
 		emitByte(makeConstant(0));
-		return ValueType(calledFuncName, Type::Struct);
+		return ValueType(structName, Type::Struct);
 	}
 
 	int i = 1;
@@ -354,14 +355,14 @@ ValueType Compiler::structLiteral(bool canAssign)
 	{
 		consume(TokenType::IDENTIFIER, "Es wurde ein Feld-Name erwartet!");
 		std::string fieldName = preIt->literal;
-		if (fieldName == calledFuncName)
+		if (fieldName == structName)
 			error(u8"Eine Struktur kann sich nicht selbst als Feld haben!");
 		emitConstant(Value(fieldName));
 		consume(TokenType::COLON, "Es wurde ein ':' erwartet!");
 		ValueType rhs = expression();
-		if (structs.at(calledFuncName).count(fieldName) == 0)
-			error(u8"Die Struktur '" + calledFuncName + u8"' enthält kein Feld mit dem Namen '" + fieldName + u8"'!");
-		if (rhs != structs.at(calledFuncName).at(fieldName))
+		if (structs.at(structName).count(fieldName) == 0)
+			error(u8"Die Struktur '" + structName + u8"' enthält kein Feld mit dem Namen '" + fieldName + u8"'!");
+		if (rhs != structs.at(structName).at(fieldName))
 			error(u8"Der Typ stimmt nicht mit dem Typ des Feldes überein!");
 		if (match(TokenType::RIGHT_CURLY))
 			break;
@@ -369,9 +370,9 @@ ValueType Compiler::structLiteral(bool canAssign)
 		i++;
 	}
 
-	emitBytes(op::STRUCT, makeConstant(calledFuncName));
+	emitBytes(op::STRUCT, makeConstant(structName));
 	emitByte(makeConstant(i));
-	return ValueType(calledFuncName, Type::Struct);
+	return ValueType(structName, Type::Struct);
 }
 
 ValueType Compiler::Literal(bool canAssign)
@@ -721,10 +722,135 @@ std::pair<int, ValueType> Compiler::getLocal(std::string name)
 	return std::make_pair(-1, Type::None);
 }
 
+ValueType Compiler::memberAccess(bool canAssign, std::string memberName)
+{
+	std::vector<std::string> member; //chain of members like x von y von z where x is memberName and y and z will be in member
+	do
+	{
+		if (!match(TokenType::IDENTIFIER))
+		{
+			error(u8"Das Token '" + currIt->literal + "' ist kein Struktur identifizierer!");
+			return ValueType(Type::None);
+		}
+		member.push_back(preIt->literal);
+	} while (match(TokenType::VON));
+
+	std::string varName = member.back();
+	member.pop_back();
+
+	auto pair = getLocal(varName); //pair of unit and type
+	int local = pair.first;
+	ValueType type = pair.second;
+	OpCode getOp, setOp;
+	if (local != -1)
+	{
+		getOp = op::GET_MEMBER_LOCAL;
+		setOp = op::SET_MEMBER_LOCAL;
+	}
+	else
+	{
+		if (globals.count(varName) == 0)
+		{
+			error(u8"Die globale Variable '" + varName + u8"' wurde noch nicht definiert!");
+			return Type::None;
+		}
+		getOp = op::GET_MEMBER_GLOBAL;
+		setOp = op::SET_MEMBER_GLOBAL;
+		type = globals.at(varName);
+	}
+	if (type.type != Type::Struct)
+	{
+		error(u8"Die Variable '" + varName + u8"' ist keine Struktur!");
+		return Type::None;
+	}
+
+	ValueType lastType = type;
+	for (auto it = member.rbegin(); it != member.rend(); it++)
+	{
+		if (structs.at(lastType.structIdentifier).count(*it) == 0)
+		{
+			error(u8"'" + *it + u8"' ist keine Eigenschaft von '" + lastType.structIdentifier + u8"'!");
+			return Type::None;
+		}
+		lastType = structs.at(lastType.structIdentifier).at(*it);
+	}
+	if (structs.at(lastType.structIdentifier).count(memberName) == 0)
+	{
+		error(u8"'" + memberName + u8"' ist keine Eigenschaft von '" + lastType.structIdentifier + u8"'!");
+		return Type::None;
+	}
+	lastType = structs.at(lastType.structIdentifier).at(memberName);
+
+	if (canAssign && match(TokenType::IST))
+	{
+		ValueType expr = Type::None;
+		if (isArr(lastType))
+			error(u8"Bei einer Array Zuweisung muss 'sind' anstatt 'ist' stehen!");
+		if (lastType.type == Type::Bool)
+			expr = boolAssignement();
+		else
+			expr = expression();
+		if (expr != lastType)
+			error(u8"Falscher Zuweisungs Typ!");
+		emitBytes(setOp, makeConstant(varName));
+		if (setOp == op::SET_MEMBER_LOCAL)
+			emitByte(makeConstant(local));
+		emitByte(makeConstant(memberName));
+		emitByte(member.size());
+		for (auto it = member.rbegin(); it != member.rend(); it++)
+		{
+			emitByte(makeConstant(*it));
+		}
+	}
+	else if (canAssign && match(TokenType::SIND))
+	{
+		if (!isArr(lastType))
+			error(u8"Bei einer Variablen zuweisung muss 'ist' anstatt 'sind' stehen!");
+		ValueType expr = expression();
+		if (expr != lastType)
+			error(u8"Falscher Zuweisungs Typ!");
+		emitBytes(setOp, makeConstant(varName));
+		if (setOp == op::SET_MEMBER_LOCAL)
+			emitByte(makeConstant(local));
+		emitByte(makeConstant(memberName));
+		emitByte(member.size());
+		for (auto it = member.rbegin(); it != member.rend(); it++)
+		{
+			emitByte(makeConstant(*it));
+		}
+	}
+	else if (match(TokenType::AN))
+	{
+		if (!isArr(lastType))
+			error(u8"Es können nur Arrays indexiert werden!");
+		index(canAssign, varName, lastType, local);
+		lastType = lastEmittedType;
+	}
+	else
+	{
+		emitBytes(getOp, makeConstant(varName));
+		if (setOp == op::SET_MEMBER_LOCAL)
+			emitByte(makeConstant(local));
+		emitByte(makeConstant(memberName));
+		emitByte(member.size());
+		for (auto it = member.rbegin(); it != member.rend(); it++)
+		{
+			emitByte(makeConstant(*it));
+		}
+	}
+	lastEmittedType = lastType;
+	return lastType;
+}
+
 ValueType Compiler::variable(bool canAssign)
 {
 	std::string varName = preIt->literal;
-	if (functions->count(varName) == 1)
+	if (currIt->type == TokenType::VON)
+	{
+		advance(); //set currIt to the second identifier
+		return memberAccess(canAssign, varName);
+	}
+	else if (functions->count(varName) == 1)
 	{
 		calledFuncName = varName;
 		return Type::Function;

@@ -145,6 +145,7 @@ private:
 	[[nodiscard]] ValueType and_(bool canAssign);
 	[[nodiscard]] ValueType or_(bool canAssign);
 	[[nodiscard]] std::pair<int, ValueType> getLocal(std::string name); //return the ScopeUnit identifier the local is in. Returns -1 if not found
+	[[nodiscard]] ValueType memberAccess(bool canAssign, std::string varName); //helper vor variable to handle struct member access
 	[[nodiscard]] ValueType variable(bool canAssign);
 	void index(bool canAssign, std::string arrName, ValueType type, int local); //helper for variable to handle array indexing
 	[[nodiscard]] ValueType call(bool canAssign);

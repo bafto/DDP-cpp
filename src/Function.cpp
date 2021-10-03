@@ -547,11 +547,38 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			push(globals->at(varName));
 			break;
 		}
+		case op::GET_MEMBER_GLOBAL:
+		{
+			std::string varName = *readConstant().String();
+			std::string memberName = *readConstant().String();
+			uint8_t n = readByte();
+			Value struc = globals->at(varName);
+			for (int i = 0; i < n; i++)
+			{
+				struc = struc.VStruct()->fields.at(*readConstant().String());
+			}
+			push(struc.VStruct()->fields.at(memberName));
+			break;
+		}
 		case op::GET_LOCAL:
 		{
 			std::string varName = *readConstant().String();
 			int unit = readConstant().Int();
 			push(locals.at(unit).at(varName));
+			break;
+		}
+		case op::GET_MEMBER_LOCAL:
+		{
+			std::string varName = *readConstant().String();
+			int unit = readConstant().Int();
+			std::string memberName = *readConstant().String();
+			uint8_t n = readByte();
+			Value struc = locals.at(unit).at(varName);
+			for (int i = 0; i < n; i++)
+			{
+				struc = struc.VStruct()->fields.at(*readConstant().String());
+			}
+			push(struc.VStruct()->fields.at(memberName));
 			break;
 		}
 		case op::GET_ARRAY_ELEMENT:
@@ -591,11 +618,38 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			(*globals)[varName] = std::move(peek(0));
 			break;
 		}
+		case op::SET_MEMBER_GLOBAL:
+		{
+			std::string varName = *readConstant().String();
+			std::string memberName = *readConstant().String();
+			uint8_t n = readByte();
+			Value struc = globals->at(varName);
+			for (int i = 0; i < n; i++)
+			{
+				struc = struc.VStruct()->fields.at(*readConstant().String());
+			}
+			struc.VStruct()->fields[memberName] = peek(0);
+			break;
+		}
 		case op::SET_LOCAL:
 		{
 			std::string varName = *readConstant().String();
 			int unit = readConstant().Int();
 			(locals[unit])[varName] = std::move(peek(0));
+			break;
+		}
+		case op::SET_MEMBER_LOCAL:
+		{
+			std::string varName = *readConstant().String();
+			int unit = readConstant().Int();
+			std::string memberName = *readConstant().String();
+			uint8_t n = readByte();
+			Value struc = locals.at(unit).at(varName);
+			for (int i = 0; i < n; i++)
+			{
+				struc = struc.VStruct()->fields.at(*readConstant().String());
+			}
+			struc.VStruct()->fields[memberName] = peek(0);
 			break;
 		}
 		case op::SET_ARRAY_ELEMENT:
@@ -706,7 +760,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			break;
 		}
 #endif
-		default: throw runtime_error(u8"Unknown byte instruction!");
+		default: throw runtime_error(u8"Falsch generierter Byte-code!");
 			break;
 		}
 	}

@@ -9,6 +9,10 @@ enum class OpCode
 	ARRAY, //define a array Literal at runtime
 	DEFINE_STRUCT, //set the default Values
 	STRUCT, //define a struct Literal at runtime
+	GET_MEMBER_GLOBAL, //get a member of a global struct variable
+	GET_MEMBER_LOCAL, //get a member of a local struct variable
+	SET_MEMBER_GLOBAL, //set a member of a global struct variable
+	SET_MEMBER_LOCAL, //get a member of a local struct variable
 	NEGATE, //negate
 	NOT, //bool negate
 	ADD, //addition

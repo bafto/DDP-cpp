@@ -52,7 +52,7 @@ public:
 	std::vector<Natives::CombineableValueType> nativeArgs; //the types of the arguments the function takes if it is a native. only used at compile time
 private:
 	//Stuff needed during runtime, be carefull here, this should only be touched through it's getter functions
-	static constexpr size_t StackMax = UINT8_MAX + 1; //the maximum count of the stack
+	static constexpr size_t StackMax = 1024; //the maximum count of the stack
 	std::array<Value, StackMax> stack; //the value stack
 	std::array<Value, StackMax>::iterator stackTop; //iterator to the current top of the stack
 
