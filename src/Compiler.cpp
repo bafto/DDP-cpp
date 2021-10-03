@@ -1251,8 +1251,6 @@ void Compiler::funDeclaration()
 	std::string funcName = preIt->literal;
 	if (functions->count(funcName) == 1)
 		error(u8"Eine Funktion mit diesem Namen existiert bereits!");
-	else if (structs.count(funcName) == 1)
-		error(u8"Diese Funktion würde den Konstruktor einer Struktur überschreiben!");
 	Function function;
 	ScopeUnit unit(currentScopeUnit, &function);
 	currentScopeUnit = &unit;
@@ -1291,9 +1289,17 @@ void Compiler::funDeclaration()
 		if (match(TokenType::IDENTIFIER))
 		{
 			currentFunction()->returnType.structIdentifier = preIt->literal;
+			if (!match(TokenType::STRUKTUR))
+				consume(TokenType::STRUKTUREN, u8"Es wurde 'Struktur' oder 'Strukturen' erwartet!");
+			currentFunction()->returnType.type = tokenToValueType(preIt->type).type;
 		}
-		currentFunction()->returnType.type = tokenToValueType(currIt->type).type;
-		advance();
+		else
+		{
+			advance();
+			currentFunction()->returnType.type = tokenToValueType(preIt->type).type;
+			if (currentFunction()->returnType.type == Type::None)
+				error(u8"Es wurde ein Typspezifizierer erwartet!");
+		}
 	}
 	consume(TokenType::MACHT, u8"Es wurde 'macht' erwartet!");
 	consume(TokenType::COLON, "Es wurde ein ':' erwartet!");
