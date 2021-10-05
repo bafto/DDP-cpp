@@ -90,6 +90,7 @@ Value Compiler::GetDefaultValue(ValueType type)
 	case Type::StringArr: return Value(std::vector<std::string>());
 	case Type::StructArr: return Value(std::vector<Value::Struct>());
 	}
+	return Value();
 }
 
 void Compiler::makeNatives()
@@ -155,16 +156,16 @@ void Compiler::addNative(std::string name, Type returnType, std::vector<Natives:
 	functions->insert(std::make_pair(name, std::move(func)));
 }
 
-uint8_t Compiler::makeConstant(Value value)
+uint16_t Compiler::makeConstant(Value value)
 {
 	lastEmittedType = ValueType(value.type());
 	size_t constant = currentChunk()->addConstant(std::move(value));
-	if (constant > UINT8_MAX) {
+	if (constant > UINT16_MAX) {
 		error(u8"Zu viele Konstanten in diesem Chunk!");
 		return -1;
 	}
 
-	return (uint8_t)constant;
+	return (uint16_t)constant;
 }
 
 void Compiler::error(std::string msg, std::vector<Token>::iterator where)
@@ -333,7 +334,7 @@ ValueType Compiler::arrLiteral(bool canAssign)
 		}
 		i++;
 	}
-	emitBytes(op::ARRAY, makeConstant(Value(i)));
+	emitByte(op::ARRAY); emitShort(makeConstant(Value(i)));
 	lastEmittedType = arrType;
 	lastEmittedType.type = ((Type)((int)arrType.type + 6));
 	emitByte((uint8_t)lastEmittedType.type);
@@ -345,8 +346,8 @@ ValueType Compiler::structLiteral(bool canAssign)
 	std::string structName = calledFuncName;
 	if (match(TokenType::RIGHT_CURLY))
 	{
-		emitBytes(op::STRUCT, makeConstant(structName));
-		emitByte(makeConstant(0));
+		emitByte(op::STRUCT); emitShort(makeConstant(structName));
+		emitShort(makeConstant(0));
 		return ValueType(structName, Type::Struct);
 	}
 
@@ -370,8 +371,8 @@ ValueType Compiler::structLiteral(bool canAssign)
 		i++;
 	}
 
-	emitBytes(op::STRUCT, makeConstant(structName));
-	emitByte(makeConstant(i));
+	emitByte(op::STRUCT); emitShort(makeConstant(structName));
+	emitShort(makeConstant(i));
 	return ValueType(structName, Type::Struct);
 }
 
@@ -758,9 +759,9 @@ ValueType Compiler::memberAccess(bool canAssign, std::string memberName)
 		setOp = op::SET_MEMBER_GLOBAL;
 		type = globals.at(varName);
 	}
-	if (type.type != Type::Struct)
+	if (type.type != Type::Struct && type.type != Type::StructArr)
 	{
-		error(u8"Die Variable '" + varName + u8"' ist keine Struktur!");
+		error(u8"Die Variable '" + varName + u8"' ist keine Struktur und kein Strukturen Array!");
 		return Type::None;
 	}
 
@@ -781,6 +782,20 @@ ValueType Compiler::memberAccess(bool canAssign, std::string memberName)
 	}
 	lastType = structs.at(lastType.structIdentifier).at(memberName);
 
+
+	auto emitGetSet = [&](OpCode code) 
+	{
+		emitByte(code); emitShort(makeConstant(varName));
+		if (setOp == op::SET_MEMBER_LOCAL)
+			emitShort(makeConstant(local));
+		emitShort(makeConstant(memberName));
+		if (member.size() > UINT8_MAX)
+			error(u8"Du kannst Strukturen nicht tiefer als 255 mal verschachteln!");
+		emitByte((uint8_t)member.size());
+		for (auto it = member.rbegin(); it != member.rend(); it++)
+			emitShort(makeConstant(*it));
+	};
+
 	if (canAssign && match(TokenType::IST))
 	{
 		ValueType expr = Type::None;
@@ -792,15 +807,7 @@ ValueType Compiler::memberAccess(bool canAssign, std::string memberName)
 			expr = expression();
 		if (expr != lastType)
 			error(u8"Falscher Zuweisungs Typ!");
-		emitBytes(setOp, makeConstant(varName));
-		if (setOp == op::SET_MEMBER_LOCAL)
-			emitByte(makeConstant(local));
-		emitByte(makeConstant(memberName));
-		emitByte(member.size());
-		for (auto it = member.rbegin(); it != member.rend(); it++)
-		{
-			emitByte(makeConstant(*it));
-		}
+		emitGetSet(setOp);
 	}
 	else if (canAssign && match(TokenType::SIND))
 	{
@@ -809,34 +816,19 @@ ValueType Compiler::memberAccess(bool canAssign, std::string memberName)
 		ValueType expr = expression();
 		if (expr != lastType)
 			error(u8"Falscher Zuweisungs Typ!");
-		emitBytes(setOp, makeConstant(varName));
-		if (setOp == op::SET_MEMBER_LOCAL)
-			emitByte(makeConstant(local));
-		emitByte(makeConstant(memberName));
-		emitByte(member.size());
-		for (auto it = member.rbegin(); it != member.rend(); it++)
-		{
-			emitByte(makeConstant(*it));
-		}
+		emitGetSet(setOp);
 	}
 	else if (match(TokenType::AN))
 	{
-		if (!isArr(lastType))
-			error(u8"Es können nur Arrays indexiert werden!");
-		index(canAssign, varName, lastType, local);
-		lastType = lastEmittedType;
+		if (type.type != Type::StructArr)
+			error("'" + varName + "' ist kein Strukturen Array!");
+
+
+		error(u8"Noch nicht implementiert!");
 	}
 	else
 	{
-		emitBytes(getOp, makeConstant(varName));
-		if (setOp == op::SET_MEMBER_LOCAL)
-			emitByte(makeConstant(local));
-		emitByte(makeConstant(memberName));
-		emitByte(member.size());
-		for (auto it = member.rbegin(); it != member.rend(); it++)
-		{
-			emitByte(makeConstant(*it));
-		}
+		emitGetSet(getOp);
 	}
 	lastEmittedType = lastType;
 	return lastType;
@@ -892,9 +884,9 @@ ValueType Compiler::variable(bool canAssign)
 			expr = expression();
 		if (expr != type)
 			error(u8"Falscher Zuweisungs Typ!");
-		emitBytes(setOp, makeConstant(varName));
+		emitByte(setOp); emitShort(makeConstant(varName));
 		if (setOp == op::SET_LOCAL)
-			emitByte(makeConstant(local));
+			emitShort(makeConstant(local));
 	}
 	else if (canAssign && match(TokenType::SIND))
 	{
@@ -903,9 +895,9 @@ ValueType Compiler::variable(bool canAssign)
 		ValueType expr = expression();
 		if (expr != type)
 			error(u8"Falscher Zuweisungs Typ!");
-		emitBytes(setOp, makeConstant(varName));
+		emitByte(setOp); emitShort(makeConstant(varName));
 		if (setOp == op::SET_LOCAL)
-			emitByte(makeConstant(local));
+			emitShort(makeConstant(local));
 	}
 	else if (match(TokenType::AN))
 	{
@@ -916,9 +908,9 @@ ValueType Compiler::variable(bool canAssign)
 	}
 	else
 	{
-		emitBytes(getOp, makeConstant(varName));
+		emitByte(getOp); emitShort(makeConstant(varName));
 		if (setOp == op::SET_LOCAL)
-			emitByte(makeConstant(local));
+			emitShort(makeConstant(local));
 	}
 	lastEmittedType = type;
 	return type;
@@ -944,15 +936,15 @@ void Compiler::index(bool canAssign, std::string arrName, ValueType type, int lo
 			expr = expression();
 		if (expr != elementType)
 			error(u8"Falscher Zuweisungs Typ!");
-		emitBytes(setOp, makeConstant(arrName));
+		emitByte(setOp); emitShort(makeConstant(arrName));
 		if (setOp == op::SET_ARRAY_ELEMENT_LOCAL)
-			emitByte(makeConstant(local));
+			emitShort(makeConstant(local));
 	}
 	else
 	{
-		emitBytes(getOp, makeConstant(arrName));
+		emitByte(getOp); emitShort(makeConstant(arrName));
 		if (getOp == op::GET_ARRAY_ELEMENT_LOCAL)
-			emitByte(makeConstant(local));
+			emitShort(makeConstant(local));
 	}
 	lastEmittedType = elementType;
 }
@@ -994,7 +986,7 @@ ValueType Compiler::call(bool canAssign)
 		error(u8"Zu wenige Argumente beim Funktions Aufruf!");
 	consume(TokenType::RIGHT_PAREN, u8"Es wurde eine ')' beim Funktions Aufruf erwartet!");
 
-	emitBytes(op::CALL, makeConstant(Value(funcName)));
+	emitByte(op::CALL); emitShort(makeConstant(Value(funcName)));
 	lastEmittedType = func->returnType;
 	return func->returnType;
 }
@@ -1219,9 +1211,9 @@ void Compiler::varDeclaration()
 		error(u8"Eine Variable muss immer definiert werden!");
 	consume(TokenType::DOT, u8"Es fehlt ein Punkt nach einer Variablen Definition!");
 
-	emitBytes(defineCode, makeConstant(Value(varName)));
+	emitByte(defineCode); emitShort(makeConstant(Value(varName)));
 	if (defineCode == op::DEFINE_LOCAL)
-		emitByte(makeConstant(Value(unit)));
+		emitShort(makeConstant(Value(unit)));
 }
 
 ValueType Compiler::tokenToValueType(TokenType type)
@@ -1396,13 +1388,15 @@ void Compiler::structDeclaration()
 		if (expr != fieldType)
 			error(u8"Der Standard Wert stimmt nicht mit dem Typ des Feldes überein!");
 		i++;
-	} while (match(TokenType::COMMA));
+	} while (match(TokenType::COMMA) && currIt->depth != 0);
+	if (preIt->type == TokenType::COMMA)
+		error(u8"Es fehlen weitere Felder! Wolltest du das Komma weglassen?");
 
 	if (stru.empty())
 		error(u8"Du darfst keine leeren Strukturen definieren!");
 
-	emitBytes(op::DEFINE_STRUCT, makeConstant(structName));
-	emitByte(makeConstant(i));
+	emitByte(op::DEFINE_STRUCT); emitShort(makeConstant(structName));
+	emitShort(makeConstant(i));
 
 	structs.insert(std::make_pair(structName, stru));
 }
@@ -1476,15 +1470,15 @@ void Compiler::forStatement()
 	consume(TokenType::IDENTIFIER, u8"Es wurde ein Variablen-Name erwartet!");
 	std::string localName = preIt->literal;
 	int localNameConstant = makeConstant(localName);
-	uint8_t unitConstant = makeConstant(currentScopeUnit->identifier);
+	uint16_t unitConstant = makeConstant(currentScopeUnit->identifier);
 	addLocal(localName, Type::Int);
 	consume(TokenType::VON, u8"Es wurde ein 'von' erwartet!");
 
 	ValueType expr = expression();
 	if (expr.type != Type::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
 
-	emitBytes(op::SET_LOCAL, localNameConstant);
-	emitByte(unitConstant);
+	emitByte(op::SET_LOCAL); emitShort(localNameConstant);
+	emitShort(unitConstant);
 	emitByte(op::POP);
 
 	consume(TokenType::BIS, u8"Es wurde ein 'bis' erwartet!");
@@ -1493,7 +1487,7 @@ void Compiler::forStatement()
 	int conditionLoop = static_cast<int>(currentChunk()->bytes.size());
 	
 	emitBytes(op::GET_LOCAL, localNameConstant);
-	emitByte(unitConstant);
+	emitShort(unitConstant);
 
 	expr = expression();
 	if (expr.type != Type::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
@@ -1514,11 +1508,11 @@ void Compiler::forStatement()
 		expr = expression();
 		if (expr.type != Type::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
 		emitBytes(op::GET_LOCAL, localNameConstant);
-		emitByte(unitConstant);
+		emitShort(unitConstant);
 		emitByte(op::ADD);
 
 		emitBytes(op::SET_LOCAL, localNameConstant);
-		emitByte(unitConstant);
+		emitShort(unitConstant);
 		emitByte(op::POP);
 
 		emitLoop(conditionLoop);
@@ -1527,10 +1521,10 @@ void Compiler::forStatement()
 	{
 		emitConstant(Value(1));
 		emitBytes(op::GET_LOCAL, localNameConstant);
-		emitByte(unitConstant);
+		emitShort(unitConstant);
 		emitByte(op::ADD);
 		emitBytes(op::SET_LOCAL, localNameConstant);
-		emitByte(unitConstant);
+		emitShort(unitConstant);
 		emitByte(op::POP);
 
 		emitLoop(conditionLoop);

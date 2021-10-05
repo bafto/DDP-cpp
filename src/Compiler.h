@@ -29,8 +29,9 @@ private:
 	void emitByte(OpCode code) { currentChunk()->write(code); };
 	void emitBytes(uint8_t byte1, uint8_t byte2) { emitByte(byte1); emitByte(byte2); };
 	void emitBytes(OpCode code, uint8_t byte) { emitByte(code); emitByte(byte); };
+	void emitShort(uint16_t sh) { emitByte((sh >> 8) & 0xff); emitByte(sh & 0xff); };
 	void emitReturn() { emitByte(OpCode::RETURN); };
-	void emitConstant(Value value) { emitBytes(OpCode::CONSTANT, makeConstant(std::move(value))); };
+	void emitConstant(Value value) { emitByte(OpCode::CONSTANT);  emitShort(makeConstant(std::move(value))); };
 	int emitJump(OpCode code) { emitByte(code); emitBytes(0xff, 0xff); return static_cast<int>(currentChunk()->bytes.size() - 2); };
 	void emitLoop(int loopStart)
 	{
@@ -42,7 +43,7 @@ private:
 		emitByte(offset & 0xff);
 	}
 
-	uint8_t makeConstant(Value value); //add a constant to the current chunk and return its index
+	uint16_t makeConstant(Value value); //add a constant to the current chunk and return its index
 
 	void error(std::string msg, std::vector<Token>::iterator where);
 	void error(std::string msg);

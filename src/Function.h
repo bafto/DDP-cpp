@@ -53,8 +53,8 @@ public:
 private:
 	//Stuff needed during runtime, be carefull here, this should only be touched through it's getter functions
 	static constexpr size_t StackMax = 1024; //the maximum count of the stack
-	std::array<Value, StackMax> stack; //the value stack
-	std::array<Value, StackMax>::iterator stackTop; //iterator to the current top of the stack
+	std::vector<Value> stack; //the value stack
+	std::vector<Value>::iterator stackTop; //iterator to the current top of the stack
 
 	std::vector<uint8_t>::iterator ip; //instruction pointer to the current byte in the chunk
 

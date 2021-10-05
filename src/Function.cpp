@@ -28,6 +28,8 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 	this->functions = functions;
 	this->structs = structs;
 
+	stack.resize(StackMax);
+
 	stackTop = stack.begin();
 	ip = chunk.bytes.begin();
 
@@ -814,7 +816,7 @@ uint16_t Function::readShort()
 
 Value Function::readConstant()
 {
-	return chunk.constants[readByte()];
+	return chunk.constants[readShort()];
 }
 
 void Function::addition()

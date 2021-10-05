@@ -1,20 +1,14 @@
 die Struktur Test beschreibt:
-    Zahlen x sind [6; 9]
+    Zahl x ist 69
 
 die Struktur Test2 beschreibt:
-    Zahl y ist 3,
+    Text y ist "hi",
     Test Struktur t ist Test{}
 
 die Struktur Test3 beschreibt:
     Zahl z ist 1,
     Test2 Struktur t2 ist Test2{}
 
-die Test3 Struktur t3 ist Test3{ t2: Test2{ t: Test{ x: [3; 2; 7] } } }.
+die Test3 Strukturen tests sind [Test3{}; Test3{}].
 
-wenn wahr, dann:
-    die Test3 Struktur t3 ist Test3{}.
-    x von t von t2 von t3 sind [4; 2; 0].
-    schreibeZeile(x von t von t2 von t3).
-
-x von t von t2 von t3 sind [2].
-schreibeZeile(x von t von t2 von t3).
+//schreibeZeile(y von t2 von tests an der Stelle 0).
