@@ -136,6 +136,18 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 				push(Value(std::move(vec)));
 				break;
 			}
+			case Type::StructArr:
+			{
+				std::vector<Value::Struct> vec;
+				vec.reserve(size);
+				for (int i = 0; i < size; i++)
+				{
+					vec.push_back(*pop().VStruct());
+				}
+				std::reverse(vec.begin(), vec.end());
+				push(Value(std::move(vec)));
+				break;
+			}
 			}
 			break;
 		}
@@ -507,8 +519,10 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			std::string varName = *readConstant().String();
 			Value val = pop();
 			Type varType = globals->at(varName).type();
-			if ((int)varType >= (int)Type::IntArr && (int)varType <= (int)Type::StringArr && val.type() == Type::Int)
+			if ((int)varType >= (int)Type::IntArr && (int)varType <= (int)Type::StructArr && val.type() == Type::Int)
 			{
+				if (val.Int() <= 0)
+					throw runtime_error(u8"Ein Array muss mindestens 1 Element enthalten!");
 				switch (varType)
 				{
 				case Type::IntArr: val = Value(std::vector<int>(val.Int(), 0)); break;
@@ -516,6 +530,11 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 				case Type::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
 				case Type::CharArr: val = Value(std::vector<short>(val.Int(), (short)0)); break;
 				case Type::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
+				case Type::StructArr:
+				{
+					std::string structIdentifier = *readConstant().String();
+					val = Value(std::vector<Value::Struct>(val.Int(), structs->at(structIdentifier))); break;
+				}
 				}
 			}
 
@@ -562,6 +581,20 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			push(struc.VStruct()->fields.at(memberName));
 			break;
 		}
+		case op::GET_MEMBER_ARRAY_GLOBAL:
+		{
+			std::string varName = *readConstant().String();
+			std::string memberName = *readConstant().String();
+			int index = pop().Int();
+			uint8_t n = readByte();
+			Value struc = globals->at(varName).StructArr()->at(index);
+			for (int i = 0; i < n; i++)
+			{
+				struc = struc.VStruct()->fields.at(*readConstant().String());
+			}
+			push(struc.VStruct()->fields.at(memberName));
+			break;
+		}
 		case op::GET_LOCAL:
 		{
 			std::string varName = *readConstant().String();
@@ -576,6 +609,21 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			std::string memberName = *readConstant().String();
 			uint8_t n = readByte();
 			Value struc = locals.at(unit).at(varName);
+			for (int i = 0; i < n; i++)
+			{
+				struc = struc.VStruct()->fields.at(*readConstant().String());
+			}
+			push(struc.VStruct()->fields.at(memberName));
+			break;
+		}
+		case op::GET_MEMBER_ARRAY_LOCAL:
+		{
+			std::string varName = *readConstant().String();
+			int unit = readConstant().Int();
+			std::string memberName = *readConstant().String();
+			int index = pop().Int();
+			uint8_t n = readByte();
+			Value struc = locals.at(unit).at(varName).StructArr()->at(index);
 			for (int i = 0; i < n; i++)
 			{
 				struc = struc.VStruct()->fields.at(*readConstant().String());

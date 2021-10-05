@@ -227,14 +227,14 @@ public:
 				ostr << u8"[]";
 				return;
 			}
-			ostr << u8"[\"";
+			ostr << u8"[";
 			for (int i = 0; i < (int)sarr->size() - 1; i++)
 			{
 				Value(sarr->at(i)).print(ostr);
-				ostr << u8"\"; \"";
+				ostr << u8"; ";
 			}
 			Value(sarr->at(sarr->size() - 1)).print(ostr);
-			ostr << u8"\"]";
+			ostr << u8"]";
 			break;
 		}
 		default: ostr << "Invalid type!\n"; break;

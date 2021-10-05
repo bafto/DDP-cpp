@@ -88,7 +88,7 @@ Value Compiler::GetDefaultValue(ValueType type)
 	case Type::BoolArr: return Value(std::vector<bool>());
 	case Type::CharArr: return Value(std::vector<short>());
 	case Type::StringArr: return Value(std::vector<std::string>());
-	case Type::StructArr: return Value(std::vector<Value::Struct>());
+	case Type::StructArr: return Value(std::vector<Value::Struct>(1, Value::Struct{std::unordered_map<std::string, Value>(), type.structIdentifier}));
 	}
 	return Value();
 }
@@ -823,8 +823,30 @@ ValueType Compiler::memberAccess(bool canAssign, std::string memberName)
 		if (type.type != Type::StructArr)
 			error("'" + varName + "' ist kein Strukturen Array!");
 
+		ValueType expr = parsePrecedence(Precedence::Indexing);
+		if (expr.type != Type::Int)
+			error(u8"Du kannst nur ganze Zahlen zum indexieren benutzen!");
 
-		error(u8"Noch nicht implementiert!");
+		if (canAssign && match(TokenType::IST))
+		{
+			error(u8"Not implemented!");
+		}
+		else if (canAssign && match(TokenType::SIND))
+		{
+			error(u8"Not implemented!");
+		}
+		else
+		{
+			emitByte(local != -1 ? op::GET_MEMBER_ARRAY_LOCAL : op::GET_MEMBER_ARRAY_GLOBAL); emitShort(makeConstant(varName));
+			if (local != -1)
+				emitShort(makeConstant(local));
+			emitShort(makeConstant(memberName));
+			if (member.size() > UINT8_MAX)
+				error(u8"Du kannst Strukturen nicht tiefer als 255 mal verschachteln!");
+			emitByte((uint8_t)member.size());
+			for (auto it = member.rbegin(); it != member.rend(); it++)
+				emitShort(makeConstant(*it));
+		}
 	}
 	else
 	{
@@ -1214,6 +1236,8 @@ void Compiler::varDeclaration()
 	emitByte(defineCode); emitShort(makeConstant(Value(varName)));
 	if (defineCode == op::DEFINE_LOCAL)
 		emitShort(makeConstant(Value(unit)));
+	if (varType.type == Type::StructArr)
+		emitShort(makeConstant(varType.structIdentifier));
 }
 
 ValueType Compiler::tokenToValueType(TokenType type)

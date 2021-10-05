@@ -9,6 +9,8 @@ die Struktur Test3 beschreibt:
     Zahl z ist 1,
     Test2 Struktur t2 ist Test2{}
 
-die Test3 Strukturen tests sind [Test3{}; Test3{}].
 
-//schreibeZeile(y von t2 von tests an der Stelle 0).
+die Test3 Strukturen tests sind 0 Stück.
+schreibeZeile(tests).
+die Zahlen z sind 0 Stück.
+schreibeZeile(z).
