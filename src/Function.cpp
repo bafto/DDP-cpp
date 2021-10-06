@@ -47,8 +47,40 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 
 			for (int i = 0; i < n; i++)
 			{
-				Value field = pop();
-				std::string fieldName = *pop().String();
+				Value v1 = pop();
+				Value v2 = pop();
+
+				std::string fieldName;
+				Value field;
+
+				//handle struct default Values
+				if (v1.type() == Type::Int && isArr(structs->at(structType).fields.at(*v2.String()).type()))
+				{
+					if (v1.Int() <= 0)
+						throw runtime_error(u8"Ein Array muss mindestens 1 Element enthalten!");
+					switch (structs->at(structType).fields.at(*v2.String()).type())
+					{
+					case Type::IntArr: field = Value(std::vector<int>(v1.Int(), 0)); break;
+					case Type::DoubleArr: field = Value(std::vector<double>(v1.Int(), 0.0)); break;
+					case Type::BoolArr: field = Value(std::vector<bool>(v1.Int(), false)); break;
+					case Type::CharArr: field = Value(std::vector<short>(v1.Int(), (short)0)); break;
+					case Type::StringArr: field = Value(std::vector<std::string>(v1.Int(), "")); break;
+					}
+					fieldName = *v2.String();
+				}
+				else if (v1.type() == Type::String && v2.type() == Type::Int)
+				{
+					fieldName = *pop().String();
+					if(v2.Int() <= 0)
+						throw runtime_error(u8"Ein Array muss mindestens 1 Element enthalten!");
+					field = Value(std::vector<Value::Struct>(v2.Int(), structs->at(*v1.String()))); 
+				}
+				else
+				{
+					field = v1;
+					fieldName = *v2.String();
+				}
+
 				(*structs)[structType].fields[fieldName] = field;
 			}
 
@@ -642,6 +674,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			case Type::BoolArr: validateArray(globals->at(arrName).BoolArr(), index); push(Value(globals->at(arrName).BoolArr()->at(index))); break;
 			case Type::CharArr: validateArray(globals->at(arrName).CharArr(), index); push(Value(globals->at(arrName).CharArr()->at(index))); break;
 			case Type::StringArr: validateArray(globals->at(arrName).StringArr(), index); push(Value(globals->at(arrName).StringArr()->at(index))); break;
+			case Type::StructArr: validateArray(globals->at(arrName).StructArr(), index); push(Value(globals->at(arrName).StructArr()->at(index))); break;
 			default: throw runtime_error("Tried to index non-Array!");
 			}
 			break;
@@ -658,6 +691,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			case Type::BoolArr: validateArray(locals.at(unit).at(arrName).BoolArr(), index); push(Value(locals.at(unit).at(arrName).BoolArr()->at(index))); break;
 			case Type::CharArr: validateArray(locals.at(unit).at(arrName).CharArr(), index); push(Value(locals.at(unit).at(arrName).CharArr()->at(index))); break;
 			case Type::StringArr: validateArray(locals.at(unit).at(arrName).StringArr(), index); push(Value(locals.at(unit).at(arrName).StringArr()->at(index))); break;
+			case Type::StructArr: validateArray(locals.at(unit).at(arrName).StructArr(), index); push(Value(locals.at(unit).at(arrName).StructArr()->at(index))); break;
 			default: throw runtime_error("Tried to index non-Array!");
 			}
 			break;

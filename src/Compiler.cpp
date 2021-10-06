@@ -319,7 +319,7 @@ ValueType Compiler::character(bool canAssign)
 
 ValueType Compiler::arrLiteral(bool canAssign)
 {
-	if (match(TokenType::RIGHT_SQAREBRACKET))
+ 	if (match(TokenType::RIGHT_SQAREBRACKET))
 		error(u8"Eine Variablen Gruppe muss mindestens ein Element enthalten!");
 	ValueType arrType = expression();
 	int i = 1;
@@ -380,8 +380,30 @@ ValueType Compiler::Literal(bool canAssign)
 {
 	switch (preIt->type)
 	{
-	case TokenType::WAHR: emitConstant(Value(true)); return Type::Bool;
-	case TokenType::FALSCH: emitConstant(Value(false)); return Type::Bool;
+	case TokenType::WAHR:
+		__fallthrough;
+	case TokenType::FALSCH:
+	{
+		if (preIt->type == TokenType::WAHR)
+		{
+			if (match(TokenType::WENN))
+				return expression();
+			else
+				emitConstant(Value(true));
+		}
+		else if (preIt->type == TokenType::FALSCH)
+		{
+			if (match(TokenType::WENN))
+			{
+				ValueType expr = expression();
+				emitByte(op::NOT);
+				return expr;
+			}
+			else
+				emitConstant(Value(false));
+		}
+		return Type::Bool;
+	}
 	case TokenType::E: emitConstant(Value(2.71828182845904523536)); return Type::Double;
 	case TokenType::PI: emitConstant(Value(3.14159265358979323846)); return Type::Double;
 	case TokenType::PHI: emitConstant(Value(1.61803)); return Type::Double;
@@ -1202,6 +1224,7 @@ void Compiler::varDeclaration()
 		unit = currentScopeUnit->identifier;
 	}
 
+	bool stueck = false;
 	if (match(TokenType::IST))
 	{
 		//if the variable is an Array you must use 'sind' instead of 'ist'
@@ -1225,7 +1248,10 @@ void Compiler::varDeclaration()
 
 		ValueType rhs = expression();
 		if (rhs.type == Type::Int)
+		{
 			consume(TokenType::STUECK, u8"Beim definieren einer leeren Variablen Gruppe wurde 'Stück' erwartet!");
+			stueck = true;
+		}
 		if (rhs != varType && rhs.type != Type::Int)
 			error(u8"Der Zuweisungs-Typ und der Variablen-Typ stimmen nicht überein!");
 	}
@@ -1236,7 +1262,7 @@ void Compiler::varDeclaration()
 	emitByte(defineCode); emitShort(makeConstant(Value(varName)));
 	if (defineCode == op::DEFINE_LOCAL)
 		emitShort(makeConstant(Value(unit)));
-	if (varType.type == Type::StructArr)
+	if (varType.type == Type::StructArr && stueck)
 		emitShort(makeConstant(varType.structIdentifier));
 }
 
@@ -1408,8 +1434,14 @@ void Compiler::structDeclaration()
 		emitConstant(Value(preIt->literal));
 		if (!isArr(fieldType.type)) consume(TokenType::IST, "Es wurde 'ist' erwartet!");
 		else if (isArr(fieldType.type)) consume(TokenType::SIND, "Es wurde 'sind' erwartet!");
-		ValueType expr = expression();
-		if (expr != fieldType)
+		ValueType expr = fieldType.type == Type::Bool ? boolAssignement() : expression();
+		if (expr.type == Type::Int && isArr(fieldType))
+		{
+			consume(TokenType::STUECK, u8"Beim definieren eines leeren Arrays wurde 'Stück' erwartet!");
+			if (fieldType.type == Type::StructArr)
+				emitConstant(Value(fieldType.structIdentifier));
+		}
+		else if (expr != fieldType)
 			error(u8"Der Standard Wert stimmt nicht mit dem Typ des Feldes überein!");
 		i++;
 	} while (match(TokenType::COMMA) && currIt->depth != 0);
