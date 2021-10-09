@@ -834,7 +834,7 @@ ValueType Compiler::memberAccess(bool canAssign, std::string memberName)
 	else if (canAssign && match(TokenType::SIND))
 	{
 		if (!isArr(lastType))
-			error(u8"Bei einer Variablen zuweisung muss 'ist' anstatt 'sind' stehen!");
+			error(u8"Bei einer Variablen Zuweisung muss 'ist' anstatt 'sind' stehen!");
 		ValueType expr = expression();
 		if (expr != lastType)
 			error(u8"Falscher Zuweisungs Typ!");
@@ -851,11 +851,39 @@ ValueType Compiler::memberAccess(bool canAssign, std::string memberName)
 
 		if (canAssign && match(TokenType::IST))
 		{
-			error(u8"Not implemented!");
+			if (isArr(lastType))
+				error(u8"Bei einer Array Zuweisung muss 'sind' anstatt 'ist' stehen!");
+			ValueType expr = expression();
+			if (expr != lastType)
+				error(u8"Falscher Zuweisungs Typ!");
+
+			emitByte(local != -1 ? op::SET_MEMBER_ARRAY_LOCAL : op::SET_MEMBER_ARRAY_GLOBAL); emitShort(makeConstant(varName));
+			if (local != -1)
+				emitShort(makeConstant(local));
+			emitShort(makeConstant(memberName));
+			if (member.size() > UINT8_MAX)
+				error(u8"Du kannst Strukturen nicht tiefer als 255 mal verschachteln!");
+			emitByte((uint8_t)member.size());
+			for (auto it = member.rbegin(); it != member.rend(); it++)
+				emitShort(makeConstant(*it));
 		}
 		else if (canAssign && match(TokenType::SIND))
 		{
-			error(u8"Not implemented!");
+			if (!isArr(lastType))
+				error(u8"Bei einer Variablen Zuweisung muss 'ist' anstatt 'sind' stehen!");
+			ValueType expr = expression();
+			if (expr != lastType)
+				error(u8"Falscher Zuweisungs Typ!");
+
+			emitByte(local != -1 ? op::SET_MEMBER_ARRAY_LOCAL : op::SET_MEMBER_ARRAY_GLOBAL); emitShort(makeConstant(varName));
+			if (local != -1)
+				emitShort(makeConstant(local));
+			emitShort(makeConstant(memberName));
+			if (member.size() > UINT8_MAX)
+				error(u8"Du kannst Strukturen nicht tiefer als 255 mal verschachteln!");
+			emitByte((uint8_t)member.size());
+			for (auto it = member.rbegin(); it != member.rend(); it++)
+				emitShort(makeConstant(*it));
 		}
 		else
 		{

@@ -551,7 +551,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			std::string varName = *readConstant().String();
 			Value val = pop();
 			Type varType = globals->at(varName).type();
-			if ((int)varType >= (int)Type::IntArr && (int)varType <= (int)Type::StructArr && val.type() == Type::Int)
+			if (isArr(varType) && val.type() == Type::Int)
 			{
 				if (val.Int() <= 0)
 					throw runtime_error(u8"Ein Array muss mindestens 1 Element enthalten!");
@@ -579,7 +579,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			int unit = readConstant().Int();
 			Value val = pop();
 			Type varType = locals.at(unit).at(varName).type();
-			if ((int)varType >= (int)Type::IntArr && (int)varType <= (int)Type::StringArr && val.type() == Type::Int)
+			if (isArr(varType) && val.type() == Type::Int)
 			{
 				switch (varType)
 				{
@@ -588,6 +588,11 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 				case Type::BoolArr: val = Value(std::vector<bool>(val.Int(), false)); break;
 				case Type::CharArr: val = Value(std::vector<short>(val.Int(), (short)0)); break;
 				case Type::StringArr: val = Value(std::vector<std::string>(val.Int(), "")); break;
+				case Type::StructArr:
+				{
+					std::string structIdentifier = *readConstant().String();
+					val = Value(std::vector<Value::Struct>(val.Int(), structs->at(structIdentifier))); break;
+				}
 				}
 			}
 
@@ -715,6 +720,21 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			struc.VStruct()->fields[memberName] = peek(0);
 			break;
 		}
+		case op::SET_MEMBER_ARRAY_GLOBAL:
+		{
+			std::string varName = *readConstant().String();
+			std::string memberName = *readConstant().String();
+			Value val = pop();
+			int index = peek(0).Int();
+			uint8_t n = readByte();
+			Value::Struct& struc = (*globals)[varName].StructArr()->operator[](index);
+			for (int i = 0; i < n; i++)
+			{
+				struc = *(struc.fields[*readConstant().String()].VStruct());
+			}
+			struc.fields[memberName] = val;
+			break;
+		}
 		case op::SET_LOCAL:
 		{
 			std::string varName = *readConstant().String();
@@ -736,6 +756,22 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			struc.VStruct()->fields[memberName] = peek(0);
 			break;
 		}
+		case op::SET_MEMBER_ARRAY_LOCAL:
+		{
+			std::string varName = *readConstant().String();
+			int unit = readConstant().Int();
+			std::string memberName = *readConstant().String();
+			Value val = pop();
+			int index = peek(0).Int();
+			uint8_t n = readByte();
+			Value::Struct& struc = (locals[unit])[varName].StructArr()->operator[](index);
+			for (int i = 0; i < n; i++)
+			{
+				struc = *(struc.fields[*readConstant().String()].VStruct());
+			}
+			struc.fields[memberName] = val;
+			break;
+		}
 		case op::SET_ARRAY_ELEMENT:
 		{
 			std::string arrName = *readConstant().String();
@@ -748,6 +784,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			case Type::BoolArr: validateArray(globals->at(arrName).BoolArr(), index); (*(globals->at(arrName).BoolArr()))[index] = val.Bool(); break;
 			case Type::CharArr: validateArray(globals->at(arrName).CharArr(), index); (*(globals->at(arrName).CharArr()))[index] = val.Char(); break;
 			case Type::StringArr: validateArray(globals->at(arrName).StringArr(), index); (*(globals->at(arrName).StringArr()))[index] = *val.String(); break;
+			case Type::StructArr: validateArray(globals->at(arrName).StructArr(), index); (*(globals->at(arrName).StructArr()))[index] = *val.VStruct(); break;
 			default: throw runtime_error("Tried to index non-Array!");
 			}
 			break;
@@ -765,6 +802,7 @@ Value Function::run(std::unordered_map<std::string, Value>* globals,
 			case Type::BoolArr: validateArray(locals.at(unit).at(arrName).BoolArr(), index); (*(locals.at(unit).at(arrName).BoolArr()))[index] = val.Bool(); break;
 			case Type::CharArr: validateArray(locals.at(unit).at(arrName).CharArr(), index); (*(locals.at(unit).at(arrName).CharArr()))[index] = val.Char(); break;
 			case Type::StringArr: validateArray(locals.at(unit).at(arrName).StringArr(), index); (*(locals.at(unit).at(arrName).StringArr()))[index] = *val.String(); break;
+			case Type::StructArr: validateArray(locals.at(unit).at(arrName).StructArr(), index); (*(locals.at(unit).at(arrName).StructArr()))[index] = *val.VStruct(); break;
 			default: throw runtime_error("Tried to index non-Array!");
 			}
 			break;
