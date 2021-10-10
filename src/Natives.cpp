@@ -567,30 +567,30 @@ namespace Natives
 
 		std::string wndTitle = *args.at(1).String();
 
-		gfx::wndSize = sf::Vector2i(size.at(0), size.at(1));
+		Gfx::gfx->wndSize = sf::Vector2i(size.at(0), size.at(1));
 
-		delete gfx::wnd;
-		gfx::wnd = new sf::RenderWindow(sf::VideoMode(gfx::wndSize.x, gfx::wndSize.y), wndTitle, sf::Style::Titlebar | sf::Style::Close);
-		gfx::wnd->setFramerateLimit(140);
-		gfx::pixels.create(gfx::wndSize.x, gfx::wndSize.y);
-		gfx::tex.create(gfx::wndSize.x, gfx::wndSize.y);
-		gfx::sprite.setTexture(gfx::tex);
+		delete Gfx::gfx->wnd;
+		Gfx::gfx->wnd = new sf::RenderWindow(sf::VideoMode(Gfx::gfx->wndSize.x, Gfx::gfx->wndSize.y), wndTitle, sf::Style::Titlebar | sf::Style::Close);
+		Gfx::gfx->wnd->setFramerateLimit(140);
+		Gfx::gfx->pixels.create(Gfx::gfx->wndSize.x, Gfx::gfx->wndSize.y);
+		Gfx::gfx->tex.create(Gfx::gfx->wndSize.x, Gfx::gfx->wndSize.y);
+		Gfx::gfx->sprite.setTexture(Gfx::gfx->tex);
 
 		return Value();
 	}
 
 	Value SchliesseFenster(std::vector<Value> args)
 	{
-		if (gfx::wnd != nullptr)
-			gfx::wnd->close();
+		if (Gfx::gfx->wnd != nullptr)
+			Gfx::gfx->wnd->close();
 		return Value();
 	}
 
 	Value FensterOffen(std::vector<Value> args)
 	{
-		if (gfx::wnd == nullptr)
+		if (Gfx::gfx->wnd == nullptr)
 			return Value(false);
-		return Value(gfx::wnd->isOpen());
+		return Value(Gfx::gfx->wnd->isOpen());
 	}
 
 	Value MaleRechteck(std::vector<Value> args)
@@ -607,9 +607,9 @@ namespace Natives
 		{
 			for (int y = pos.at(1); y < pos.at(1) + size.at(1); y++)
 			{
-				if (x >= 0 && x <= gfx::wndSize.x - 1 &&
-					y >= 0 && y <= gfx::wndSize.y - 1)
-					gfx::pixels.setPixel(x, y, sf::Color(color.at(0), color.at(1), color.at(2)));
+				if (x >= 0 && x <= Gfx::gfx->wndSize.x - 1 &&
+					y >= 0 && y <= Gfx::gfx->wndSize.y - 1)
+					Gfx::gfx->pixels.setPixel(x, y, sf::Color(color.at(0), color.at(1), color.at(2)));
 			}
 		}
 
@@ -620,38 +620,38 @@ namespace Natives
 	{
 		std::string key = *args.at(0).String();
 
-		if (gfx::keyMap.count(key) == 0)
+		if (Gfx::gfx->keyMap.count(key) == 0)
 			return Value(false);
 
-		return Value(sf::Keyboard::isKeyPressed(gfx::keyMap.at(key)));
+		return Value(sf::Keyboard::isKeyPressed(Gfx::gfx->keyMap.at(key)));
 	}
 
 	Value AktualisiereFenster(std::vector<Value> args)
 	{
-		if (gfx::wnd == nullptr)
+		if (Gfx::gfx->wnd == nullptr)
 			return Value();
 
 		sf::Event e;
-		while (gfx::wnd->pollEvent(e))
+		while (Gfx::gfx->wnd->pollEvent(e))
 		{
 			switch (e.type)
 			{
-			case sf::Event::Closed: gfx::wnd->close();
+			case sf::Event::Closed: Gfx::gfx->wnd->close();
 			}
 		}
 
-		gfx::wnd->clear();
+		Gfx::gfx->wnd->clear();
 
-		gfx::tex.loadFromImage(gfx::pixels);
-		gfx::wnd->draw(gfx::sprite);
+		Gfx::gfx->tex.loadFromImage(Gfx::gfx->pixels);
+		Gfx::gfx->wnd->draw(Gfx::gfx->sprite);
 
-		gfx::wnd->display();
+		Gfx::gfx->wnd->display();
 
-		for (int x = 0; x < gfx::wndSize.x; x++)
+		for (int x = 0; x < Gfx::gfx->wndSize.x; x++)
 		{
-			for (int y = 0; y < gfx::wndSize.y; y++)
+			for (int y = 0; y < Gfx::gfx->wndSize.y; y++)
 			{
-				gfx::pixels.setPixel(x, y, sf::Color::White);
+				Gfx::gfx->pixels.setPixel(x, y, sf::Color::White);
 			}
 		}
 
