@@ -12,15 +12,16 @@ public:
 	runtime_error(std::string msg) : std::exception(msg.c_str()) {};
 };
 
-//namespace for global variables that are used for graphics
-namespace gfx
+//sfml doesn't like static stuff
+class Gfx
 {
-	static sf::RenderWindow* wnd = nullptr;
-	static sf::Vector2i wndSize;
+public:
+	sf::RenderWindow* wnd = nullptr;
+	sf::Vector2i wndSize;
 
-	static sf::Image pixels;
-	static sf::Texture tex;
-	static sf::Sprite sprite;
+	sf::Image pixels;
+	sf::Texture tex;
+	sf::Sprite sprite;
 
 	static inline std::unordered_map<std::string, sf::Keyboard::Key> keyMap = std::unordered_map<std::string, sf::Keyboard::Key>{
 		{"A", sf::Keyboard::Key::A},
@@ -82,7 +83,9 @@ namespace gfx
 		{"F11", sf::Keyboard::F11},
 		{"F12", sf::Keyboard::F12},
 	};
-}
+
+	static inline Gfx* gfx = nullptr;
+};
 
 namespace Natives
 {

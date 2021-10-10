@@ -17,8 +17,10 @@ InterpretResult VirtualMachine::run()
 			Compiler compiler(filePath, &globals, &functions, &structs);
 			if (!compiler.compile()) return InterpretResult::CompileTimeError;
 		}
+		Gfx gfx;
+		Gfx::gfx = &gfx;
 		functions.at("").run(&globals, &functions, &structs);
-		delete gfx::wnd;
+		delete gfx.wnd;
 	}
 	catch (runtime_error& err)
 	{
