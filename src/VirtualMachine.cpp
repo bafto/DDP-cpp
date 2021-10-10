@@ -18,6 +18,7 @@ InterpretResult VirtualMachine::run()
 			if (!compiler.compile()) return InterpretResult::CompileTimeError;
 		}
 		functions.at("").run(&globals, &functions, &structs);
+		delete gfx::wnd;
 	}
 	catch (runtime_error& err)
 	{

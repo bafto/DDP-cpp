@@ -2,11 +2,87 @@
 
 #include "Value.h"
 
+#include "SFML/System.hpp"
+#include "SFML/Window.hpp"
+#include "SFML/Graphics.hpp"
+
 class runtime_error : public std::exception
 {
 public:
 	runtime_error(std::string msg) : std::exception(msg.c_str()) {};
 };
+
+//namespace for global variables that are used for graphics
+namespace gfx
+{
+	static sf::RenderWindow* wnd = nullptr;
+	static sf::Vector2i wndSize;
+
+	static sf::Image pixels;
+	static sf::Texture tex;
+	static sf::Sprite sprite;
+
+	static inline std::unordered_map<std::string, sf::Keyboard::Key> keyMap = std::unordered_map<std::string, sf::Keyboard::Key>{
+		{"A", sf::Keyboard::Key::A},
+		{"B", sf::Keyboard::Key::B},
+		{"C", sf::Keyboard::Key::C},
+		{"D", sf::Keyboard::Key::D},
+		{"E", sf::Keyboard::Key::E},
+		{"F", sf::Keyboard::Key::F},
+		{"G", sf::Keyboard::Key::G},
+		{"H", sf::Keyboard::Key::H},
+		{"I", sf::Keyboard::Key::I},
+		{"J", sf::Keyboard::Key::J},
+		{"K", sf::Keyboard::Key::K},
+		{"L", sf::Keyboard::Key::L},
+		{"M", sf::Keyboard::Key::M},
+		{"N", sf::Keyboard::Key::N},
+		{"O", sf::Keyboard::Key::O},
+		{"P", sf::Keyboard::Key::P},
+		{"Q", sf::Keyboard::Key::Q},
+		{"R", sf::Keyboard::Key::R},
+		{"S", sf::Keyboard::Key::S},
+		{"T", sf::Keyboard::Key::T},
+		{"U", sf::Keyboard::Key::U},
+		{"V", sf::Keyboard::Key::V},
+		{"W", sf::Keyboard::Key::W},
+		{"X", sf::Keyboard::Key::X},
+		{"Y", sf::Keyboard::Key::Y},
+		{"Z", sf::Keyboard::Key::Z},
+		{"Up", sf::Keyboard::Key::Up},
+		{"Down", sf::Keyboard::Key::Down},
+		{"Left", sf::Keyboard::Key::Left},
+		{"Right", sf::Keyboard::Key::Right},
+		{"0", sf::Keyboard::Key::Num0},
+		{"1", sf::Keyboard::Key::Num1},
+		{"2", sf::Keyboard::Key::Num2},
+		{"3", sf::Keyboard::Key::Num3},
+		{"4", sf::Keyboard::Key::Num4},
+		{"5", sf::Keyboard::Key::Num5},
+		{"6", sf::Keyboard::Key::Num6},
+		{"7", sf::Keyboard::Key::Num7},
+		{"8", sf::Keyboard::Key::Num8},
+		{"9", sf::Keyboard::Key::Num9},
+		{"Shift", sf::Keyboard::LShift},
+		{"STRG", sf::Keyboard::LControl},
+		{"Enter", sf::Keyboard::Enter},
+		{"Backspace", sf::Keyboard::Backspace},
+		{"Esc", sf::Keyboard::Escape},
+		{"Tab", sf::Keyboard::Tab},
+		{"F1", sf::Keyboard::F1},
+		{"F2", sf::Keyboard::F2},
+		{"F3", sf::Keyboard::F3},
+		{"F4", sf::Keyboard::F4},
+		{"F5", sf::Keyboard::F5},
+		{"F6", sf::Keyboard::F6},
+		{"F7", sf::Keyboard::F7},
+		{"F8", sf::Keyboard::F8},
+		{"F9", sf::Keyboard::F9},
+		{"F10", sf::Keyboard::F10},
+		{"F11", sf::Keyboard::F11},
+		{"F12", sf::Keyboard::F12},
+	};
+}
 
 namespace Natives
 {
@@ -76,4 +152,11 @@ namespace Natives
 	Value ZufaelligeZahlNative(std::vector<Value> args);
 	Value ZufaelligeKommazahlNative(std::vector<Value> args);
 
+	//graphics functions
+	Value ErstelleFenster(std::vector<Value> args);
+	Value SchliesseFenster(std::vector<Value> args);
+	Value FensterOffen(std::vector<Value> args);
+	Value MaleRechteck(std::vector<Value> args);
+	Value TasteGedrueckt(std::vector<Value> args);
+	Value AktualisiereFenster(std::vector<Value> args);
 }

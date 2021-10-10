@@ -142,6 +142,14 @@ void Compiler::makeNatives()
 	addNative(u8"ZufaelligeZahl", Type::Int, { ty::Int, ty::Int }, &Natives::ZufaelligeZahlNative);
 	addNative(u8"ZufälligeKommazahl", Type::Double, { ty::Double, ty::Double }, &Natives::ZufaelligeKommazahlNative);
 	addNative(u8"ZufaelligeKommazahl", Type::Double, { ty::Double, ty::Double }, &Natives::ZufaelligeKommazahlNative);
+
+	//graphics natives
+	addNative(u8"ErstelleFenster", Type::None, { ty::IntArr, ty::String }, &Natives::ErstelleFenster);
+	addNative(u8"SchließeFenster", Type::None, {}, &Natives::SchliesseFenster);
+	addNative(u8"FensterOffen", Type::Bool, {}, &Natives::FensterOffen);
+	addNative(u8"MaleRechteck", Type::None, { ty::IntArr, ty::IntArr, ty::IntArr }, &Natives::MaleRechteck);
+	addNative(u8"TasteGedrückt", Type::Bool, { ty::String }, &Natives::TasteGedrueckt);
+	addNative(u8"AktualisiereFenster", Type::None, {}, &Natives::AktualisiereFenster);
 }
 
 void Compiler::addNative(std::string name, Type returnType, std::vector<Natives::CombineableValueType> args, Function::NativePtr native)

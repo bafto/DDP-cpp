@@ -556,4 +556,105 @@ namespace Natives
 		return Value(uni(rng));
 	}
 
+
+	//graphics functions
+
+	Value ErstelleFenster(std::vector<Value> args)
+	{
+		std::vector<int> size = *args.at(0).IntArr();
+		if (size.size() < 2) throw runtime_error(u8"Beim erstellen eines Fensters müssen 2 Werte für die Größe vorhanden sein!");
+		if (size.at(0) < 0 || size.at(1) < 0) throw runtime_error(u8"Ein Fenster kann keine negative Größe haben!");
+
+		std::string wndTitle = *args.at(1).String();
+
+		gfx::wndSize = sf::Vector2i(size.at(0), size.at(1));
+
+		delete gfx::wnd;
+		gfx::wnd = new sf::RenderWindow(sf::VideoMode(gfx::wndSize.x, gfx::wndSize.y), wndTitle, sf::Style::Titlebar | sf::Style::Close);
+		gfx::wnd->setFramerateLimit(140);
+		gfx::pixels.create(gfx::wndSize.x, gfx::wndSize.y);
+		gfx::tex.create(gfx::wndSize.x, gfx::wndSize.y);
+		gfx::sprite.setTexture(gfx::tex);
+
+		return Value();
+	}
+
+	Value SchliesseFenster(std::vector<Value> args)
+	{
+		if (gfx::wnd != nullptr)
+			gfx::wnd->close();
+		return Value();
+	}
+
+	Value FensterOffen(std::vector<Value> args)
+	{
+		if (gfx::wnd == nullptr)
+			return Value(false);
+		return Value(gfx::wnd->isOpen());
+	}
+
+	Value MaleRechteck(std::vector<Value> args)
+	{
+		std::vector<int> pos = *args.at(0).IntArr();
+		std::vector<int> size = *args.at(1).IntArr();
+		std::vector<int> color = *args.at(2).IntArr();
+
+		if (pos.size() < 2) throw runtime_error(u8"Die Position eines Rechtecks muss mindestens 2 Werte enthalten!");
+		if (size.size() < 2) throw runtime_error(u8"Die Größe eines Rechtecks muss mindestens 2 Werte enthalten!");
+		if (color.size() < 3) throw runtime_error(u8"Eine Farbe muss mindestens 3 Werte enthalten!");
+
+		for (int x = pos.at(0); x < pos.at(0) + size.at(0); x++)
+		{
+			for (int y = pos.at(1); y < pos.at(1) + size.at(1); y++)
+			{
+				if (x >= 0 && x <= gfx::wndSize.x - 1 &&
+					y >= 0 && y <= gfx::wndSize.y - 1)
+					gfx::pixels.setPixel(x, y, sf::Color(color.at(0), color.at(1), color.at(2)));
+			}
+		}
+
+		return Value();
+	}
+
+	Value TasteGedrueckt(std::vector<Value> args)
+	{
+		std::string key = *args.at(0).String();
+
+		if (gfx::keyMap.count(key) == 0)
+			return Value(false);
+
+		return Value(sf::Keyboard::isKeyPressed(gfx::keyMap.at(key)));
+	}
+
+	Value AktualisiereFenster(std::vector<Value> args)
+	{
+		if (gfx::wnd == nullptr)
+			return Value();
+
+		sf::Event e;
+		while (gfx::wnd->pollEvent(e))
+		{
+			switch (e.type)
+			{
+			case sf::Event::Closed: gfx::wnd->close();
+			}
+		}
+
+		gfx::wnd->clear();
+
+		gfx::tex.loadFromImage(gfx::pixels);
+		gfx::wnd->draw(gfx::sprite);
+
+		gfx::wnd->display();
+
+		for (int x = 0; x < gfx::wndSize.x; x++)
+		{
+			for (int y = 0; y < gfx::wndSize.y; y++)
+			{
+				gfx::pixels.setPixel(x, y, sf::Color::White);
+			}
+		}
+
+		return Value();
+	}
 }
