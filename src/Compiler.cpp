@@ -1578,7 +1578,7 @@ void Compiler::forStatement()
 	emitByte(op::FORPREP);
 	int conditionLoop = static_cast<int>(currentChunk()->bytes.size());
 	
-	emitBytes(op::GET_LOCAL, localNameConstant);
+	emitByte(op::GET_LOCAL); emitShort(localNameConstant);
 	emitShort(unitConstant);
 
 	expr = expression();
@@ -1599,11 +1599,11 @@ void Compiler::forStatement()
 		consume(TokenType::SCHRITTGROESSE, u8"Nach 'mit' in einer für Anweisung wird 'schrittgröße' erwartet!");
 		expr = expression();
 		if (expr.type != Type::Int) error(u8"Eine für Anweisung kann nur durch Zahlen iterieren!");
-		emitBytes(op::GET_LOCAL, localNameConstant);
+		emitByte(op::GET_LOCAL); emitShort(localNameConstant);
 		emitShort(unitConstant);
 		emitByte(op::ADD);
 
-		emitBytes(op::SET_LOCAL, localNameConstant);
+		emitByte(op::SET_LOCAL); emitShort(localNameConstant);
 		emitShort(unitConstant);
 		emitByte(op::POP);
 
@@ -1612,10 +1612,10 @@ void Compiler::forStatement()
 	else
 	{
 		emitConstant(Value(1));
-		emitBytes(op::GET_LOCAL, localNameConstant);
+		emitByte(op::GET_LOCAL); emitShort(localNameConstant);
 		emitShort(unitConstant);
 		emitByte(op::ADD);
-		emitBytes(op::SET_LOCAL, localNameConstant);
+		emitByte(op::SET_LOCAL); emitShort(localNameConstant);
 		emitShort(unitConstant);
 		emitByte(op::POP);
 
