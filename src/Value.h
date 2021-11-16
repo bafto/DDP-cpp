@@ -105,6 +105,11 @@ public:
 		case Type::Int: ostr << this->Int(); break;
 		case Type::Double:
 		{
+			if (std::isnan(this->Double()))
+			{
+				ostr << u8"NaN";
+				break;
+			}
 			std::string str = std::to_string(this->Double());
 			std::replace(str.begin(), str.end(), '.', ',');
 			ostr << str;
@@ -140,9 +145,24 @@ public:
 			ostr << u8"[";
 			for (int i = 0; i < (int)vec->size() - 1; i++)
 			{
-				ostr << vec->at(i) << u8"; ";
+				if (std::isnan(vec->at(i)))
+				{
+					ostr << u8"NaN";
+					continue;
+				}
+				std::string str = std::to_string(vec->at(i));
+				std::replace(str.begin(), str.end(), '.', ',');
+				ostr << str;
 			}
 			ostr << vec->at(vec->size() - 1) << u8"]";
+			if (std::isnan(vec->at(vec->size() - 1)))
+			{
+				ostr << u8"NaN";
+				break;
+			}
+			std::string str = std::to_string(vec->at(vec->size() - 1));
+			std::replace(str.begin(), str.end(), '.', ',');
+			ostr << str << u8"]";
 			break;
 		}
 		case Type::BoolArr:
