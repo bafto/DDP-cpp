@@ -110,8 +110,9 @@ public:
 				ostr << u8"NaN";
 				break;
 			}
-			std::string str = std::to_string(this->Double());
+			std::string str = to_string_precision(this->Double(), 15);
 			std::replace(str.begin(), str.end(), '.', ',');
+			str.erase(str.find_last_not_of("0,") + 1);
 			ostr << str;
 			break;
 		}
@@ -150,18 +151,19 @@ public:
 					ostr << u8"NaN";
 					continue;
 				}
-				std::string str = std::to_string(vec->at(i));
+				std::string str = to_string_precision(vec->at(i), 15);
 				std::replace(str.begin(), str.end(), '.', ',');
-				ostr << str;
+				str.erase(str.find_last_not_of("0,") + 1);
+				ostr << str << u8"; ";
 			}
-			ostr << vec->at(vec->size() - 1) << u8"]";
 			if (std::isnan(vec->at(vec->size() - 1)))
 			{
 				ostr << u8"NaN";
 				break;
 			}
-			std::string str = std::to_string(vec->at(vec->size() - 1));
+			std::string str = to_string_precision(vec->at(vec->size() - 1), 15);
 			std::replace(str.begin(), str.end(), '.', ',');
+			str.erase(str.find_last_not_of("0,") + 1);
 			ostr << str << u8"]";
 			break;
 		}
@@ -274,6 +276,8 @@ public:
 	std::vector<short>*& CharArr();
 	std::vector<std::string>*& StringArr();
 	std::vector<Struct>*& StructArr();
+private:
+	std::string to_string_precision(const double& d, const size_t& precision);
 private:
 	std::variant<
 		std::monostate,

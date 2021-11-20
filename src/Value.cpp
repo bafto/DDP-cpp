@@ -1,4 +1,5 @@
 #include "Value.h"
+#include <sstream>
 
 bool isArr(Type t)
 {
@@ -301,4 +302,12 @@ Value::Struct*& Value::VStruct()
 std::vector<Value::Struct>*& Value::StructArr()
 {
 	return std::get<std::vector<Struct>*>(_val);
+}
+
+std::string Value::to_string_precision(const double& d, const size_t& precision)
+{
+	std::ostringstream out;
+	out.precision(precision);
+	out << std::fixed << d;
+	return out.str();
 }

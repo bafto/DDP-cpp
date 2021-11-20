@@ -1,16 +1,14 @@
-die Struktur Test beschreibt:
-    Zahl x ist 69
-
-die Struktur Test2 beschreibt:
-    Text y ist "hi",
-    Test Struktur t ist Test{}
-
-die Struktur Test3 beschreibt:
-    Zahl z ist 1,
-    Test2 Struktur t2 ist Test2{}
-
-
-die Test3 Strukturen tests sind 0 Stück.
-schreibeZeile(tests).
-die Zahlen z sind 0 Stück.
-schreibeZeile(z).
+schreibeZeile(1 plus 1). //expect 2
+schreibeZeile(3 mal 5). //expect 15
+schreibeZeile(8 durch 2). //expect 4
+schreibeZeile(5 minus 3). //expect 2
+schreibeZeile(3 hoch 3). //expect 27
+schreibeZeile(40 modulo 2). //expect 0
+schreibeZeile(2. wurzel von 9). //expect 3
+schreibeZeile(3. wurzel von 27). //expect 3
+schreibeZeile(pi). //expect 3,141592653589793
+schreibeZeile(e). //expect 2,718281828459045
+schreibeZeile(tau). //expect 6,283185307179586
+schreibeZeile(phi). //expect 1,6180339887
+schreibeZeile(ln 2). //expect 0,6931471805599453
+schreibeZeile(Betrag von -2). //expect 2
